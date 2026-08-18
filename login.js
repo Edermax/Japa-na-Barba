@@ -5,6 +5,7 @@ const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const loginMessage = document.getElementById("loginMessage");
 const submitButton = loginForm.querySelector('button[type="submit"]');
+const forgotPasswordButton = document.getElementById("forgotPasswordButton");
 
 const ROLE_LABELS = {
     owner: "Proprietário",
@@ -88,6 +89,44 @@ loginForm.addEventListener("submit", async (event) => {
     loginMessage.textContent = "Login realizado com sucesso.";
     loginMessage.className = "login-message success";
     window.location.replace(destinationFor(profile.role));
+});
+
+forgotPasswordButton.addEventListener("click", async () => {
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (!email) {
+        loginMessage.textContent = "Informe seu e-mail para recuperar a senha.";
+        loginMessage.className = "login-message error";
+        emailInput.focus();
+        return;
+    }
+
+    forgotPasswordButton.disabled = true;
+    loginMessage.textContent = "Enviando link de recuperação...";
+    loginMessage.className = "login-message";
+
+    const redirectTo = new URL(
+        "update-password.html",
+        window.location.href
+    ).href;
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(
+        email,
+        { redirectTo }
+    );
+
+    if (error) {
+        loginMessage.textContent =
+            "Não foi possível enviar agora. Aguarde um minuto e tente novamente.";
+        loginMessage.className = "login-message error";
+        forgotPasswordButton.disabled = false;
+        return;
+    }
+
+    loginMessage.textContent =
+        "Enviamos um novo link para seu e-mail. Verifique também o spam.";
+    loginMessage.className = "login-message success";
+    forgotPasswordButton.disabled = false;
 });
 
 restoreExistingSession();
