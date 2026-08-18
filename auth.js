@@ -1,110 +1,100 @@
-/* =========================================================
-   JAPA NA BARBA - CONTROLE DE SESSÃO E PERMISSÕES
-   ========================================================= */
+/* JAPA NA BARBA - SESSÃO E PERMISSÕES COM SUPABASE */
 
-// Confere se existe uma sessão válida.
-const isAuthenticated =
-    sessionStorage.getItem("japaAuth") === "true";
+const ROLE_LABELS = {
+    owner: "Proprietário",
+    admin: "Administrador",
+    employee: "Funcionário",
+    client: "Cliente"
+};
 
-const loggedRole =
-    sessionStorage.getItem("japaRole");
-
-// Cliente não deve entrar no painel administrativo.
-if (!isAuthenticated) {
-    window.location.href = "login.html";
-} else if (loggedRole === "client") {
-    window.location.href = "cliente.html";
+function waitForDocument() {
+    if (document.readyState !== "loading") return Promise.resolve();
+    return new Promise((resolve) => {
+        document.addEventListener("DOMContentLoaded", resolve, { once: true });
+    });
 }
 
-// Recupera dados da sessão.
-const loggedUserName =
-    sessionStorage.getItem("japaUserName") || "Usuário";
+function saveVerifiedSession(user, profile) {
+    sessionStorage.setItem("japaAuth", "true");
+    sessionStorage.setItem("japaRole", profile.role);
+    sessionStorage.setItem("japaUserName", profile.full_name);
+    sessionStorage.setItem("japaUserRole", ROLE_LABELS[profile.role] || "Usuário");
+    sessionStorage.setItem("japaUserEmail", user.email || "");
+    sessionStorage.setItem("japaUserId", user.id);
+    sessionStorage.setItem("japaBarbershopId", profile.barbershop_id);
+}
 
-const loggedUserRole =
-    sessionStorage.getItem("japaUserRole") || "Usuário";
+function renderUser(profile) {
+    const nameElement = document.getElementById("loggedUserName");
+    const roleElement = document.getElementById("loggedUserRole");
+    const avatar = document.querySelector(".avatar");
 
-document.addEventListener("DOMContentLoaded", () => {
+    if (nameElement) nameElement.textContent = profile.full_name;
+    if (roleElement) roleElement.textContent = ROLE_LABELS[profile.role] || "Usuário";
 
-    const nameElement =
-        document.getElementById("loggedUserName");
-
-    const roleElement =
-        document.getElementById("loggedUserRole");
-
-    const logoutButton =
-        document.getElementById("logoutButton");
-
-    const avatar =
-        document.querySelector(".avatar");
-
-    // Exibe nome e cargo.
-    if (nameElement) {
-        nameElement.textContent = loggedUserName;
-    }
-
-    if (roleElement) {
-        roleElement.textContent = loggedUserRole;
-    }
-
-    // Cria as iniciais do usuário.
     if (avatar) {
-        avatar.textContent =
-            loggedUserName
-                .split(" ")
-                .map((part) => part[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase();
+        avatar.textContent = profile.full_name
+            .split(" ")
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
     }
 
-    // =====================================================
-    // PERMISSÕES DO FUNCIONÁRIO
-    // =====================================================
-    if (loggedRole === "employee") {
-
-        // Funcionário não vê módulos administrativos sensíveis.
+    if (profile.role === "employee") {
         document
-            .querySelectorAll(
-                '[data-section="financeiro"], ' +
-                '[data-section="configuracoes"]'
-            )
-            .forEach((item) => {
-                item.classList.add("hidden");
-            });
+            .querySelectorAll('[data-section="financeiro"], [data-section="configuracoes"]')
+            .forEach((item) => item.classList.add("hidden"));
 
-        // Identifica visualmente o painel.
-        const eyebrow =
-            document.querySelector(".topbar .eyebrow");
+        const eyebrow = document.querySelector(".topbar .eyebrow");
+        if (eyebrow) eyebrow.textContent = "PAINEL DO FUNCIONÁRIO";
 
-        if (eyebrow) {
-            eyebrow.textContent = "PAINEL DO FUNCIONÁRIO";
-        }
-
-        // Botões administrativos rápidos são escondidos.
         document
-            .querySelectorAll(
-                "#quickAddProfessional, " +
-                "#quickFinancial"
-            )
-            .forEach((button) => {
-                button.classList.add("hidden");
-            });
+            .querySelectorAll("#quickAddProfessional, #quickFinancial")
+            .forEach((button) => button.classList.add("hidden"));
+    }
+}
+
+async function initializeAuthenticatedPage() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        sessionStorage.clear();
+        window.location.replace("login.html");
+        return;
     }
 
-    // =====================================================
-    // LOGOUT
-    // =====================================================
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("barbershop_id, full_name, role, active")
+        .eq("id", session.user.id)
+        .single();
+
+    if (error || !profile?.active) {
+        await supabaseClient.auth.signOut();
+        sessionStorage.clear();
+        window.location.replace("login.html");
+        return;
+    }
+
+    saveVerifiedSession(session.user, profile);
+
+    if (profile.role === "client") {
+        window.location.replace("cliente.html");
+        return;
+    }
+
+    await waitForDocument();
+    renderUser(profile);
+
+    const logoutButton = document.getElementById("logoutButton");
     if (logoutButton) {
-        logoutButton.addEventListener("click", () => {
-
-            // Limpa a sessão por completo.
-            sessionStorage.removeItem("japaAuth");
-            sessionStorage.removeItem("japaRole");
-            sessionStorage.removeItem("japaUserName");
-            sessionStorage.removeItem("japaUserRole");
-            sessionStorage.removeItem("japaUserEmail");
-
-            window.location.href = "login.html";
+        logoutButton.addEventListener("click", async () => {
+            await supabaseClient.auth.signOut();
+            sessionStorage.clear();
+            window.location.replace("login.html");
         });
     }
-});
+}
+
+initializeAuthenticatedPage();

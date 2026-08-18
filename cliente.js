@@ -418,14 +418,10 @@ clientAppointmentsList.addEventListener(
 // =========================================================
 clientLogout.addEventListener(
     "click",
-    () => {
-        sessionStorage.removeItem("japaAuth");
-        sessionStorage.removeItem("japaRole");
-        sessionStorage.removeItem("japaUserName");
-        sessionStorage.removeItem("japaUserRole");
-        sessionStorage.removeItem("japaUserEmail");
-
-        window.location.href = "login.html";
+    async () => {
+        await supabaseClient.auth.signOut();
+        sessionStorage.clear();
+        window.location.replace("login.html");
     }
 );
 

@@ -1,161 +1,93 @@
-/* =========================================================
-   JAPA NA BARBA - LOGIN AUTOMÁTICO POR PERFIL
+/* JAPA NA BARBA - AUTENTICAÇÃO COM SUPABASE */
 
-   Não existe mais seletor visual de tipo de usuário.
-
-   O sistema identifica automaticamente o perfil através
-   do e-mail e senha digitados.
-
-   Perfis disponíveis:
-   - Proprietário
-   - Funcionário
-   - Cliente
-
-   IMPORTANTE:
-   Este sistema de autenticação ainda é um protótipo frontend.
-   Em produção, a validação deverá ocorrer no backend.
-   ========================================================= */
-
-// Elementos da tela.
 const loginForm = document.getElementById("loginForm");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const loginMessage = document.getElementById("loginMessage");
+const submitButton = loginForm.querySelector('button[type="submit"]');
 
-// =========================================================
-// USUÁRIOS DE DEMONSTRAÇÃO
-//
-// Estas informações não são exibidas na tela.
-// Elas são utilizadas apenas pela lógica do protótipo.
-// =========================================================
-const DEMO_USERS = [
-    {
-        role: "owner",
-        email: "admin@japanabarba.com",
-        password: "123456",
-        name: "Administrador",
-        roleLabel: "Proprietário",
-        destination: "index.html"
-    },
+const ROLE_LABELS = {
+    owner: "Proprietário",
+    admin: "Administrador",
+    employee: "Funcionário",
+    client: "Cliente"
+};
 
-    {
-        role: "employee",
-        email: "funcionario@japanabarba.com",
-        password: "123456",
-        name: "Carlos",
-        roleLabel: "Funcionário",
-        destination: "index.html"
-    },
-
-    {
-        role: "client",
-        email: "cliente@japanabarba.com",
-        password: "123456",
-        name: "João Silva",
-        roleLabel: "Cliente",
-        destination: "cliente.html"
-    }
-];
-
-// =========================================================
-// SE O USUÁRIO JÁ ESTIVER LOGADO
-// =========================================================
-if (sessionStorage.getItem("japaAuth") === "true") {
-
-    const currentRole =
-        sessionStorage.getItem("japaRole");
-
-    // Cliente vai para sua área exclusiva.
-    if (currentRole === "client") {
-        window.location.href = "cliente.html";
-    }
-
-    // Proprietário e funcionário usam o painel principal.
-    else {
-        window.location.href = "index.html";
-    }
+function saveLocalSession(user, profile) {
+    sessionStorage.setItem("japaAuth", "true");
+    sessionStorage.setItem("japaRole", profile.role);
+    sessionStorage.setItem("japaUserName", profile.full_name);
+    sessionStorage.setItem("japaUserRole", ROLE_LABELS[profile.role] || "Usuário");
+    sessionStorage.setItem("japaUserEmail", user.email || "");
+    sessionStorage.setItem("japaUserId", user.id);
+    sessionStorage.setItem("japaBarbershopId", profile.barbershop_id);
 }
 
-// =========================================================
-// ENVIO DO FORMULÁRIO
-// =========================================================
-loginForm.addEventListener("submit", (event) => {
+function destinationFor(role) {
+    return role === "client" ? "cliente.html" : "index.html";
+}
 
-    // Evita recarregar a página.
+async function restoreExistingSession() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("barbershop_id, full_name, role, active")
+        .eq("id", session.user.id)
+        .single();
+
+    if (error || !profile?.active) return;
+
+    saveLocalSession(session.user, profile);
+    window.location.replace(destinationFor(profile.role));
+}
+
+loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    submitButton.disabled = true;
+    loginMessage.textContent = "Entrando...";
+    loginMessage.className = "login-message";
 
-    // Normaliza o e-mail digitado.
-    const email =
-        emailInput.value.trim().toLowerCase();
-
-    const password =
-        passwordInput.value;
-
-    // Procura automaticamente um usuário cujas
-    // credenciais correspondam às digitadas.
-    const authenticatedUser =
-        DEMO_USERS.find((user) => {
-            return (
-                user.email === email &&
-                user.password === password
-            );
+    const { data, error: loginError } = await supabaseClient.auth
+        .signInWithPassword({
+            email: emailInput.value.trim().toLowerCase(),
+            password: passwordInput.value
         });
 
-    // =====================================================
-    // LOGIN CORRETO
-    // =====================================================
-    if (authenticatedUser) {
-
-        // Guarda os dados da sessão.
-        sessionStorage.setItem(
-            "japaAuth",
-            "true"
-        );
-
-        sessionStorage.setItem(
-            "japaRole",
-            authenticatedUser.role
-        );
-
-        sessionStorage.setItem(
-            "japaUserName",
-            authenticatedUser.name
-        );
-
-        sessionStorage.setItem(
-            "japaUserRole",
-            authenticatedUser.roleLabel
-        );
-
-        // E-mail usado para vincular o cliente aos seus próprios agendamentos.
-        sessionStorage.setItem(
-            "japaUserEmail",
-            authenticatedUser.email
-        );
-
-        // Mensagem genérica.
-        // Não revela o tipo de usuário na tela de login.
-        loginMessage.textContent =
-            "Login realizado com sucesso.";
-
-        loginMessage.className =
-            "login-message success";
-
-        // Abre automaticamente a área correta.
-        setTimeout(() => {
-            window.location.href =
-                authenticatedUser.destination;
-        }, 300);
-
+    if (loginError || !data.user) {
+        loginMessage.textContent = "E-mail ou senha incorretos.";
+        loginMessage.className = "login-message error";
+        submitButton.disabled = false;
         return;
     }
 
-    // =====================================================
-    // LOGIN INCORRETO
-    // =====================================================
-    loginMessage.textContent =
-        "E-mail ou senha incorretos.";
+    const { data: profile, error: profileError } = await supabaseClient
+        .from("profiles")
+        .select("barbershop_id, full_name, role, active")
+        .eq("id", data.user.id)
+        .single();
 
-    loginMessage.className =
-        "login-message error";
+    if (profileError || !profile) {
+        await supabaseClient.auth.signOut();
+        loginMessage.textContent = "Usuário sem perfil cadastrado.";
+        loginMessage.className = "login-message error";
+        submitButton.disabled = false;
+        return;
+    }
+
+    if (!profile.active) {
+        await supabaseClient.auth.signOut();
+        loginMessage.textContent = "Este usuário está desativado.";
+        loginMessage.className = "login-message error";
+        submitButton.disabled = false;
+        return;
+    }
+
+    saveLocalSession(data.user, profile);
+    loginMessage.textContent = "Login realizado com sucesso.";
+    loginMessage.className = "login-message success";
+    window.location.replace(destinationFor(profile.role));
 });
+
+restoreExistingSession();
