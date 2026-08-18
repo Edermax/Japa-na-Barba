@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- Codificação -->
+    <meta charset="UTF-8">
+
+    <!-- Responsividade -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Título -->
+    <title>Japa na Barba | Área do Cliente</title>
+
+    <!-- CSS compartilhado -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="client-page">
+
+    <!-- =====================================================
+         CABEÇALHO DA ÁREA DO CLIENTE
+         ===================================================== -->
+    <header class="client-header">
+
+        <div class="client-brand">
+            <img
+                src="Logo-japa.jpeg"
+                alt="Logo Japa na Barba"
+                class="client-header-logo"
+            >
+
+            <div>
+                <strong>JAPA NA BARBA</strong>
+                <span>Área do cliente</span>
+            </div>
+        </div>
+
+        <div class="client-user">
+            <div>
+                <strong id="clientUserName">Cliente</strong>
+                <small>Cliente</small>
+            </div>
+
+            <button
+                type="button"
+                class="outline-button"
+                id="clientLogout"
+            >
+                Sair
+            </button>
+        </div>
+
+    </header>
+
+    <!-- =====================================================
+         CONTEÚDO DO CLIENTE
+         ===================================================== -->
+    <main class="client-main">
+
+        <!-- Boas-vindas -->
+        <section class="client-hero">
+            <p class="eyebrow">BEM-VINDO</p>
+
+            <h1>
+                Seu próximo visual começa aqui.
+            </h1>
+
+            <p>
+                Escolha o serviço, profissional, data e horário
+                para solicitar seu agendamento.
+            </p>
+
+            <button
+                class="gold-button"
+                id="openClientAppointment"
+            >
+                + Agendar horário
+            </button>
+        </section>
+
+        <!-- Resumo -->
+        <section class="client-summary-grid">
+
+            <article class="client-summary-card">
+                <span>Próximo horário</span>
+                <strong id="nextClientAppointment">Nenhum</strong>
+                <small>Seus agendamentos aparecem aqui.</small>
+            </article>
+
+            <article class="client-summary-card">
+                <span>Serviços disponíveis</span>
+                <strong>4</strong>
+                <small>Escolha o que deseja fazer.</small>
+            </article>
+
+            <article class="client-summary-card">
+                <span>Status</span>
+                <strong class="gold-text">Cliente ativo</strong>
+                <small>Cadastro de demonstração.</small>
+            </article>
+
+        </section>
+
+        <!-- Serviços -->
+        <section class="client-section">
+
+            <div class="client-section-heading">
+                <div>
+                    <p class="eyebrow">SERVIÇOS</p>
+                    <h2>O que você quer fazer hoje?</h2>
+                </div>
+            </div>
+
+            <div class="client-services-grid">
+
+                <article class="client-service-card">
+                    <span class="large-service-icon">✂</span>
+                    <h3>Corte masculino</h3>
+                    <p>Corte tradicional ou moderno.</p>
+                    <strong>R$ 45</strong>
+                </article>
+
+                <article class="client-service-card">
+                    <span class="large-service-icon">✦</span>
+                    <h3>Corte + Barba</h3>
+                    <p>Combo completo para renovar o visual.</p>
+                    <strong>R$ 75</strong>
+                </article>
+
+                <article class="client-service-card">
+                    <span class="large-service-icon">◈</span>
+                    <h3>Barba</h3>
+                    <p>Acabamento e alinhamento da barba.</p>
+                    <strong>R$ 35</strong>
+                </article>
+
+                <article class="client-service-card">
+                    <span class="large-service-icon">★</span>
+                    <h3>Platinado</h3>
+                    <p>Serviço especial de transformação.</p>
+                    <strong>R$ 120</strong>
+                </article>
+
+            </div>
+
+        </section>
+
+        <!-- Meus agendamentos -->
+        <section class="client-section">
+
+            <div class="client-section-heading">
+                <div>
+                    <p class="eyebrow">MINHA AGENDA</p>
+                    <h2>Meus agendamentos</h2>
+                </div>
+            </div>
+
+            <div id="clientAppointmentsList" class="client-appointments-list">
+
+                <!-- Conteúdo preenchido pelo cliente.js -->
+
+            </div>
+
+            <div
+                id="clientAppointmentsEmpty"
+                class="empty-state"
+            >
+                <strong>Você ainda não possui agendamentos.</strong>
+                <span>
+                    Clique em “Agendar horário” para criar o primeiro.
+                </span>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- =====================================================
+         MODAL DE AGENDAMENTO DO CLIENTE
+         ===================================================== -->
+    <div
+        class="modal hidden"
+        id="clientAppointmentModal"
+    >
+
+        <div class="modal-box">
+
+            <button
+                class="close-button"
+                id="closeClientAppointment"
+                type="button"
+            >
+                ×
+            </button>
+
+            <p class="eyebrow">NOVO AGENDAMENTO</p>
+            <h2>Escolha seu horário</h2>
+
+            <form id="clientAppointmentForm">
+
+                <label>
+                    Serviço
+
+                    <select id="clientService" required>
+                        <option value="">Selecione</option>
+                        <option value="Corte masculino">Corte masculino — R$ 45</option>
+                        <option value="Barba">Barba — R$ 35</option>
+                        <option value="Corte + Barba">Corte + Barba — R$ 75</option>
+                        <option value="Platinado">Platinado — R$ 120</option>
+                    </select>
+                </label>
+
+                <label>
+                    Profissional
+
+                    <select id="clientProfessional" required>
+                        <option value="">Selecione</option>
+                        <option>Carlos</option>
+                        <option>Rafael</option>
+                    </select>
+                </label>
+
+                <div class="form-row">
+
+                    <label>
+                        Data
+                        <input
+                            type="date"
+                            id="clientDate"
+                            required
+                        >
+                    </label>
+
+                    <label>
+                        Horário
+                        <select id="clientTime" required>
+                            <option value="">Selecione</option>
+                            <option>09:00</option>
+                            <option>10:00</option>
+                            <option>11:00</option>
+                            <option>13:30</option>
+                            <option>15:00</option>
+                            <option>16:30</option>
+                            <option>18:00</option>
+                        </select>
+                    </label>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="gold-button full"
+                >
+                    Solicitar agendamento
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Controle de acesso do cliente -->
+    <script src="cliente.js"></script>
+
+</body>
+</html>

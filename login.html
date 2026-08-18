@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- Codificação para acentos e caracteres especiais -->
+    <meta charset="UTF-8">
+
+    <!-- Responsividade -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Título exibido na aba do navegador -->
+    <title>Japa na Barba | Login</title>
+
+    <!-- CSS principal do sistema -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="login-page">
+
+    <!-- =====================================================
+         TELA DE LOGIN
+
+         IMPORTANTE:
+         O usuário não precisa escolher visualmente o seu perfil.
+
+         O JavaScript identifica automaticamente se o acesso é de:
+         - Proprietário
+         - Funcionário
+         - Cliente
+
+         Isso acontece através do e-mail e senha informados.
+         ===================================================== -->
+    <main class="login-wrapper">
+
+        <section class="login-card">
+
+            <!-- Logo da barbearia -->
+            <img
+                src="Logo-japa.jpeg"
+                alt="Logo Japa na Barba"
+                class="login-logo"
+            >
+
+            <!-- Identidade da tela -->
+            <p class="eyebrow">JAPA NA BARBA</p>
+            <h1 class="login-title">Acessar sistema</h1>
+
+            <p class="login-subtitle">
+                Entre com seu e-mail e senha.
+            </p>
+
+            <!-- =================================================
+                 FORMULÁRIO DE LOGIN
+                 ================================================= -->
+            <form id="loginForm" class="login-form">
+
+                <!-- Campo de e-mail -->
+                <label>
+                    E-mail
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="Digite seu e-mail"
+                        autocomplete="email"
+                        required
+                    >
+                </label>
+
+                <!-- Campo de senha -->
+                <label>
+                    Senha
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Digite sua senha"
+                        autocomplete="current-password"
+                        required
+                    >
+                </label>
+
+                <!-- Mensagem de erro ou sucesso -->
+                <p id="loginMessage" class="login-message"></p>
+
+                <!-- Botão de entrada -->
+                <button
+                    type="submit"
+                    class="gold-button full"
+                >
+                    Entrar
+                </button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <!-- Lógica do login -->
+    <script src="login.js"></script>
+
+</body>
+</html>

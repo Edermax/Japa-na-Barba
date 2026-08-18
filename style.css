@@ -1,0 +1,1330 @@
+/* =========================================================
+   JAPA NA BARBA - CSS
+   Este arquivo controla TODO o visual.
+   Tema: preto + dourado
+   ========================================================= */
+
+/* Cores centrais do sistema */
+:root {
+    --black:#080808;
+    --black2:#0d0d0d;
+    --card:#151515;
+    --card2:#1c1c1c;
+    --gold:#d4af37;
+    --gold-light:#f0d477;
+    --white:#f4f4f4;
+    --gray:#9b9b9b;
+    --border:#292929;
+    --green:#69c28d;
+    --yellow:#d5a84d;
+}
+
+/* Reset */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    min-height:100vh;
+    font-family:Arial,Helvetica,sans-serif;
+    color:var(--white);
+    background:radial-gradient(circle at top right,rgba(212,175,55,.07),transparent 30%),var(--black);
+}
+
+a { text-decoration:none; }
+
+/* Layout */
+.app { min-height:100vh; display:flex; }
+
+/* Sidebar */
+.sidebar {
+    width:255px;
+    min-height:100vh;
+    padding:24px 17px;
+    background:#050505;
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    position:sticky;
+    top:0;
+}
+
+/* Logo */
+.brand { text-align:center; margin-bottom:35px; }
+
+.logo-image {
+    width:105px;
+    height:105px;
+    display:block;
+    margin:0 auto 13px;
+    object-fit:contain;
+    border-radius:50%;
+}
+
+.brand-name {
+    color:var(--gold-light);
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:3px;
+}
+
+.brand-subtitle {
+    color:var(--gray);
+    font-size:9px;
+    letter-spacing:4px;
+    margin-top:6px;
+}
+
+/* Menu */
+.menu { display:flex; flex-direction:column; gap:5px; }
+
+.menu-item {
+    min-height:45px;
+    padding:11px 13px;
+    border-radius:8px;
+    color:var(--gray);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    transition:.2s;
+}
+
+.menu-item span:first-child {
+    width:24px;
+    text-align:center;
+    color:var(--gold);
+}
+
+.menu-item:hover {
+    background:var(--card);
+    color:var(--white);
+    transform:translateX(2px);
+}
+
+.menu-item.active {
+    color:var(--gold-light);
+    background:linear-gradient(90deg,rgba(212,175,55,.16),rgba(212,175,55,.03));
+    border-left:3px solid var(--gold);
+    padding-left:10px;
+}
+
+/* Usuário */
+.user-area {
+    margin-top:auto;
+    padding:16px 8px 4px;
+    border-top:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.avatar {
+    width:39px;
+    height:39px;
+    border-radius:50%;
+    background:var(--gold);
+    color:#080808;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:12px;
+}
+
+.user-area strong,.user-area small { display:block; }
+.user-area strong { font-size:13px; }
+.user-area small { color:var(--gray); font-size:11px; margin-top:3px; }
+
+/* Conteúdo */
+.main-content { flex:1; min-width:0; padding:34px; }
+
+.topbar {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.eyebrow {
+    color:var(--gold);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:2px;
+    margin-bottom:7px;
+}
+
+h1 { font-size:30px; }
+h2 { font-size:18px; }
+
+/* Botão dourado */
+.gold-button {
+    border:0;
+    padding:12px 18px;
+    border-radius:7px;
+    color:#080808;
+    background:linear-gradient(135deg,var(--gold-light),var(--gold));
+    font-weight:800;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.gold-button:hover {
+    filter:brightness(1.08);
+    transform:translateY(-1px);
+}
+
+.gold-button.full { width:100%; margin-top:8px; }
+
+.text-button {
+    border:0;
+    background:transparent;
+    color:var(--gold);
+    cursor:pointer;
+}
+
+/* Cards */
+.stats-grid {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:16px;
+    margin-bottom:18px;
+}
+
+.stat-card {
+    padding:20px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:linear-gradient(145deg,#181818,#111);
+    transition:.2s;
+}
+
+.stat-card:hover {
+    transform:translateY(-2px);
+    border-color:rgba(212,175,55,.4);
+}
+
+.stat-card span { color:var(--gray); font-size:12px; }
+.stat-card strong { display:block; color:var(--gold-light); font-size:26px; margin:10px 0 7px; }
+.stat-card small { color:var(--gray); font-size:11px; }
+.positive { color:var(--green)!important; }
+
+/* Painéis */
+.dashboard-grid {
+    display:grid;
+    grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);
+    gap:18px;
+    margin-bottom:18px;
+}
+
+.panel {
+    padding:22px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:linear-gradient(145deg,#171717,#121212);
+}
+
+.panel-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+    margin-bottom:18px;
+}
+
+/* Agenda */
+.appointment-list { display:flex; flex-direction:column; }
+
+.appointment {
+    display:grid;
+    grid-template-columns:58px minmax(0,1fr) auto;
+    gap:14px;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.appointment:last-child { border-bottom:0; }
+.time { color:var(--gold); font-size:13px; }
+
+.appointment strong,.appointment span { display:block; }
+.appointment-info span { color:var(--gray); font-size:11px; margin-top:4px; }
+
+.status {
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:9px;
+    font-style:normal;
+}
+
+.confirmed { color:var(--green); background:rgba(105,194,141,.1); }
+.pending { color:var(--yellow); background:rgba(213,168,77,.1); }
+
+/* Serviços */
+.service {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.service:last-child { border-bottom:0; }
+
+.service i {
+    width:38px;
+    height:38px;
+    flex-shrink:0;
+    border-radius:8px;
+    color:var(--gold);
+    background:rgba(212,175,55,.1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-style:normal;
+}
+
+.service div { flex:1; }
+.service strong,.service span { display:block; }
+.service span { color:var(--gray); font-size:11px; margin-top:4px; }
+.service>b { color:var(--gold-light); font-size:12px; }
+
+/* Ações */
+.actions {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+}
+
+.action-button {
+    min-height:48px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    background:var(--black2);
+    color:var(--white);
+    cursor:pointer;
+}
+
+.action-button:hover {
+    border-color:var(--gold);
+    color:var(--gold-light);
+    background:var(--card2);
+}
+
+/* Modal */
+.modal {
+    position:fixed;
+    inset:0;
+    z-index:100;
+    padding:20px;
+    background:rgba(0,0,0,.78);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal.hidden { display:none; }
+
+.modal-box {
+    width:100%;
+    max-width:480px;
+    position:relative;
+    padding:28px;
+    border:1px solid #9f7d19;
+    border-radius:12px;
+    background:#151515;
+}
+
+.close-button {
+    position:absolute;
+    top:12px;
+    right:16px;
+    border:0;
+    background:transparent;
+    color:var(--gray);
+    font-size:27px;
+    cursor:pointer;
+}
+
+/* Formulário */
+form { margin-top:25px; }
+
+label {
+    display:block;
+    color:var(--gray);
+    font-size:12px;
+    margin-bottom:15px;
+}
+
+input,select {
+    width:100%;
+    margin-top:7px;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    outline:0;
+    background:var(--black2);
+    color:var(--white);
+}
+
+input:focus,select:focus { border-color:var(--gold); }
+
+.form-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+/* Responsividade */
+@media (max-width:1050px) {
+    .stats-grid { grid-template-columns:repeat(2,1fr); }
+    .dashboard-grid { grid-template-columns:1fr; }
+    .actions { grid-template-columns:repeat(2,1fr); }
+}
+
+@media (max-width:720px) {
+    .app { display:block; }
+    .sidebar {
+        width:100%;
+        min-height:auto;
+        position:relative;
+        padding:15px;
+        border-right:0;
+        border-bottom:1px solid var(--border);
+    }
+    .brand { margin-bottom:15px; }
+    .logo-image { width:75px; height:75px; }
+    .menu { display:grid; grid-template-columns:repeat(4,1fr); }
+    .menu-item {
+        min-height:42px;
+        padding:7px;
+        justify-content:center;
+        flex-direction:column;
+        gap:3px;
+        font-size:10px;
+    }
+    .menu-item.active { padding-left:7px; border-left:0; border-bottom:2px solid var(--gold); }
+    .menu-item span:first-child { width:auto; }
+    .user-area { display:none; }
+    .main-content { padding:20px 15px; }
+    .topbar { align-items:flex-start; flex-direction:column; }
+    .topbar .gold-button { width:100%; }
+    .stats-grid { grid-template-columns:1fr; }
+    .appointment { grid-template-columns:52px 1fr; }
+    .appointment .status { display:none; }
+    .actions { grid-template-columns:1fr; }
+    .form-row { grid-template-columns:1fr; }
+}
+
+@media (max-width:430px) {
+    .menu { grid-template-columns:repeat(2,1fr); }
+    h1 { font-size:25px; }
+    .panel { padding:17px; }
+}
+
+/* =========================================================
+   22. TELA DE LOGIN
+   ========================================================= */
+
+/* Fundo exclusivo da tela de login */
+.login-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at top, rgba(212,175,55,.10), transparent 35%), #070707;
+}
+
+/* Centraliza o formulário */
+.login-wrapper {
+    min-height: 100vh;
+    padding: 30px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Card principal */
+.login-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 34px;
+    text-align: center;
+    background: linear-gradient(145deg, #181818, #101010);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 25px 80px rgba(0,0,0,.45);
+}
+
+/* Logo do login */
+.login-logo {
+    width: 125px;
+    height: 125px;
+    object-fit: contain;
+    border-radius: 50%;
+    margin-bottom: 20px;
+}
+
+.login-title {
+    color: var(--gold-light);
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.login-subtitle {
+    color: var(--gray);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 28px;
+}
+
+/* Alinha os campos à esquerda */
+.login-form { text-align: left; }
+
+/* Mensagem de validação */
+.login-message {
+    min-height: 18px;
+    margin: 5px 0 10px;
+    font-size: 12px;
+}
+
+.login-message.success { color: var(--green); }
+.login-message.error { color: #e06f6f; }
+
+/* Credenciais de teste */
+.demo-access {
+    margin-top: 24px;
+    padding: 14px;
+    border: 1px dashed rgba(212,175,55,.35);
+    border-radius: 8px;
+    background: rgba(212,175,55,.04);
+    text-align: left;
+}
+
+.demo-access strong,
+.demo-access span { display: block; }
+
+.demo-access strong {
+    color: var(--gold);
+    font-size: 11px;
+    margin-bottom: 7px;
+}
+
+.demo-access span {
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   23. SESSÃO E LOGOUT
+   ========================================================= */
+.user-session-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.logout-button {
+    border: 0;
+    background: transparent;
+    color: var(--gray);
+    font-size: 10px;
+    cursor: pointer;
+    padding: 6px;
+    transition: color .2s;
+}
+
+.logout-button:hover { color: var(--gold-light); }
+
+@media (max-width: 720px) {
+    .login-card { padding: 26px 20px; }
+    .login-logo { width: 105px; height: 105px; }
+}
+
+
+/* =========================================================
+   24. CONTROLE DE VISÕES
+   ========================================================= */
+
+/* Classe genérica para esconder telas ou elementos. */
+.hidden {
+    display: none !important;
+}
+
+.view-section {
+    width: 100%;
+}
+
+
+/* =========================================================
+   25. MÓDULO DE CLIENTES
+   ========================================================= */
+
+.clients-panel {
+    min-height: 500px;
+}
+
+/* Cabeçalho da tela de clientes. */
+.clients-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.section-description {
+    color: var(--gray);
+    font-size: 12px;
+    margin-top: 7px;
+}
+
+/* Pesquisa. */
+.client-search-box {
+    margin-bottom: 18px;
+}
+
+.client-search-box input {
+    max-width: 480px;
+    margin-top: 0;
+}
+
+/* Permite rolagem horizontal em telas pequenas. */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.clients-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+.clients-table th,
+.clients-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.clients-table th {
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.clients-table td {
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.clients-table td strong {
+    color: var(--white);
+}
+
+.clients-table tbody tr:hover {
+    background: rgba(212, 175, 55, 0.035);
+}
+
+/* Botões editar/excluir. */
+.table-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.table-button {
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 10px;
+    background: transparent;
+}
+
+.table-button.edit {
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--gold-light);
+}
+
+.table-button.edit:hover {
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.table-button.delete {
+    border: 1px solid rgba(224, 111, 111, 0.35);
+    color: #e06f6f;
+}
+
+.table-button.delete:hover {
+    background: rgba(224, 111, 111, 0.08);
+}
+
+/* Estado vazio. */
+.empty-state {
+    padding: 45px 20px;
+    text-align: center;
+}
+
+.empty-state strong,
+.empty-state span {
+    display: block;
+}
+
+.empty-state strong {
+    color: var(--gold-light);
+    margin-bottom: 8px;
+}
+
+.empty-state span {
+    color: var(--gray);
+    font-size: 12px;
+}
+
+/* Textarea do cadastro. */
+textarea {
+    width: 100%;
+    margin-top: 7px;
+    padding: 12px;
+    resize: vertical;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    background: var(--black2);
+    color: var(--white);
+    font: inherit;
+}
+
+textarea:focus {
+    border-color: var(--gold);
+}
+
+@media (max-width: 720px) {
+    .clients-toolbar {
+        flex-direction: column;
+    }
+
+    .clients-toolbar .gold-button,
+    .client-search-box input {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+
+/* =========================================================
+   26. LOGIN COM SELEÇÃO DE PERFIL
+   ========================================================= */
+
+.login-card-wide {
+    max-width: 560px;
+}
+
+/* Três opções de acesso. */
+.role-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+/* Botão individual de perfil. */
+.role-option {
+    padding: 14px 8px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--black2);
+    color: var(--gray);
+    cursor: pointer;
+    transition: .2s;
+}
+
+.role-option:hover {
+    border-color: rgba(212, 175, 55, .45);
+    color: var(--white);
+}
+
+/* Perfil atualmente selecionado. */
+.role-option.active {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, .09);
+    color: var(--gold-light);
+}
+
+/* Conteúdo interno dos botões. */
+.role-option span,
+.role-option strong,
+.role-option small {
+    display: block;
+}
+
+.role-icon {
+    color: var(--gold);
+    font-size: 22px;
+    margin-bottom: 7px;
+}
+
+.role-option strong {
+    font-size: 11px;
+}
+
+.role-option small {
+    margin-top: 4px;
+    font-size: 9px;
+    color: var(--gray);
+}
+
+
+/* =========================================================
+   27. ÁREA DO CLIENTE
+   ========================================================= */
+
+.client-page {
+    min-height: 100vh;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(212, 175, 55, .08),
+            transparent 30%
+        ),
+        var(--black);
+}
+
+/* Cabeçalho horizontal. */
+.client-header {
+    min-height: 86px;
+    padding: 12px max(24px, calc((100vw - 1180px) / 2));
+
+    border-bottom: 1px solid var(--border);
+    background: rgba(5, 5, 5, .96);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* Marca da barbearia. */
+.client-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.client-header-logo {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    object-fit: contain;
+}
+
+.client-brand strong,
+.client-brand span {
+    display: block;
+}
+
+.client-brand strong {
+    color: var(--gold-light);
+    letter-spacing: 2px;
+}
+
+.client-brand span {
+    color: var(--gray);
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+/* Usuário no cabeçalho. */
+.client-user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-align: right;
+}
+
+.client-user strong,
+.client-user small {
+    display: block;
+}
+
+.client-user small {
+    color: var(--gray);
+    font-size: 10px;
+    margin-top: 3px;
+}
+
+/* Botão com borda. */
+.outline-button {
+    padding: 9px 13px;
+    border: 1px solid rgba(212, 175, 55, .45);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--gold-light);
+    cursor: pointer;
+}
+
+.outline-button:hover {
+    background: rgba(212, 175, 55, .08);
+}
+
+/* Conteúdo central. */
+.client-main {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 42px 0 60px;
+}
+
+/* Hero inicial. */
+.client-hero {
+    padding: 42px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background:
+        linear-gradient(
+            120deg,
+            rgba(212, 175, 55, .08),
+            rgba(20, 20, 20, .95)
+        );
+    margin-bottom: 20px;
+}
+
+.client-hero h1 {
+    max-width: 650px;
+    font-size: clamp(30px, 5vw, 52px);
+    color: var(--gold-light);
+}
+
+.client-hero > p:not(.eyebrow) {
+    max-width: 610px;
+    margin: 14px 0 24px;
+    color: var(--gray);
+    line-height: 1.7;
+    font-size: 13px;
+}
+
+/* Cards de resumo. */
+.client-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.client-summary-card {
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.client-summary-card span,
+.client-summary-card strong,
+.client-summary-card small {
+    display: block;
+}
+
+.client-summary-card span {
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.client-summary-card strong {
+    color: var(--white);
+    font-size: 18px;
+    margin: 9px 0 6px;
+}
+
+.client-summary-card small {
+    color: var(--gray);
+    font-size: 10px;
+}
+
+.gold-text {
+    color: var(--gold-light) !important;
+}
+
+/* Seções. */
+.client-section {
+    margin-top: 20px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: linear-gradient(145deg, #171717, #111);
+}
+
+.client-section-heading {
+    margin-bottom: 20px;
+}
+
+/* Cards de serviços. */
+.client-services-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.client-service-card {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--black2);
+    transition: .2s;
+}
+
+.client-service-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(212, 175, 55, .45);
+}
+
+.large-service-icon {
+    display: block;
+    color: var(--gold);
+    font-size: 25px;
+    margin-bottom: 15px;
+}
+
+.client-service-card h3 {
+    font-size: 14px;
+}
+
+.client-service-card p {
+    min-height: 36px;
+    margin: 8px 0 15px;
+    color: var(--gray);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.client-service-card strong {
+    color: var(--gold-light);
+}
+
+/* Lista dos agendamentos. */
+.client-appointments-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.client-appointment-card {
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.client-appointment-card:last-child {
+    border-bottom: 0;
+}
+
+.client-appointment-card strong,
+.client-appointment-card small {
+    display: block;
+}
+
+.client-appointment-date {
+    display: block;
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.client-appointment-card small {
+    color: var(--gray);
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+.client-appointment-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+/* =========================================================
+   28. RESPONSIVIDADE DO LOGIN E CLIENTE
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    .role-selector {
+        grid-template-columns: 1fr;
+    }
+
+    .role-option {
+        display: grid;
+        grid-template-columns: 35px 1fr;
+        text-align: left;
+        align-items: center;
+    }
+
+    .role-option .role-icon {
+        grid-row: span 2;
+        margin: 0;
+    }
+
+    .role-option small {
+        margin-top: 2px;
+    }
+
+    .client-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .client-services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+
+    .client-header {
+        align-items: flex-start;
+        padding: 12px 15px;
+    }
+
+    .client-brand strong {
+        font-size: 12px;
+    }
+
+    .client-user > div {
+        display: none;
+    }
+
+    .client-main {
+        width: calc(100% - 28px);
+        padding-top: 20px;
+    }
+
+    .client-hero {
+        padding: 25px 20px;
+    }
+
+    .client-services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .client-appointment-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .client-appointment-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+
+/* =========================================================
+   LOGIN LIMPO
+   ========================================================= */
+
+/*
+   O seletor visual de perfil não é mais utilizado.
+   Mantemos esta regra como segurança para não exibir
+   os controles antigos caso algum trecho seja reaproveitado.
+*/
+.role-selector,
+.role-option,
+.demo-access {
+    display: none !important;
+}
+
+/* Volta o cartão para uma largura compacta. */
+.login-card,
+.login-card-wide {
+    max-width: 430px;
+}
+
+/* Pequeno ajuste no subtítulo do login. */
+.login-subtitle {
+    margin-bottom: 24px;
+}
+
+
+/* =========================================================
+   29. ETAPA 5 — AGENDA INTEGRADA
+   ========================================================= */
+
+/* Barra superior da agenda */
+.agenda-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+/* Filtros */
+.agenda-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--black2);
+}
+
+.agenda-filters label {
+    margin-bottom: 0;
+}
+
+/* Lista */
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Cada atendimento */
+.agenda-card {
+    display: grid;
+    grid-template-columns: 105px minmax(0, 1fr) minmax(230px, auto);
+    gap: 18px;
+    align-items: center;
+    padding: 17px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.agenda-card:last-child {
+    border-bottom: 0;
+}
+
+/* Horário e data */
+.agenda-time-block strong,
+.agenda-time-block span {
+    display: block;
+}
+
+.agenda-time-block strong {
+    color: var(--gold-light);
+    font-size: 21px;
+}
+
+.agenda-time-block span {
+    color: var(--gray);
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+/* Cliente e serviço */
+.agenda-client-block strong,
+.agenda-client-block span,
+.agenda-client-block small {
+    display: block;
+}
+
+.agenda-client-block strong {
+    font-size: 14px;
+}
+
+.agenda-client-block span {
+    color: var(--gray);
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.agenda-client-block small {
+    color: var(--gray-dark);
+    font-size: 9px;
+    margin-top: 6px;
+}
+
+/* Status e ações */
+.agenda-status-block {
+    text-align: right;
+}
+
+.agenda-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 9px;
+}
+
+/* Novos estados */
+.status.completed {
+    color: #6fd6b0;
+    background: rgba(111, 214, 176, .10);
+}
+
+.status.cancelled {
+    color: #e06f6f;
+    background: rgba(224, 111, 111, .10);
+}
+
+.status.no-show {
+    color: #b9a0df;
+    background: rgba(185, 160, 223, .10);
+}
+
+/* Novas ações */
+.table-button.success {
+    color: #6fd6b0;
+    border-color: rgba(111, 214, 176, .28);
+}
+
+.table-button.warning {
+    color: #d5a84d;
+    border-color: rgba(213, 168, 77, .28);
+}
+
+/* Mensagem dentro do formulário */
+.form-message {
+    min-height: 18px;
+    margin: -4px 0 8px;
+    font-size: 11px;
+}
+
+.form-message.error {
+    color: #e06f6f;
+}
+
+/* =========================================================
+   RESPONSIVIDADE DA AGENDA
+   ========================================================= */
+@media (max-width: 900px) {
+    .agenda-card {
+        grid-template-columns: 85px minmax(0, 1fr);
+    }
+
+    .agenda-status-block {
+        grid-column: 1 / -1;
+        text-align: left;
+        padding-left: 103px;
+    }
+
+    .agenda-card-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 700px) {
+    .agenda-toolbar {
+        flex-direction: column;
+    }
+
+    .agenda-toolbar .gold-button {
+        width: 100%;
+    }
+
+    .agenda-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-card {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .agenda-status-block {
+        grid-column: auto;
+        padding-left: 0;
+    }
+}
