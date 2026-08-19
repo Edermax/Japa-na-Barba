@@ -10,16 +10,7 @@ const SEGMENTS = {
     "Personal training": { icon: "◆", color: "#65d39b" }
 };
 
-const businesses = [
-    ["Japa na Barba", "Barbearia", "Edermax", "Cliente real", "Pro", 249],
-    ["Studio Bella Forma", "Salão de beleza", "Camila Rocha", "Demonstração", "Pro", 249],
-    ["Nail Art Boutique", "Manicure", "Bianca Souza", "Demonstração", "Pro", 249],
-    ["Sol Dourado Bronze", "Bronzeamento", "Mariana Costa", "Demonstração", "Pro", 249],
-    ["Acorde Vivo", "Professor de música", "Marcelo Vieira", "Demonstração", "Pro", 249],
-    ["Prime Fit Coach", "Personal training", "Natália Reis", "Demonstração", "Premium", 399]
-].map(([name, segment, owner, origin, plan, price], index) => ({
-    id: index + 1, name, segment, owner, origin, plan, price, status: "Ativo"
-}));
+let businesses = [];
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
@@ -66,7 +57,37 @@ function renderBusinesses() {
     document.querySelector(".business-table-wrap").classList.toggle("hidden", filtered.length === 0);
 }
 
-function initializeDashboard() {
+async function loadBusinesses() {
+    const { data, error } = await supabaseClient
+        .from("saas_clients")
+        .select("id, name, segment, contact_name, origin, plan, monthly_fee, status")
+        .order("created_at", { ascending: true });
+
+    if (error) throw error;
+
+    businesses = (data || []).map((business) => ({
+        id: business.id,
+        name: business.name,
+        segment: business.segment,
+        owner: business.contact_name,
+        origin: business.origin,
+        plan: business.plan,
+        price: Number(business.monthly_fee),
+        status: business.status
+    }));
+}
+
+async function initializeDashboard() {
+    try {
+        await loadBusinesses();
+    } catch (error) {
+        document.getElementById("adminLoading").textContent =
+            "Não foi possível carregar a carteira de clientes.";
+        document.getElementById("adminLoading").classList.remove("hidden");
+        console.error("Erro ao carregar saas_clients:", error.message);
+        return;
+    }
+
     const filter = document.getElementById("segmentFilter");
     Object.keys(SEGMENTS).forEach((segment) => filter.add(new Option(segment, segment)));
     document.getElementById("businessCount").textContent = businesses.length;
@@ -84,6 +105,6 @@ function initializeDashboard() {
     });
 }
 
-validatePlatformOwner().then((authorized) => {
-    if (authorized) initializeDashboard();
+validatePlatformOwner().then(async (authorized) => {
+    if (authorized) await initializeDashboard();
 });
