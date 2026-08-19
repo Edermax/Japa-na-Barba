@@ -1,4 +1,4 @@
-/* JAPA NA BARBA - AUTENTICAÇÃO COM SUPABASE */
+/* OGRITECH - AUTENTICAÇÃO COM SUPABASE */
 
 const loginForm = document.getElementById("loginForm");
 const emailInput = document.getElementById("email");

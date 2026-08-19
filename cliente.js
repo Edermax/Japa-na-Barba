@@ -1,5 +1,5 @@
 /* =========================================================
-   JAPA NA BARBA - ÁREA DO CLIENTE
+   OGRITECH - ÁREA DO CLIENTE DA BARBEARIA
    ETAPA 5: Agenda integrada.
 
    Os agendamentos criados aqui usam a mesma chave de

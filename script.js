@@ -1,5 +1,5 @@
 /* =========================================================
-   JAPA NA BARBA - JAVASCRIPT PRINCIPAL
+   OGRITECH - PAINEL DA BARBEARIA
    ETAPA 5: Agenda integrada.
 
    Nesta etapa:
