@@ -6,6 +6,7 @@ const passwordInput = document.getElementById("password");
 const loginMessage = document.getElementById("loginMessage");
 const submitButton = loginForm.querySelector('button[type="submit"]');
 const forgotPasswordButton = document.getElementById("forgotPasswordButton");
+const PLATFORM_OWNER_ID = "852ca2d2-6249-4c7c-9f9b-5550695121e5";
 
 const ROLE_LABELS = {
     owner: "Proprietário",
@@ -24,7 +25,8 @@ function saveLocalSession(user, profile) {
     sessionStorage.setItem("japaBarbershopId", profile.barbershop_id);
 }
 
-function destinationFor(role) {
+function destinationFor(role, userId) {
+    if (userId === PLATFORM_OWNER_ID) return "admin.html";
     return role === "client" ? "cliente.html" : "index.html";
 }
 
@@ -41,7 +43,7 @@ async function restoreExistingSession() {
     if (error || !profile?.active) return;
 
     saveLocalSession(session.user, profile);
-    window.location.replace(destinationFor(profile.role));
+    window.location.replace(destinationFor(profile.role, session.user.id));
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -88,7 +90,7 @@ loginForm.addEventListener("submit", async (event) => {
     saveLocalSession(data.user, profile);
     loginMessage.textContent = "Login realizado com sucesso.";
     loginMessage.className = "login-message success";
-    window.location.replace(destinationFor(profile.role));
+    window.location.replace(destinationFor(profile.role, data.user.id));
 });
 
 forgotPasswordButton.addEventListener("click", async () => {
