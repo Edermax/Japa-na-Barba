@@ -6,7 +6,6 @@ const ROLE_LABELS = {
     employee: "Funcionário",
     client: "Cliente"
 };
-const PLATFORM_OWNER_ID = "852ca2d2-6249-4c7c-9f9b-5550695121e5";
 
 function waitForDocument() {
     if (document.readyState !== "loading") return Promise.resolve();
@@ -65,7 +64,8 @@ async function initializeAuthenticatedPage() {
         return;
     }
 
-    if (session.user.id === PLATFORM_OWNER_ID && !location.pathname.endsWith("admin.html")) {
+    const { data: isPlatformAdmin } = await supabaseClient.rpc("is_platform_admin");
+    if (isPlatformAdmin && !location.pathname.endsWith("admin.html")) {
         window.location.replace("admin.html");
         return;
     }

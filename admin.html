@@ -18,6 +18,7 @@
                 <a href="#overview" class="active"><span>⌂</span>Visão geral</a>
                 <a href="#businesses"><span>▦</span>Negócios</a>
                 <a href="#segments"><span>◫</span>Segmentos</a>
+                <a href="#plans"><span>◈</span>Planos</a>
             </nav>
 
             <div class="platform-owner-card">
@@ -58,18 +59,67 @@
                     <div class="business-controls">
                         <input type="search" id="businessSearch" placeholder="Buscar negócio ou responsável..." aria-label="Buscar negócio">
                         <select id="segmentFilter" aria-label="Filtrar por segmento"><option value="all">Todos os segmentos</option></select>
+                        <button type="button" class="cyan-button" id="newBusinessButton">+ Novo negócio</button>
                     </div>
                 </div>
                 <p class="demo-notice">Cadastros demonstrativos para preencher e validar o painel. Japa na Barba permanece como seu primeiro cliente real.</p>
                 <div class="business-table-wrap">
                     <table class="business-table">
-                        <thead><tr><th>Negócio</th><th>Segmento</th><th>Responsável</th><th>Origem</th><th>Plano</th><th>Mensalidade</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Negócio</th><th>Segmento</th><th>Responsável</th><th>Origem</th><th>Plano</th><th>Mensalidade</th><th>Status</th><th>Ações</th></tr></thead>
                         <tbody id="businessTableBody"></tbody>
                     </table>
                 </div>
                 <div class="empty-state hidden" id="businessEmpty"><strong>Nenhum negócio encontrado.</strong><span>Tente alterar a busca ou o segmento.</span></div>
             </section>
+
+            <section class="platform-panel" id="plans">
+                <div class="platform-section-title">
+                    <div><p class="platform-kicker">ASSINATURAS</p><h2>Planos da Ogritech</h2></div>
+                    <span>Valores e recursos oferecidos</span>
+                </div>
+                <div class="plans-grid" id="plansGrid"></div>
+            </section>
         </main>
+    </div>
+
+    <div class="platform-modal hidden" id="businessModal" role="dialog" aria-modal="true" aria-labelledby="businessModalTitle">
+        <div class="platform-modal-card">
+            <button type="button" class="modal-close" data-close-modal aria-label="Fechar">×</button>
+            <p class="platform-kicker">ONBOARDING</p>
+            <h2 id="businessModalTitle">Cadastrar novo negócio</h2>
+            <p class="modal-description">Cadastre a empresa e deixe o convite do proprietário preparado.</p>
+            <form id="businessForm">
+                <input type="hidden" id="businessId">
+                <div class="platform-form-grid">
+                    <label>Nome do negócio<input id="businessName" required maxlength="100"></label>
+                    <label>Segmento<select id="businessSegment" required></select></label>
+                    <label>Responsável<input id="businessOwner" required maxlength="100"></label>
+                    <label>E-mail do responsável<input id="businessEmail" type="email" required maxlength="160"></label>
+                    <label>Telefone<input id="businessPhone" type="tel" maxlength="30"></label>
+                    <label>Plano<select id="businessPlan" required></select></label>
+                    <label>Mensalidade<input id="businessPrice" type="number" min="0" step="0.01" required></label>
+                    <label>Origem<select id="businessOrigin"><option>Cliente real</option><option>Demonstração</option></select></label>
+                    <label class="full-field">Observações<textarea id="businessNotes" rows="3" maxlength="500"></textarea></label>
+                </div>
+                <p class="form-message" id="businessFormMessage"></p>
+                <button type="submit" class="cyan-button full" id="saveBusinessButton">Salvar negócio</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="platform-modal hidden" id="businessDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailBusinessName">
+        <div class="platform-modal-card detail-card">
+            <button type="button" class="modal-close" data-close-modal aria-label="Fechar">×</button>
+            <p class="platform-kicker">CONTA DO CLIENTE</p>
+            <h2 id="detailBusinessName">Negócio</h2>
+            <p class="modal-description" id="detailBusinessMeta"></p>
+            <div class="detail-stats" id="detailStats"></div>
+            <div class="detail-information" id="detailInformation"></div>
+            <div class="detail-actions">
+                <button type="button" class="outline-cyan-button" id="detailEditButton">Editar cadastro</button>
+                <button type="button" class="outline-cyan-button" id="detailStatusButton">Suspender</button>
+            </div>
+        </div>
     </div>
 
     <div class="admin-loading" id="adminLoading">Validando acesso seguro...</div>
