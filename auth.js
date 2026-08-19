@@ -6,6 +6,7 @@ const ROLE_LABELS = {
     employee: "Funcionário",
     client: "Cliente"
 };
+const PLATFORM_OWNER_ID = "852ca2d2-6249-4c7c-9f9b-5550695121e5";
 
 function waitForDocument() {
     if (document.readyState !== "loading") return Promise.resolve();
@@ -61,6 +62,11 @@ async function initializeAuthenticatedPage() {
     if (!session) {
         sessionStorage.clear();
         window.location.replace("login.html");
+        return;
+    }
+
+    if (session.user.id === PLATFORM_OWNER_ID && !location.pathname.endsWith("admin.html")) {
+        window.location.replace("admin.html");
         return;
     }
 
