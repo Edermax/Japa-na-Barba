@@ -1,5 +1,5 @@
 /* =========================================================
-   JAPA NA BARBA - CSS
+   OGRITECH - CSS DA PLATAFORMA
    Este arquivo controla TODO o visual.
    Tema: preto + dourado
    ========================================================= */
@@ -17,6 +17,8 @@
     --border:#292929;
     --green:#69c28d;
     --yellow:#d5a84d;
+    --cyan:#08b9d3;
+    --cyan-light:#39d4e8;
 }
 
 /* Reset */
@@ -60,11 +62,39 @@ a { text-decoration:none; }
 }
 
 .brand-name {
-    color:var(--gold-light);
+    color:var(--cyan-light);
     font-size:17px;
     font-weight:800;
     letter-spacing:3px;
 }
+
+.platform-symbol {
+    border-radius:22%;
+}
+
+.tenant-badge {
+    margin-top:18px;
+    padding:10px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--card);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-align:left;
+}
+
+.tenant-badge img {
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    object-fit:contain;
+}
+
+.tenant-badge small,
+.tenant-badge strong { display:block; }
+.tenant-badge small { color:var(--gray); font-size:8px; letter-spacing:1px; }
+.tenant-badge strong { margin-top:3px; color:var(--gold-light); font-size:12px; }
 
 .brand-subtitle {
     color:var(--gray);
@@ -427,7 +457,7 @@ input:focus,select:focus { border-color:var(--gold); }
 /* Fundo exclusivo da tela de login */
 .login-page {
     min-height: 100vh;
-    background: radial-gradient(circle at top, rgba(212,175,55,.10), transparent 35%), #070707;
+    background: radial-gradient(circle at top, rgba(8,185,211,.16), transparent 38%), #070b0d;
 }
 
 /* Centraliza o formulário */
@@ -452,18 +482,32 @@ input:focus,select:focus { border-color:var(--gold); }
 }
 
 /* Logo do login */
-.login-logo {
-    width: 125px;
-    height: 125px;
+.login-wordmark {
+    width: min(270px, 90%);
+    height: auto;
     object-fit: contain;
-    border-radius: 50%;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
+    padding:12px 16px;
+    border-radius:12px;
+    background:#f7fafb;
 }
 
 .login-title {
-    color: var(--gold-light);
+    color: var(--white);
     font-size: 30px;
     margin-bottom: 8px;
+}
+
+.platform-eyebrow { color:var(--cyan-light); }
+.login-page .gold-button {
+    background:linear-gradient(135deg,var(--cyan-light),var(--cyan));
+}
+.login-page .text-button {
+    display:block;
+    width:100%;
+    margin-top:10px;
+    color:var(--cyan-light);
+    text-align:center;
 }
 
 .login-subtitle {
@@ -533,7 +577,7 @@ input:focus,select:focus { border-color:var(--gold); }
 
 @media (max-width: 720px) {
     .login-card { padding: 26px 20px; }
-    .login-logo { width: 105px; height: 105px; }
+    .login-wordmark { width:min(235px, 92%); }
 }
 
 
@@ -820,6 +864,11 @@ textarea:focus {
 .client-brand strong,
 .client-brand span {
     display: block;
+}
+
+.client-brand .powered-by {
+    color:var(--cyan-light);
+    font-size:9px;
 }
 
 .client-brand strong {

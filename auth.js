@@ -1,4 +1,4 @@
-/* JAPA NA BARBA - SESSÃO E PERMISSÕES COM SUPABASE */
+/* OGRITECH - SESSÃO E PERMISSÕES COM SUPABASE */
 
 const ROLE_LABELS = {
     owner: "Proprietário",

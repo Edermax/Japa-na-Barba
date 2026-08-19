@@ -1,4 +1,4 @@
-/* JAPA NA BARBA - DEFINIÇÃO DE NOVA SENHA */
+/* OGRITECH - DEFINIÇÃO DE NOVA SENHA */
 
 const updatePasswordForm = document.getElementById("updatePasswordForm");
 const newPasswordInput = document.getElementById("newPassword");
