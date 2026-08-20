@@ -519,6 +519,10 @@ input:focus,select:focus { border-color:var(--gold); }
 
 /* Alinha os campos à esquerda */
 .login-form { text-align: left; }
+.password-field { position:relative; display:block; }
+.password-field input { padding-right:46px; }
+.password-toggle { position:absolute; top:50%; right:7px; width:34px; height:34px; transform:translateY(-50%); border:0; border-radius:7px; background:transparent; color:var(--gray); display:grid; place-items:center; cursor:pointer; font-size:18px; }
+.password-toggle:hover,.password-toggle:focus-visible { color:var(--gold-light); background:rgba(212,175,55,.08); outline:none; }
 
 /* Mensagem de validação */
 .login-message {

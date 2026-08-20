@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Título exibido na aba do navegador -->
-    <title>Ogritech | Login</title>
+    <title>SaaS Ogritech | Login</title>
     <link rel="icon" href="ogritech-favicon.ico" sizes="any">
 
     <!-- CSS principal do sistema -->
@@ -37,7 +37,7 @@
             <!-- Marca da plataforma -->
             <img
                 src="ogritech-logo.png"
-                alt="Ogritech"
+                alt="SaaS Ogritech"
                 class="login-wordmark"
             >
 
@@ -48,6 +48,8 @@
             <p class="login-subtitle">
                 Entre com seu e-mail e senha.
             </p>
+
+            <p class="login-subtitle"><a href="demonstracoes.html">Ver demonstrações por segmento</a></p>
 
             <!-- =================================================
                  FORMULÁRIO DE LOGIN
@@ -71,13 +73,25 @@
                 <label>
                     Senha
 
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Digite sua senha"
-                        autocomplete="current-password"
-                        required
-                    >
+                    <span class="password-field">
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required
+                        >
+                        <button
+                            type="button"
+                            id="togglePasswordButton"
+                            class="password-toggle"
+                            aria-label="Mostrar senha"
+                            aria-pressed="false"
+                            title="Mostrar senha"
+                        >
+                            <span aria-hidden="true">◉</span>
+                        </button>
+                    </span>
                 </label>
 
                 <!-- Mensagem de erro ou sucesso -->

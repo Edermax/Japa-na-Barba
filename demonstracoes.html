@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Demonstrações da plataforma SaaS Ogritech para diferentes segmentos de serviços.">
+    <title>Demonstrações | SaaS Ogritech</title>
+    <link rel="icon" href="ogritech-favicon.ico" sizes="any">
+    <link rel="stylesheet" href="demonstracoes.css">
+</head>
+<body>
+    <header class="demo-header">
+        <a class="demo-brand" href="demonstracoes.html" aria-label="SaaS Ogritech">
+            <img src="ogritech-symbol.png" alt="">
+            <span><strong>SAAS OGRITECH</strong><small>DEMONSTRAÇÕES COMERCIAIS</small></span>
+        </a>
+        <div class="header-actions">
+            <span class="demo-badge">AMBIENTE DEMONSTRATIVO</span>
+            <button id="copyDemoLink" type="button">Copiar link</button>
+        </div>
+    </header>
+
+    <div class="demo-layout">
+        <aside class="segment-sidebar">
+            <p>ESCOLHA O NEGÓCIO</p>
+            <nav id="segmentNav" aria-label="Demonstrações por segmento"></nav>
+            <div class="prospect-tip"><strong>Apresente com confiança</strong><span>Todos os nomes e indicadores desta página são fictícios.</span></div>
+        </aside>
+
+        <main class="demo-main">
+            <section class="business-hero">
+                <div class="business-avatar" id="businessIcon">✂</div>
+                <div>
+                    <p id="businessSegment">BARBEARIA</p>
+                    <h1 id="businessName">Japa na Barba</h1>
+                    <span id="businessPitch"></span>
+                </div>
+                <button class="primary-action" type="button">+ Novo agendamento</button>
+            </section>
+
+            <section class="metrics" id="metrics"></section>
+
+            <div class="content-grid">
+                <section class="demo-card agenda-card">
+                    <div class="card-title"><div><p>OPERAÇÃO DE HOJE</p><h2>Próximos atendimentos</h2></div><span id="todayLabel"></span></div>
+                    <div id="appointments"></div>
+                </section>
+
+                <section class="demo-card">
+                    <div class="card-title"><div><p>MAIS PROCURADOS</p><h2>Serviços</h2></div><span>Este mês</span></div>
+                    <div class="services-list" id="services"></div>
+                </section>
+
+                <section class="demo-card">
+                    <div class="card-title"><div><p>EQUIPE</p><h2>Profissionais</h2></div><span id="teamCount"></span></div>
+                    <div class="team-list" id="team"></div>
+                </section>
+
+                <section class="demo-card insight-card">
+                    <div class="card-title"><div><p>VISÃO GERENCIAL</p><h2>Desempenho semanal</h2></div><span>Últimos 7 dias</span></div>
+                    <div class="chart" id="chart" aria-label="Gráfico de desempenho semanal"></div>
+                    <p id="businessInsight"></p>
+                </section>
+            </div>
+
+            <footer>Dados ilustrativos para apresentação comercial · SaaS Ogritech</footer>
+        </main>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+    <script src="demonstracoes.js"></script>
+</body>
+</html>

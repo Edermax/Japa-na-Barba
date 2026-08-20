@@ -6,6 +6,17 @@ const passwordInput = document.getElementById("password");
 const loginMessage = document.getElementById("loginMessage");
 const submitButton = loginForm.querySelector('button[type="submit"]');
 const forgotPasswordButton = document.getElementById("forgotPasswordButton");
+const togglePasswordButton = document.getElementById("togglePasswordButton");
+
+togglePasswordButton.addEventListener("click", () => {
+    const isVisible = passwordInput.type === "text";
+    passwordInput.type = isVisible ? "password" : "text";
+    togglePasswordButton.setAttribute("aria-pressed", String(!isVisible));
+    togglePasswordButton.setAttribute("aria-label", isVisible ? "Mostrar senha" : "Ocultar senha");
+    togglePasswordButton.title = isVisible ? "Mostrar senha" : "Ocultar senha";
+    togglePasswordButton.querySelector("span").textContent = isVisible ? "◉" : "◎";
+    passwordInput.focus();
+});
 
 const ROLE_LABELS = {
     owner: "Proprietário",
