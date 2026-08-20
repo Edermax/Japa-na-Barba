@@ -9,27 +9,14 @@
 // =========================================================
 // 1. PROTEÇÃO DA PÁGINA
 // =========================================================
-const clientAuthenticated =
-    sessionStorage.getItem("japaAuth") === "true";
-
-const clientRole =
-    sessionStorage.getItem("japaRole");
-
-if (!clientAuthenticated) {
-    window.location.href = "login.html";
-} else if (clientRole !== "client") {
-    window.location.href = "index.html";
-}
+document.documentElement.style.visibility = "hidden";
 
 // =========================================================
 // 2. SESSÃO DO CLIENTE
 // =========================================================
-const loggedClientName =
-    sessionStorage.getItem("japaUserName") || "Cliente";
-
-const loggedClientEmail =
-    sessionStorage.getItem("japaUserEmail") ||
-    "cliente@japanabarba.com";
+let loggedClientName = "Cliente";
+let loggedClientEmail = "";
+let clientBarbershopId = "";
 
 // =========================================================
 // 3. ELEMENTOS
@@ -76,8 +63,9 @@ const clientTime =
 // =========================================================
 // 4. CONFIGURAÇÃO
 // =========================================================
-const APPOINTMENTS_STORAGE_KEY =
-    "japaNaBarbaAppointments";
+function appointmentsStorageKey() {
+    return `japaNaBarbaAppointments:${clientBarbershopId}`;
+}
 
 const STATUS_INFO = {
     requested: {
@@ -135,11 +123,20 @@ function formatClientDate(date) {
 
 function getAppointments() {
     try {
-        return JSON.parse(
+        const appointments = JSON.parse(
             localStorage.getItem(
-                APPOINTMENTS_STORAGE_KEY
+                appointmentsStorageKey()
             )
-        ) || [];
+        );
+        return Array.isArray(appointments)
+            ? appointments.filter((item) =>
+                item && typeof item === "object" &&
+                typeof item.id === "string" &&
+                typeof item.date === "string" &&
+                typeof item.time === "string" &&
+                typeof item.professional === "string"
+            )
+            : [];
     } catch {
         return [];
     }
@@ -147,7 +144,7 @@ function getAppointments() {
 
 function saveAppointments(appointments) {
     localStorage.setItem(
-        APPOINTMENTS_STORAGE_KEY,
+        appointmentsStorageKey(),
         JSON.stringify(appointments)
     );
 }
@@ -173,11 +170,6 @@ function isTimeOccupied(date, time, professional) {
 // =========================================================
 // 6. DADOS DO CLIENTE
 // =========================================================
-clientUserName.textContent =
-    loggedClientName;
-
-clientDate.min = todayISO();
-
 // =========================================================
 // 7. RENDERIZAÇÃO DOS AGENDAMENTOS
 // =========================================================
@@ -224,17 +216,17 @@ function renderClientAppointments() {
         item.innerHTML = `
             <div>
                 <span class="client-appointment-date">
-                    ${formatClientDate(appointment.date)}
+                    ${escapeHtml(formatClientDate(appointment.date))}
                     •
-                    ${appointment.time}
+                    ${escapeHtml(appointment.time)}
                 </span>
 
                 <strong>
-                    ${appointment.service}
+                    ${escapeHtml(appointment.service)}
                 </strong>
 
                 <small>
-                    Profissional: ${appointment.professional}
+                    Profissional: ${escapeHtml(appointment.professional)}
                 </small>
             </div>
 
@@ -266,11 +258,13 @@ function renderClientAppointments() {
     });
 
     // Próximo horário ativo.
+    const nowKey = `${todayISO()}T${new Date().toTimeString().slice(0, 5)}`;
     const next =
         appointments.find(
             (appointment) =>
                 appointment.status !== "cancelled" &&
-                appointment.status !== "completed"
+                appointment.status !== "completed" &&
+                `${appointment.date}T${appointment.time}` >= nowKey
         );
 
     nextClientAppointment.textContent =
@@ -398,7 +392,11 @@ clientAppointmentsList.addEventListener(
                     cancelButton.dataset.cancelAppointment
             );
 
-        if (index < 0) return;
+        if (
+            index < 0 ||
+            appointments[index].clientEmail !== loggedClientEmail ||
+            !["requested", "confirmed"].includes(appointments[index].status)
+        ) return;
 
         // Em vez de apagar o registro, alteramos o status.
         // Isso preserva o histórico.
@@ -420,7 +418,8 @@ clientLogout.addEventListener(
     "click",
     async () => {
         await supabaseClient.auth.signOut();
-        sessionStorage.clear();
+        ["japaAuth", "japaRole", "japaUserName", "japaUserRole", "japaUserEmail", "japaUserId", "japaBarbershopId"]
+            .forEach((key) => sessionStorage.removeItem(key));
         window.location.replace("login.html");
     }
 );
@@ -428,4 +427,42 @@ clientLogout.addEventListener(
 // =========================================================
 // 12. INICIALIZAÇÃO
 // =========================================================
-renderClientAppointments();
+function escapeHtml(value = "") {
+    return String(value).replace(/[&<>'"]/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+    }[character]));
+}
+
+async function initializeClientPage() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+        window.location.replace("login.html");
+        return;
+    }
+
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("barbershop_id, full_name, role, active")
+        .eq("id", session.user.id)
+        .single();
+
+    if (error || !profile?.active || profile.role !== "client" || !profile.barbershop_id) {
+        if (profile?.role && profile.role !== "client") {
+            window.location.replace("index.html");
+            return;
+        }
+        await supabaseClient.auth.signOut();
+        window.location.replace("login.html");
+        return;
+    }
+
+    loggedClientName = profile.full_name || "Cliente";
+    loggedClientEmail = session.user.email || "";
+    clientBarbershopId = profile.barbershop_id;
+    clientUserName.textContent = loggedClientName;
+    clientDate.min = todayISO();
+    document.documentElement.style.visibility = "visible";
+    renderClientAppointments();
+}
+
+initializeClientPage().catch(() => window.location.replace("login.html"));

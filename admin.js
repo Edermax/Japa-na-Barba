@@ -63,7 +63,10 @@ function renderBusinesses() {
 }
 
 function renderPlans() {
-    $("plansGrid").innerHTML = plans.map((plan) => `<article class="plan-card ${plan.featured ? "featured" : ""}">${plan.featured ? '<span class="recommended-plan">MAIS ESCOLHIDO</span>' : ""}<p class="platform-kicker">${escapeHtml(plan.name)}</p><strong>${money.format(plan.monthly_fee)}<small>/mês</small></strong><p>${escapeHtml(plan.description)}</p><ul>${(plan.features || []).map((feature) => `<li>✓ ${escapeHtml(feature)}</li>`).join("")}</ul></article>`).join("");
+    $("plansGrid").innerHTML = plans.map((plan) => {
+        const features = Array.isArray(plan.features) ? plan.features : [];
+        return `<article class="plan-card ${plan.featured ? "featured" : ""}">${plan.featured ? '<span class="recommended-plan">MAIS ESCOLHIDO</span>' : ""}<p class="platform-kicker">${escapeHtml(plan.name)}</p><strong>${money.format(plan.monthly_fee)}<small>/mês</small></strong><p>${escapeHtml(plan.description)}</p><ul>${features.map((feature) => `<li>✓ ${escapeHtml(feature)}</li>`).join("")}</ul></article>`;
+    }).join("");
 }
 
 function refreshViews() { renderSummary(); renderSegments(); renderBusinesses(); renderPlans(); }
@@ -128,7 +131,10 @@ function bindEvents() {
     document.querySelectorAll(".platform-modal").forEach((modal) => modal.addEventListener("click", (event) => { if (event.target === modal) closeModals(); }));
     $("businessTableBody").addEventListener("click", (event) => { const button = event.target.closest("[data-action]"); if (!button) return; const business = businesses.find((item) => item.id === button.dataset.id); if (!business) return; if (button.dataset.action === "detail") openBusinessDetail(business); if (button.dataset.action === "edit") openBusinessForm(business); if (button.dataset.action === "delete") deleteBusiness(business); });
     $("detailEditButton").addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); closeModals(); openBusinessForm(business); });
-    $("detailStatusButton").addEventListener("click", () => toggleBusinessStatus(businesses.find((item) => item.id === selectedBusinessId)));
+    $("detailStatusButton").addEventListener("click", () => {
+        const business = businesses.find((item) => item.id === selectedBusinessId);
+        if (business) toggleBusinessStatus(business);
+    });
     $("platformLogout").addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
 }
 

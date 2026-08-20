@@ -15,8 +15,9 @@
 // =========================================================
 // 1. CHAVES DE ARMAZENAMENTO
 // =========================================================
-const CLIENTS_STORAGE_KEY = "japaNaBarbaClients";
-const APPOINTMENTS_STORAGE_KEY = "japaNaBarbaAppointments";
+const BARBERSHOP_ID = sessionStorage.getItem("japaBarbershopId");
+const CLIENTS_STORAGE_KEY = `japaNaBarbaClients:${BARBERSHOP_ID}`;
+const APPOINTMENTS_STORAGE_KEY = `japaNaBarbaAppointments:${BARBERSHOP_ID}`;
 
 // =========================================================
 // 2. SESSÃO ATUAL
@@ -119,9 +120,18 @@ function statusInfo(status) {
 // =========================================================
 function getAppointments() {
     try {
-        return JSON.parse(
+        const appointments = JSON.parse(
             localStorage.getItem(APPOINTMENTS_STORAGE_KEY)
-        ) || [];
+        );
+        return Array.isArray(appointments)
+            ? appointments.filter((item) =>
+                item && typeof item === "object" &&
+                typeof item.id === "string" &&
+                typeof item.date === "string" &&
+                typeof item.time === "string" &&
+                typeof item.professional === "string"
+            )
+            : [];
     } catch (error) {
         console.error("Erro ao ler a agenda:", error);
         return [];
@@ -570,6 +580,11 @@ agendaList.addEventListener("click", (event) => {
 
     if (index < 0) return;
 
+    if (
+        currentRole === "employee" &&
+        appointments[index].professional !== employeeProfessional
+    ) return;
+
     appointments[index].status = newStatus;
     appointments[index].updatedAt =
         new Date().toISOString();
@@ -633,7 +648,10 @@ function getClients() {
     }
 
     try {
-        return JSON.parse(saved);
+        const clients = JSON.parse(saved);
+        return Array.isArray(clients)
+            ? clients.filter((item) => item && typeof item === "object" && typeof item.id === "string")
+            : [];
     } catch (error) {
         console.error("Erro ao ler clientes:", error);
         return [];
@@ -661,8 +679,8 @@ function renderClients() {
     const clients =
         getClients().filter((client) => {
             return (
-                client.name.toLowerCase().includes(searchTerm) ||
-                client.phone.toLowerCase().includes(searchTerm) ||
+                String(client.name || "").toLowerCase().includes(searchTerm) ||
+                String(client.phone || "").toLowerCase().includes(searchTerm) ||
                 (client.email || "").toLowerCase().includes(searchTerm)
             );
         });
@@ -854,7 +872,9 @@ clientsTableBody.addEventListener(
 // =========================================================
 // 11. INICIALIZAÇÃO
 // =========================================================
-updateClientCount();
-renderClients();
-renderDashboardAgenda();
-renderAgenda();
+if (BARBERSHOP_ID) {
+    updateClientCount();
+    renderClients();
+    renderDashboardAgenda();
+    renderAgenda();
+}

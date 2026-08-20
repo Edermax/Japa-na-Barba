@@ -7,6 +7,17 @@ const ROLE_LABELS = {
     client: "Cliente"
 };
 
+const SESSION_KEYS = [
+    "japaAuth", "japaRole", "japaUserName", "japaUserRole",
+    "japaUserEmail", "japaUserId", "japaBarbershopId"
+];
+
+document.documentElement.style.visibility = "hidden";
+
+function clearLocalSession() {
+    SESSION_KEYS.forEach((key) => sessionStorage.removeItem(key));
+}
+
 function waitForDocument() {
     if (document.readyState !== "loading") return Promise.resolve();
     return new Promise((resolve) => {
@@ -56,10 +67,12 @@ function renderUser(profile) {
 }
 
 async function initializeAuthenticatedPage() {
+    const previousUserId = sessionStorage.getItem("japaUserId");
+    const previousRole = sessionStorage.getItem("japaRole");
     const { data: { session } } = await supabaseClient.auth.getSession();
 
     if (!session) {
-        sessionStorage.clear();
+        clearLocalSession();
         window.location.replace("login.html");
         return;
     }
@@ -78,7 +91,14 @@ async function initializeAuthenticatedPage() {
 
     if (error || !profile?.active) {
         await supabaseClient.auth.signOut();
-        sessionStorage.clear();
+        clearLocalSession();
+        window.location.replace("login.html");
+        return;
+    }
+
+    if (!profile.barbershop_id || !["owner", "admin", "employee", "client"].includes(profile.role)) {
+        await supabaseClient.auth.signOut();
+        clearLocalSession();
         window.location.replace("login.html");
         return;
     }
@@ -90,17 +110,27 @@ async function initializeAuthenticatedPage() {
         return;
     }
 
+    if (previousUserId !== session.user.id || previousRole !== profile.role) {
+        window.location.reload();
+        return;
+    }
+
     await waitForDocument();
     renderUser(profile);
+    document.documentElement.style.visibility = "visible";
 
     const logoutButton = document.getElementById("logoutButton");
     if (logoutButton) {
         logoutButton.addEventListener("click", async () => {
             await supabaseClient.auth.signOut();
-            sessionStorage.clear();
+            clearLocalSession();
             window.location.replace("login.html");
         });
     }
 }
 
-initializeAuthenticatedPage();
+initializeAuthenticatedPage().catch(() => {
+    clearLocalSession();
+    document.documentElement.style.visibility = "visible";
+    window.location.replace("login.html");
+});
