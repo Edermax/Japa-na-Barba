@@ -418,7 +418,7 @@ clientLogout.addEventListener(
     "click",
     async () => {
         await supabaseClient.auth.signOut();
-        ["japaAuth", "japaRole", "japaUserName", "japaUserRole", "japaUserEmail", "japaUserId", "japaBarbershopId"]
+        ["japaAuth", "japaRole", "japaUserName", "japaUserRole", "japaUserEmail", "japaUserId", "japaBarbershopId", "japaDemo"]
             .forEach((key) => sessionStorage.removeItem(key));
         window.location.replace("login.html");
     }
@@ -434,6 +434,21 @@ function escapeHtml(value = "") {
 }
 
 async function initializeClientPage() {
+    if (
+        sessionStorage.getItem("japaDemo") === "true" &&
+        sessionStorage.getItem("japaRole") === "client" &&
+        sessionStorage.getItem("japaBarbershopId") === "demo-ogritech"
+    ) {
+        loggedClientName = sessionStorage.getItem("japaUserName") || "Cliente";
+        loggedClientEmail = sessionStorage.getItem("japaUserEmail") || "";
+        clientBarbershopId = "demo-ogritech";
+        clientUserName.textContent = loggedClientName;
+        clientDate.min = todayISO();
+        document.documentElement.style.visibility = "visible";
+        renderClientAppointments();
+        return;
+    }
+
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
         window.location.replace("login.html");

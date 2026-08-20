@@ -9,7 +9,7 @@ const ROLE_LABELS = {
 
 const SESSION_KEYS = [
     "japaAuth", "japaRole", "japaUserName", "japaUserRole",
-    "japaUserEmail", "japaUserId", "japaBarbershopId"
+    "japaUserEmail", "japaUserId", "japaBarbershopId", "japaDemo"
 ];
 
 document.documentElement.style.visibility = "hidden";
@@ -61,12 +61,36 @@ function renderUser(profile) {
         if (eyebrow) eyebrow.textContent = "PAINEL DO FUNCIONÁRIO";
 
         document
-            .querySelectorAll("#quickAddProfessional, #quickFinancial")
+            .querySelectorAll("#quickAddProfessional, #quickFinancial, [data-owner-only]")
             .forEach((button) => button.classList.add("hidden"));
     }
 }
 
 async function initializeAuthenticatedPage() {
+    if (sessionStorage.getItem("japaDemo") === "true") {
+        const role = sessionStorage.getItem("japaRole");
+        const profile = {
+            role,
+            full_name: sessionStorage.getItem("japaUserName") || "Visitante",
+            barbershop_id: sessionStorage.getItem("japaBarbershopId")
+        };
+
+        if (!profile.barbershop_id || !["owner", "employee"].includes(role)) {
+            clearLocalSession();
+            window.location.replace(role === "client" ? "cliente.html" : "login.html");
+            return;
+        }
+
+        await waitForDocument();
+        renderUser(profile);
+        document.documentElement.style.visibility = "visible";
+        document.getElementById("logoutButton")?.addEventListener("click", () => {
+            clearLocalSession();
+            window.location.replace("login.html");
+        });
+        return;
+    }
+
     const previousUserId = sessionStorage.getItem("japaUserId");
     const previousRole = sessionStorage.getItem("japaRole");
     const { data: { session } } = await supabaseClient.auth.getSession();

@@ -559,6 +559,42 @@ input:focus,select:focus { border-color:var(--gold); }
     line-height: 1.6;
 }
 
+.demo-access-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.demo-access-button {
+    min-height: 70px;
+    padding: 10px 7px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255,255,255,.025);
+    color: var(--white);
+    cursor: pointer;
+    transition: .2s;
+}
+
+.demo-access-button:hover,
+.demo-access-button:focus-visible {
+    border-color: var(--cyan);
+    background: rgba(8,185,211,.08);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.demo-access-button b,
+.demo-access-button small { display: block; }
+.demo-access-button b { font-size: 11px; }
+.demo-access-button small { margin-top: 5px; color: var(--gray); font-size: 9px; }
+
+@media (max-width: 430px) {
+    .demo-access-grid { grid-template-columns: 1fr; }
+    .demo-access-button { min-height: 54px; }
+}
+
 /* =========================================================
    23. SESSÃO E LOGOUT
    ========================================================= */
@@ -1178,12 +1214,10 @@ textarea:focus {
 
 /*
    O seletor visual de perfil não é mais utilizado.
-   Mantemos esta regra como segurança para não exibir
-   os controles antigos caso algum trecho seja reaproveitado.
+   Mantemos esta regra para não exibir o seletor antigo.
 */
 .role-selector,
-.role-option,
-.demo-access {
+.role-option {
     display: none !important;
 }
 
