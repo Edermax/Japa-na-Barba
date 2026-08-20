@@ -517,6 +517,21 @@ input:focus,select:focus { border-color:var(--gold); }
     margin-bottom: 28px;
 }
 
+.login-subtitle a,
+.login-subtitle a:visited {
+    color: var(--cyan-light);
+    font-weight: 700;
+    text-decoration-color: rgba(109, 226, 242, .55);
+    text-underline-offset: 3px;
+}
+
+.login-subtitle a:hover,
+.login-subtitle a:focus-visible {
+    color: #b8f5ff;
+    text-decoration-color: currentColor;
+    outline: none;
+}
+
 /* Alinha os campos à esquerda */
 .login-form { text-align: left; }
 .password-field { position:relative; display:block; }
