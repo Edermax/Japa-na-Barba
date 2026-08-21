@@ -35,7 +35,20 @@
                     <h1 id="businessName">Japa na Barba</h1>
                     <span id="businessPitch"></span>
                 </div>
-                <button class="primary-action" type="button">+ Novo agendamento</button>
+                <a class="login-action" href="login.html">Acesso de clientes</a>
+            </section>
+
+            <section class="profile-access" aria-labelledby="profileAccessTitle">
+                <div>
+                    <p>TESTE O SISTEMA COMPLETO</p>
+                    <h2 id="profileAccessTitle">Acessos demonstrativos</h2>
+                    <span>O perfil será aberto com os dados do segmento selecionado.</span>
+                </div>
+                <div class="profile-access-actions">
+                    <button type="button" data-demo-role="owner"><b>Gestor / dono</b><small>Gestão completa</small></button>
+                    <button type="button" data-demo-role="employee"><b>Funcionário</b><small>Agenda individual</small></button>
+                    <button type="button" data-demo-role="client"><b>Cliente final</b><small>Agendar horário</small></button>
+                </div>
             </section>
 
             <section class="metrics" id="metrics"></section>
@@ -67,6 +80,10 @@
         </main>
     </div>
     <div class="toast" id="toast" role="status"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="business-config.js"></script>
+    <script src="demo-access.js"></script>
     <script src="demonstracoes.js"></script>
 </body>
 </html>

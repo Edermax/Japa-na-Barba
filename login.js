@@ -7,8 +7,6 @@ const loginMessage = document.getElementById("loginMessage");
 const submitButton = loginForm.querySelector('button[type="submit"]');
 const forgotPasswordButton = document.getElementById("forgotPasswordButton");
 const togglePasswordButton = document.getElementById("togglePasswordButton");
-const demoAccessButtons = document.querySelectorAll("[data-demo-role]");
-const demoSegment = document.getElementById("demoSegment");
 
 togglePasswordButton.addEventListener("click", () => {
     const isVisible = passwordInput.type === "text";
@@ -44,47 +42,6 @@ async function destinationFor(role) {
     if (isPlatformAdmin) return "admin.html";
     return role === "client" ? "cliente.html" : "index.html";
 }
-
-function dateFromToday(days) {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function seedDemoData(business) {
-    const appointmentKey = `japaNaBarbaAppointments:demo-${business.key}`;
-    if (!localStorage.getItem(appointmentKey)) {
-        const clientEmail = `cliente.${business.key}@demo.ogritech.com.br`;
-        localStorage.setItem(appointmentKey, JSON.stringify([
-            { id: `demo-${business.key}-1`, clientName: business.client, clientEmail, service: business.services[0][0], professional: business.professionals[0], date: dateFromToday(1), time: "10:00", status: "confirmed", createdBy: "client" },
-            { id: `demo-${business.key}-2`, clientName: "Ana Martins", clientEmail: "ana@demo.ogritech.com.br", service: business.services[1][0], professional: business.professionals[0], date: dateFromToday(0), time: "18:00", status: "requested", createdBy: "client" },
-            { id: `demo-${business.key}-3`, clientName: "Pedro Rocha", clientEmail: "pedro@demo.ogritech.com.br", service: business.services[2][0], professional: business.professionals[1] || business.professionals[0], date: dateFromToday(1), time: "13:30", status: "confirmed", createdBy: "owner" }
-        ]));
-    }
-}
-
-function enterDemo(role) {
-    const key = demoSegment.value;
-    const business = { key, ...(window.OGRITECH_BUSINESSES[key] || window.OGRITECH_BUSINESSES.barbearia) };
-    const names = { owner: business.owner, employee: business.employee, client: business.client };
-    const emails = { owner: `gestor.${key}@demo.ogritech.com.br`, employee: `funcionario.${key}@demo.ogritech.com.br`, client: `cliente.${key}@demo.ogritech.com.br` };
-    if (!names[role]) return;
-
-    // A demonstração não depende da rede; encerra eventual sessão real em segundo plano.
-    supabaseClient.auth.signOut({ scope: "local" }).catch(() => {});
-    saveLocalSession(
-        { id: `demo-${key}-${role}`, email: emails[role] },
-        { role, full_name: names[role], barbershop_id: `demo-${key}` }
-    );
-    sessionStorage.setItem("japaDemo", "true");
-    sessionStorage.setItem("japaDemoSegment", key);
-    seedDemoData(business);
-    window.location.replace(role === "client" ? "cliente.html" : "index.html");
-}
-
-demoAccessButtons.forEach((button) => {
-    button.addEventListener("click", () => enterDemo(button.dataset.demoRole));
-});
 
 async function restoreExistingSession() {
     if (sessionStorage.getItem("japaDemo") === "true") {
