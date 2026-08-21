@@ -6,6 +6,7 @@
 
     <!-- Responsividade -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
 
     <!-- Título -->
     <title>Área do cliente | SaaS Ogritech</title>
@@ -147,6 +148,10 @@
 
         </section>
 
+        <section class="client-section privacy-center">
+            <div><p class="eyebrow">PRIVACIDADE</p><h2>Seus dados, seus direitos</h2><p>Consulte o aviso de privacidade ou envie uma solicitação de acesso, correção, portabilidade ou exclusão.</p></div>
+            <div class="privacy-actions"><a class="outline-button" href="privacidade.html">Política de Privacidade</a><button class="gold-button" type="button" id="openPrivacyRequest">Solicitar atendimento</button></div>
+        </section>
     </main>
 
     <!-- =====================================================
@@ -221,6 +226,8 @@
 
                 </div>
 
+                <label class="privacy-check"><input type="checkbox" id="privacyAcknowledgement" required><span>Li o <a href="privacidade.html" target="_blank">Aviso de Privacidade</a> e entendo o uso dos dados para realizar o agendamento.</span></label>
+
                 <button
                     type="submit"
                     class="gold-button full"
@@ -232,6 +239,20 @@
 
         </div>
 
+    </div>
+
+    <div class="modal hidden" id="privacyRequestModal">
+        <div class="modal-box">
+            <button class="close-button" id="closePrivacyRequest" type="button">×</button>
+            <p class="eyebrow">DIREITOS DO TITULAR</p><h2>Solicitação de privacidade</h2>
+            <p class="section-description">Sua identidade será confirmada pela conta autenticada. A solicitação ficará registrada para acompanhamento.</p>
+            <form id="privacyRequestForm">
+                <label>Tipo de solicitação<select id="privacyRequestType" required><option value="">Selecione</option><option value="information">Informações sobre o tratamento</option><option value="access">Acesso aos dados</option><option value="correction">Correção</option><option value="deletion">Exclusão ou anonimização</option><option value="portability">Portabilidade</option><option value="revocation">Revogação de consentimento</option><option value="objection">Oposição ao tratamento</option></select></label>
+                <label>Detalhes<textarea id="privacyRequestDetails" rows="4" maxlength="2000" placeholder="Descreva quais dados ou tratamentos deseja consultar." required></textarea></label>
+                <p class="form-message" id="privacyRequestMessage"></p>
+                <button class="gold-button full" id="sendPrivacyRequest" type="submit">Enviar solicitação</button>
+            </form>
+        </div>
     </div>
 
     <!-- Cliente oficial do Supabase e configuração pública do projeto -->

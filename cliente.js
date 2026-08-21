@@ -2,8 +2,8 @@
    OGRITECH - ÁREA DO CLIENTE DA BARBEARIA
    ETAPA 5: Agenda integrada.
 
-   Os agendamentos criados aqui usam a mesma chave de
-   localStorage utilizada pelo painel administrativo.
+   Contas reais compartilham a agenda via Supabase.
+   localStorage é usado somente nos ambientes demonstrativos.
    ========================================================= */
 
 // =========================================================
@@ -18,6 +18,9 @@ let loggedClientName = "Cliente";
 let loggedClientEmail = "";
 let clientBarbershopId = "";
 const businessConfig = window.getOgritechBusiness();
+const isDemoClient = sessionStorage.getItem("japaDemo") === "true";
+let clientAppointmentsCache = [];
+let remoteClientAppointmentIds = new Set();
 
 // =========================================================
 // 3. ELEMENTOS
@@ -60,6 +63,10 @@ const clientDate =
 
 const clientTime =
     document.getElementById("clientTime");
+
+const privacyRequestModal = document.getElementById("privacyRequestModal");
+const privacyRequestForm = document.getElementById("privacyRequestForm");
+const privacyRequestMessage = document.getElementById("privacyRequestMessage");
 
 // =========================================================
 // 4. CONFIGURAÇÃO
@@ -123,6 +130,7 @@ function formatClientDate(date) {
 }
 
 function getAppointments() {
+    if (!isDemoClient) return clientAppointmentsCache;
     try {
         const appointments = JSON.parse(
             localStorage.getItem(
@@ -143,11 +151,35 @@ function getAppointments() {
     }
 }
 
-function saveAppointments(appointments) {
-    localStorage.setItem(
-        appointmentsStorageKey(),
-        JSON.stringify(appointments)
-    );
+async function saveAppointments(appointments) {
+    if (isDemoClient) {
+        localStorage.setItem(appointmentsStorageKey(), JSON.stringify(appointments));
+        return true;
+    }
+
+    const newAppointments = appointments.filter((item) => !remoteClientAppointmentIds.has(item.id));
+    const rows = newAppointments.map((item) => ({ id: item.id, barbershop_id: clientBarbershopId,
+        client_name: item.clientName, client_email: item.clientEmail, service: item.service,
+        professional: item.professional, appointment_date: item.date, appointment_time: item.time,
+        status: item.status, created_by: item.createdBy || "client",
+        created_at: item.createdAt || new Date().toISOString(), updated_at: item.updatedAt || new Date().toISOString() }));
+    if (!rows.length) return true;
+    const { error } = await supabaseClient.from("business_appointments").insert(rows);
+    if (error) {
+        console.error("Erro ao salvar agendamento:", error);
+        alert(error.code === "23505" ? "Esse horário acabou de ser ocupado. Escolha outro horário." : "Não foi possível salvar o agendamento. Tente novamente.");
+        return false;
+    }
+    clientAppointmentsCache = appointments;
+    newAppointments.forEach((item) => remoteClientAppointmentIds.add(item.id));
+    return true;
+}
+
+function appointmentFromDatabase(row) {
+    return { id: row.id, clientName: row.client_name, clientEmail: row.client_email,
+        service: row.service, professional: row.professional, date: row.appointment_date,
+        time: String(row.appointment_time).slice(0, 5), status: row.status,
+        createdBy: row.created_by, createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
 function myAppointments() {
@@ -306,12 +338,63 @@ clientAppointmentModal.addEventListener(
     }
 );
 
+document.getElementById("openPrivacyRequest").addEventListener("click", () => {
+    privacyRequestForm.reset();
+    privacyRequestMessage.textContent = "";
+    privacyRequestModal.classList.remove("hidden");
+});
+
+document.getElementById("closePrivacyRequest").addEventListener("click", () => privacyRequestModal.classList.add("hidden"));
+privacyRequestModal.addEventListener("click", (event) => {
+    if (event.target === privacyRequestModal) privacyRequestModal.classList.add("hidden");
+});
+
+privacyRequestForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (isDemoClient) {
+        privacyRequestMessage.textContent = "No ambiente demonstrativo, envie a solicitação para privacidade@ogritech.com.br.";
+        privacyRequestMessage.className = "form-message error";
+        return;
+    }
+    const button = document.getElementById("sendPrivacyRequest");
+    button.disabled = true;
+    privacyRequestMessage.textContent = "Registrando solicitação...";
+    privacyRequestMessage.className = "form-message";
+    const { error } = await supabaseClient.from("privacy_requests").insert({
+        barbershop_id: clientBarbershopId,
+        requester_name: loggedClientName,
+        requester_email: loggedClientEmail,
+        request_type: document.getElementById("privacyRequestType").value,
+        details: document.getElementById("privacyRequestDetails").value.trim()
+    });
+    button.disabled = false;
+    if (error) {
+        console.error("Erro ao registrar solicitação de privacidade:", error);
+        privacyRequestMessage.textContent = "Não foi possível registrar agora. Use privacidade@ogritech.com.br.";
+        privacyRequestMessage.className = "form-message error";
+        return;
+    }
+    privacyRequestMessage.textContent = "Solicitação recebida. Guarde esta confirmação para acompanhamento.";
+    privacyRequestMessage.className = "form-message success";
+    privacyRequestForm.reset();
+});
+
+async function registerPrivacyAcknowledgement() {
+    if (isDemoClient) return;
+    const { error } = await supabaseClient.from("privacy_acknowledgements").upsert({
+        barbershop_id: clientBarbershopId,
+        document_type: "privacy_notice",
+        document_version: "1.0"
+    }, { onConflict: "user_id,document_type,document_version", ignoreDuplicates: true });
+    if (error) console.error("Erro ao registrar ciência do aviso de privacidade:", error);
+}
+
 // =========================================================
 // 9. NOVO AGENDAMENTO
 // =========================================================
 clientAppointmentForm.addEventListener(
     "submit",
-    (event) => {
+    async (event) => {
         event.preventDefault();
 
         if (
@@ -348,7 +431,8 @@ clientAppointmentForm.addEventListener(
             createdAt: new Date().toISOString()
         });
 
-        saveAppointments(appointments);
+        if (!await saveAppointments(appointments)) return;
+        await registerPrivacyAcknowledgement();
 
         clientAppointmentForm.reset();
 
@@ -368,7 +452,7 @@ clientAppointmentForm.addEventListener(
 // =========================================================
 clientAppointmentsList.addEventListener(
     "click",
-    (event) => {
+    async (event) => {
         const cancelButton =
             event.target.closest(
                 "[data-cancel-appointment]"
@@ -401,13 +485,24 @@ clientAppointmentsList.addEventListener(
 
         // Em vez de apagar o registro, alteramos o status.
         // Isso preserva o histórico.
-        appointments[index].status =
-            "cancelled";
+        const previousStatus = appointments[index].status;
+        appointments[index].status = "cancelled";
 
         appointments[index].updatedAt =
             new Date().toISOString();
 
-        saveAppointments(appointments);
+        if (isDemoClient) {
+            if (!await saveAppointments(appointments)) return;
+        } else {
+            const { data: cancelled, error } = await supabaseClient.rpc("cancel_my_appointment", { appointment_id: appointments[index].id });
+            if (error || !cancelled) {
+                appointments[index].status = previousStatus;
+                console.error("Erro ao cancelar agendamento:", error);
+                alert("Não foi possível cancelar este agendamento.");
+                return;
+            }
+            clientAppointmentsCache = appointments;
+        }
         renderClientAppointments();
     }
 );
@@ -508,6 +603,19 @@ async function initializeClientPage() {
     loggedClientName = profile.full_name || "Cliente";
     loggedClientEmail = session.user.email || "";
     clientBarbershopId = profile.barbershop_id;
+    const { data: appointments, error: appointmentsError } = await supabaseClient
+        .from("business_appointments").select("*").eq("barbershop_id", clientBarbershopId).order("appointment_date");
+    if (appointmentsError) throw appointmentsError;
+    clientAppointmentsCache = (appointments || []).map(appointmentFromDatabase);
+    remoteClientAppointmentIds = new Set(clientAppointmentsCache.map((item) => item.id));
+    const [servicesResult, employeesResult] = await Promise.all([
+        supabaseClient.from("services").select("*").eq("barbershop_id", clientBarbershopId).eq("active", true).order("name"),
+        supabaseClient.from("employees").select("*").eq("barbershop_id", clientBarbershopId).eq("active", true).order("name")
+    ]);
+    if (servicesResult.error) throw servicesResult.error;
+    if (employeesResult.error) throw employeesResult.error;
+    if (servicesResult.data?.length) businessConfig.services = servicesResult.data.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);
+    if (employeesResult.data?.length) businessConfig.professionals = employeesResult.data.map((employee) => employee.name);
     clientUserName.textContent = loggedClientName;
     clientDate.min = todayISO();
     applyClientBusinessCustomization();

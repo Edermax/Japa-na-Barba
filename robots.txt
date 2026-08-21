@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /demonstracoes.html
+Disallow: /admin.html
+Disallow: /cliente.html
+Disallow: /index.html
+Disallow: /login.html
+Disallow: /update-password.html
+
+Sitemap: https://ogritech.com.br/sitemap.xml

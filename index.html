@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <!-- Torna a interface responsiva -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
     <!-- Nome da aba -->
     <title>SaaS Ogritech | Gestão do negócio</title>
     <link rel="icon" href="ogritech-favicon.ico" sizes="any">
@@ -82,9 +83,39 @@
                     <!-- Indicadores -->
                     <div class="stats-grid">
                         <article class="stat-card"><span>Agendamentos hoje</span><strong id="todayAppointmentCount">0</strong><small id="todayAppointmentSubtitle">Agenda integrada</small></article>
-                        <article class="stat-card"><span>Clientes cadastrados</span><strong id="clientCount">0</strong><small>Total salvo neste navegador</small></article>
+                        <article class="stat-card"><span>Clientes cadastrados</span><strong id="clientCount">0</strong><small>Dados protegidos no Supabase</small></article>
                         <article class="stat-card" data-owner-only><span>Faturamento</span><strong id="businessRevenue">R$ 4.850</strong><small>Este mês</small></article>
                         <article class="stat-card" data-owner-only><span>Ticket médio</span><strong id="businessTicket">R$ 78</strong><small class="positive">+5,4% este mês</small></article>
+                        <article class="stat-card" data-owner-only><span>Margem de lucro global</span><strong id="globalProfitMargin">—</strong><small id="globalProfitMarginSubtitle">Sobre atendimentos concluídos</small></article>
+                        <article class="stat-card" data-owner-only><span>Clientes sem retorno</span><strong id="inactiveClientCount">0</strong><small>Sem agendamento há mais de 60 dias</small></article>
+                        <article class="stat-card" data-owner-only><span>Comparativo anual</span><strong id="yearComparison">—</strong><small id="yearComparisonSubtitle">Mês atual x mesmo mês do ano passado</small></article>
+                        <article class="stat-card" data-owner-only><span>Solicitações LGPD</span><strong id="privacyRequestCount">0</strong><small>Pendentes de atendimento</small></article>
+                    </div>
+
+                    <div class="analytics-grid" data-owner-only>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">RENTABILIDADE</p><h2>Margem por categoria</h2></div></div>
+                            <p class="section-description analytics-note">Estimativa baseada no custo operacional configurado para cada serviço.</p>
+                            <div class="metric-list" id="categoryMarginList"></div>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">RECORRÊNCIA</p><h2>Clientes que precisam de contato</h2></div></div>
+                            <div class="metric-list" id="inactiveClientList"></div>
+                            <div class="empty-state hidden" id="inactiveClientEmpty"><strong>Recorrência em dia.</strong><span>Nenhum cliente está há mais de 60 dias sem agendar.</span></div>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">EVOLUÇÃO</p><h2>Resultado do período</h2></div></div>
+                            <div class="year-comparison-values">
+                                <div><span id="previousYearLabel">Ano passado</span><strong id="previousYearRevenue">R$ 0</strong></div>
+                                <div><span id="currentYearLabel">Ano atual</span><strong id="currentYearRevenue">R$ 0</strong></div>
+                            </div>
+                            <p class="section-description">Somente atendimentos concluídos entram no cálculo.</p>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">PRIVACIDADE</p><h2>Direitos dos titulares</h2></div></div>
+                            <div class="metric-list" id="privacyRequestList"></div>
+                            <div class="empty-state hidden" id="privacyRequestEmpty"><strong>Nenhuma solicitação pendente.</strong><span>Novos pedidos aparecerão aqui.</span></div>
+                        </article>
                     </div>
 
                     <div class="dashboard-grid">
@@ -118,7 +149,7 @@
                     <article class="panel">
                         <div class="panel-header"><div><p class="eyebrow">ATALHOS</p><h2>Ações rápidas</h2></div></div>
                         <div class="actions">
-                            <button class="action-button" id="quickAddClient">+ Cadastrar cliente</button>
+                            <button class="action-button" id="quickAddClient" data-manager-only>+ Cadastrar cliente</button>
                             <button class="action-button">+ Criar serviço</button>
                             <button class="action-button" id="quickAddProfessional">+ Adicionar profissional</button>
                             <button class="action-button" id="quickFinancial">Ver financeiro</button>
@@ -197,7 +228,7 @@
 
                 <!-- =================================================
                      VISÃO: CLIENTES
-                     CRUD completo no frontend usando localStorage.
+                     CRUD integrado ao Supabase para contas reais.
                      ================================================= -->
                 <div id="clientsView" class="view-section hidden">
 
@@ -209,7 +240,7 @@
                                 <p class="section-description">Cadastre, pesquise, edite e exclua clientes.</p>
                             </div>
 
-                            <button class="gold-button" id="newClientButton">+ Novo cliente</button>
+                            <button class="gold-button" id="newClientButton" data-manager-only>+ Novo cliente</button>
                         </div>
 
                         <!-- Campo de busca -->
@@ -364,7 +395,8 @@
 
                 <label>
                     Observações
-                    <textarea id="clientNotes" rows="3" placeholder="Preferências, observações de atendimento..." ></textarea>
+                    <textarea id="clientNotes" rows="3" maxlength="1000" placeholder="Preferências necessárias ao atendimento..." ></textarea>
+                    <small class="field-privacy-note">Evite dados sensíveis, diagnósticos, religião ou informações sem relação com o atendimento.</small>
                 </label>
 
                 <button type="submit" class="gold-button full" id="saveClientButton">
@@ -373,6 +405,8 @@
             </form>
         </div>
     </div>
+
+    <footer class="app-legal-links"><a href="privacidade.html">Privacidade</a><a href="termos.html">Termos de Uso</a><a href="mailto:privacidade@ogritech.com.br">Canal do titular</a></footer>
 
     <!-- Cliente oficial do Supabase e configuração pública do projeto -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

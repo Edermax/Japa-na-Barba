@@ -17,7 +17,8 @@ Plataforma SaaS de gestão para barbearias.
 - painel administrativo e área do cliente;
 - vitrine comercial com demonstrações adaptadas a dez segmentos em `demonstracoes.html`;
 - acessos demonstrativos de gestor, funcionário e cliente personalizados por segmento;
-- agenda integrada ainda armazenada localmente durante a migração gradual.
+- clientes e agenda persistidos no Supabase, com isolamento por empresa via RLS;
+- `localStorage` reservado aos ambientes demonstrativos e à importação única de dados antigos.
 
 ## Segurança
 
@@ -28,10 +29,20 @@ O frontend contém somente a chave pública do Supabase. Nunca inclua no reposit
 - senha do banco;
 - credenciais pessoais.
 
+## Privacidade e LGPD
+
+- política de privacidade e termos versionados;
+- canal autenticado para solicitações dos titulares;
+- registro de ciência do aviso de privacidade;
+- trilha de auditoria para alterações em clientes e agendamentos;
+- parâmetros de retenção por empresa;
+- acesso mínimo por função, aplicado por RLS;
+- canal público: `privacidade@ogritech.com.br` (o endereço deve estar provisionado antes da publicação).
+
+Esses controles apoiam a adequação, mas não substituem revisão jurídica, contratos com controladores e operadores, inventário de tratamentos e processos internos de resposta a incidentes.
+
 ## Próximas etapas
 
 1. Carregar identidade e configurações de cada barbearia pelo banco.
-2. Migrar Serviços para o Supabase.
-3. Migrar Clientes e Profissionais.
-4. Migrar Agendamentos e remover o `localStorage`.
-5. Publicar a plataforma em `ogritech.com.br`.
+2. Migrar Serviços e Profissionais para o Supabase.
+3. Publicar a plataforma em `ogritech.com.br`.

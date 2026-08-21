@@ -9,7 +9,7 @@
    - proprietário/funcionário alteram o status;
    - horários ocupados não podem ser duplicados.
 
-   Ainda usamos localStorage para fins de estudo.
+   Contas reais usam Supabase; localStorage fica restrito às demonstrações.
    ========================================================= */
 
 // =========================================================
@@ -18,6 +18,12 @@
 const BARBERSHOP_ID = sessionStorage.getItem("japaBarbershopId");
 const CLIENTS_STORAGE_KEY = `japaNaBarbaClients:${BARBERSHOP_ID}`;
 const APPOINTMENTS_STORAGE_KEY = `japaNaBarbaAppointments:${BARBERSHOP_ID}`;
+const IS_DEMO = sessionStorage.getItem("japaDemo") === "true";
+let appointmentsCache = [];
+let clientsCache = [];
+let remoteAppointmentIds = new Set();
+let remoteClientIds = new Set();
+let privacyRequestsCache = [];
 
 // =========================================================
 // 2. SESSÃO ATUAL
@@ -52,6 +58,7 @@ const todayAppointmentSubtitle = document.getElementById("todayAppointmentSubtit
 const dashboardAppointmentList = document.getElementById("dashboardAppointmentList");
 const dashboardAppointmentEmpty = document.getElementById("dashboardAppointmentEmpty");
 const viewAgenda = document.getElementById("viewAgenda");
+const moneyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
 // =========================================================
 // 4. FUNÇÕES UTILITÁRIAS
@@ -157,9 +164,10 @@ function statusInfo(status) {
 }
 
 // =========================================================
-// 5. STORAGE DA AGENDA
+// 5. DADOS DA AGENDA (SUPABASE; LOCALSTORAGE SOMENTE NO DEMO)
 // =========================================================
 function getAppointments() {
+    if (!IS_DEMO) return appointmentsCache;
     try {
         const appointments = JSON.parse(
             localStorage.getItem(APPOINTMENTS_STORAGE_KEY)
@@ -179,14 +187,52 @@ function getAppointments() {
     }
 }
 
-function saveAppointments(appointments) {
-    localStorage.setItem(
-        APPOINTMENTS_STORAGE_KEY,
-        JSON.stringify(appointments)
-    );
+async function saveAppointments(appointments) {
+    if (IS_DEMO) {
+        localStorage.setItem(APPOINTMENTS_STORAGE_KEY, JSON.stringify(appointments));
+    } else {
+        appointmentsCache = appointments;
+        const rows = appointments.map((item) => ({
+            id: item.id,
+            barbershop_id: BARBERSHOP_ID,
+            client_name: item.clientName,
+            client_email: item.clientEmail || "",
+            service: item.service,
+            professional: item.professional,
+            appointment_date: item.date,
+            appointment_time: item.time,
+            status: item.status,
+            created_by: item.createdBy || currentRole,
+            created_at: item.createdAt || new Date().toISOString(),
+            updated_at: item.updatedAt || new Date().toISOString()
+        }));
+        const removedIds = [...remoteAppointmentIds].filter((id) => !appointments.some((item) => item.id === id));
+        if (removedIds.length) {
+            const { error } = await supabaseClient.from("business_appointments").delete().in("id", removedIds);
+            if (error) { reportDataError("salvar os agendamentos", error); return false; }
+        }
+        if (rows.length) {
+            const { error } = await supabaseClient.from("business_appointments").upsert(rows);
+            if (error) { reportDataError("salvar os agendamentos", error); return false; }
+        }
+        remoteAppointmentIds = new Set(appointments.map((item) => item.id));
+    }
 
     renderAgenda();
     renderDashboardAgenda();
+    renderBusinessIndicators();
+    return true;
+}
+
+function appointmentFromDatabase(row) {
+    return { id: row.id, clientName: row.client_name, clientEmail: row.client_email, service: row.service,
+        professional: row.professional, date: row.appointment_date, time: String(row.appointment_time).slice(0, 5),
+        status: row.status, createdBy: row.created_by, createdAt: row.created_at, updatedAt: row.updated_at };
+}
+
+function reportDataError(action, error) {
+    console.error(`Erro ao ${action}:`, error);
+    alert(`Não foi possível ${action}. Verifique a conexão e tente novamente.`);
 }
 
 // Verifica conflito de horário para o mesmo profissional.
@@ -451,6 +497,99 @@ function renderDashboardAgenda() {
 }
 
 // =========================================================
+// 8.1. DASHBOARD: INDICADORES DE GESTÃO
+// =========================================================
+function serviceFinancials(serviceName) {
+    const service = businessConfig.services.find((item) => item[0] === serviceName);
+    const price = Number(service?.[1]) || 0;
+    const cost = Number.isFinite(Number(service?.[3])) ? Number(service[3]) : price * 0.4;
+    return { price, cost };
+}
+
+function completedAppointmentsForMonth(year, month) {
+    return getAppointments().filter((appointment) => {
+        const date = new Date(`${appointment.date}T12:00:00`);
+        return appointment.status === "completed" && date.getFullYear() === year && date.getMonth() === month;
+    });
+}
+
+function renderBusinessIndicators() {
+    const globalMargin = document.getElementById("globalProfitMargin");
+    if (!globalMargin) return;
+
+    const now = new Date();
+    const completed = getAppointments().filter((item) => item.status === "completed");
+    let totalRevenue = 0;
+    let totalCost = 0;
+    const byCategory = new Map();
+
+    completed.forEach((appointment) => {
+        const { price, cost } = serviceFinancials(appointment.service);
+        totalRevenue += price;
+        totalCost += cost;
+        const current = byCategory.get(appointment.service) || { revenue: 0, cost: 0 };
+        current.revenue += price;
+        current.cost += cost;
+        byCategory.set(appointment.service, current);
+    });
+
+    globalMargin.textContent = totalRevenue ? `${Math.round(((totalRevenue - totalCost) / totalRevenue) * 100)}%` : "—";
+    document.getElementById("globalProfitMarginSubtitle").textContent = totalRevenue ? `${moneyFormatter.format(totalRevenue - totalCost)} de lucro estimado` : "Sem atendimentos concluídos";
+    document.getElementById("categoryMarginList").innerHTML = businessConfig.services.map((service) => {
+        const values = byCategory.get(service[0]);
+        const financials = values || serviceFinancials(service[0]);
+        const revenue = values ? values.revenue : financials.price;
+        const cost = values ? values.cost : financials.cost;
+        const margin = revenue ? Math.round(((revenue - cost) / revenue) * 100) : 0;
+        return `<div class="metric-row"><span>${escapeHtml(service[0])}</span><strong>${margin}%<small>${values ? "realizado" : "estimativa"}</small></strong></div>`;
+    }).join("");
+
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 60);
+    const appointments = getAppointments();
+    const inactiveClients = getClients().map((client) => {
+        const history = appointments.filter((item) => item.clientName.trim().toLowerCase() === String(client.name).trim().toLowerCase() && item.status !== "cancelled").sort((a, b) => b.date.localeCompare(a.date));
+        return { client, lastDate: history[0]?.date || null };
+    }).filter((item) => !item.lastDate || new Date(`${item.lastDate}T12:00:00`) < cutoff);
+
+    document.getElementById("inactiveClientCount").textContent = inactiveClients.length;
+    document.getElementById("inactiveClientList").innerHTML = inactiveClients.slice(0, 5).map(({ client, lastDate }) => `<div class="metric-row"><span>${escapeHtml(client.name)}</span><strong>${lastDate ? formatDate(lastDate) : "Nunca agendou"}<small>último agendamento</small></strong></div>`).join("");
+    document.getElementById("inactiveClientEmpty").classList.toggle("hidden", inactiveClients.length > 0);
+
+    const revenueOf = (items) => items.reduce((sum, item) => sum + serviceFinancials(item.service).price, 0);
+    const currentRevenue = revenueOf(completedAppointmentsForMonth(now.getFullYear(), now.getMonth()));
+    const previousRevenue = revenueOf(completedAppointmentsForMonth(now.getFullYear() - 1, now.getMonth()));
+    const variation = previousRevenue ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : null;
+    document.getElementById("currentYearLabel").textContent = String(now.getFullYear());
+    document.getElementById("previousYearLabel").textContent = String(now.getFullYear() - 1);
+    document.getElementById("currentYearRevenue").textContent = moneyFormatter.format(currentRevenue);
+    document.getElementById("previousYearRevenue").textContent = moneyFormatter.format(previousRevenue);
+    const comparison = document.getElementById("yearComparison");
+    comparison.textContent = variation === null ? "—" : `${variation >= 0 ? "+" : ""}${variation.toFixed(1).replace(".", ",")}%`;
+    comparison.classList.toggle("positive", variation !== null && variation >= 0);
+    document.getElementById("yearComparisonSubtitle").textContent = previousRevenue ? "Variação do faturamento no período" : "Sem base no mesmo mês do ano passado";
+}
+
+function renderPrivacyRequests() {
+    const list = document.getElementById("privacyRequestList");
+    if (!list) return;
+    const pending = privacyRequestsCache.filter((item) => !["completed", "rejected"].includes(item.status));
+    document.getElementById("privacyRequestCount").textContent = pending.length;
+    list.innerHTML = pending.slice(0, 5).map((item) => `<div class="metric-row"><span>${escapeHtml(item.requester_name)}<small>${escapeHtml(item.request_type)} · ${formatDate(String(item.created_at).slice(0, 10))}</small></span><strong><button class="table-button edit" data-complete-privacy="${item.id}">Concluir</button></strong></div>`).join("");
+    document.getElementById("privacyRequestEmpty").classList.toggle("hidden", pending.length > 0);
+}
+
+document.getElementById("privacyRequestList")?.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-complete-privacy]");
+    if (!button || !confirm("Marcar esta solicitação como concluída? Confirme somente após atender o titular.")) return;
+    const { error } = await supabaseClient.from("privacy_requests").update({ status: "completed" }).eq("id", button.dataset.completePrivacy);
+    if (error) return reportDataError("atualizar a solicitação", error);
+    const request = privacyRequestsCache.find((item) => item.id === button.dataset.completePrivacy);
+    if (request) request.status = "completed";
+    renderPrivacyRequests();
+});
+
+// =========================================================
 // 9. TELA AGENDA
 // =========================================================
 const agendaDateFilter = document.getElementById("agendaDateFilter");
@@ -657,6 +796,7 @@ const clientModalEyebrow = document.getElementById("clientModalEyebrow");
 const clientModalTitle = document.getElementById("clientModalTitle");
 
 function getClients() {
+    if (!IS_DEMO) return clientsCache;
     const saved =
         localStorage.getItem(CLIENTS_STORAGE_KEY);
 
@@ -699,13 +839,29 @@ function getClients() {
     }
 }
 
-function saveClients(clients) {
-    localStorage.setItem(
-        CLIENTS_STORAGE_KEY,
-        JSON.stringify(clients)
-    );
+async function saveClients(clients) {
+    if (IS_DEMO) {
+        localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clients));
+    } else {
+        clientsCache = clients;
+        const rows = clients.map((client) => ({ id: client.id, barbershop_id: BARBERSHOP_ID,
+            name: client.name, phone: client.phone || "", email: client.email || "",
+            birthday: client.birthday || null, notes: client.notes || "" }));
+        const removedIds = [...remoteClientIds].filter((id) => !clients.some((client) => client.id === id));
+        if (removedIds.length) {
+            const { error } = await supabaseClient.from("business_clients").delete().in("id", removedIds);
+            if (error) { reportDataError("salvar os clientes", error); return false; }
+        }
+        if (rows.length) {
+            const { error } = await supabaseClient.from("business_clients").upsert(rows);
+            if (error) { reportDataError("salvar os clientes", error); return false; }
+        }
+        remoteClientIds = new Set(clients.map((client) => client.id));
+    }
 
     updateClientCount();
+    renderBusinessIndicators();
+    return true;
 }
 
 function updateClientCount() {
@@ -744,7 +900,7 @@ function renderClients() {
             <td>${escapeHtml(client.email || "—")}</td>
             <td>${formatDate(client.birthday)}</td>
             <td>
-                <div class="table-actions">
+                <div class="table-actions ${currentRole === "employee" ? "hidden" : ""}">
                     <button class="table-button edit" data-edit-client="${client.id}">Editar</button>
                     <button class="table-button delete" data-delete-client="${client.id}">Excluir</button>
                 </div>
@@ -913,9 +1069,72 @@ clientsTableBody.addEventListener(
 // =========================================================
 // 11. INICIALIZAÇÃO
 // =========================================================
-if (BARBERSHOP_ID) {
+function validUuid(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || "");
+}
+
+async function importLocalDataOnce() {
+    const migrationKey = `ogritechSupabaseMigration:${BARBERSHOP_ID}`;
+    if (localStorage.getItem(migrationKey) || IS_DEMO || currentRole === "employee") return;
+
+    try {
+        const localAppointments = JSON.parse(localStorage.getItem(APPOINTMENTS_STORAGE_KEY) || "[]");
+        const localClients = JSON.parse(localStorage.getItem(CLIENTS_STORAGE_KEY) || "[]");
+        if (Array.isArray(localAppointments) && localAppointments.length) {
+            const knownIds = new Set(appointmentsCache.map((item) => item.id));
+            const imported = localAppointments.filter((item) => !knownIds.has(item.id))
+                .map((item) => ({ ...item, id: validUuid(item.id) ? item.id : createId() }));
+            if (imported.length && !await saveAppointments([...appointmentsCache, ...imported])) throw new Error("Falha ao importar agendamentos");
+        }
+        if (Array.isArray(localClients) && localClients.length) {
+            const knownIds = new Set(clientsCache.map((item) => item.id));
+            const imported = localClients.filter((item) => !knownIds.has(item.id))
+                .map((item) => ({ ...item, id: validUuid(item.id) ? item.id : createId() }));
+            if (imported.length && !await saveClients([...clientsCache, ...imported])) throw new Error("Falha ao importar clientes");
+        }
+        localStorage.setItem(migrationKey, new Date().toISOString());
+        localStorage.removeItem(APPOINTMENTS_STORAGE_KEY);
+        localStorage.removeItem(CLIENTS_STORAGE_KEY);
+    } catch (error) {
+        console.error("Erro ao importar dados locais:", error);
+    }
+}
+
+async function loadOperationalData() {
+    if (IS_DEMO) return;
+    const [appointmentsResult, clientsResult, privacyResult, servicesResult, employeesResult] = await Promise.all([
+        supabaseClient.from("business_appointments").select("*").eq("barbershop_id", BARBERSHOP_ID),
+        supabaseClient.from("business_clients").select("*").eq("barbershop_id", BARBERSHOP_ID),
+        supabaseClient.from("privacy_requests").select("*").eq("barbershop_id", BARBERSHOP_ID).order("created_at", { ascending: false }),
+        supabaseClient.from("services").select("*").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name"),
+        supabaseClient.from("employees").select("*").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name")
+    ]);
+    if (appointmentsResult.error) throw appointmentsResult.error;
+    if (clientsResult.error) throw clientsResult.error;
+    if (privacyResult.error) throw privacyResult.error;
+    if (servicesResult.error) throw servicesResult.error;
+    if (employeesResult.error) throw employeesResult.error;
+    appointmentsCache = (appointmentsResult.data || []).map(appointmentFromDatabase);
+    clientsCache = (clientsResult.data || []).map((row) => ({ id: row.id, name: row.name, phone: row.phone,
+        email: row.email, birthday: row.birthday || "", notes: row.notes || "" }));
+    remoteAppointmentIds = new Set(appointmentsCache.map((item) => item.id));
+    remoteClientIds = new Set(clientsCache.map((item) => item.id));
+    privacyRequestsCache = privacyResult.data || [];
+    if (servicesResult.data?.length) businessConfig.services = servicesResult.data.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);
+    if (employeesResult.data?.length) businessConfig.professionals = employeesResult.data.map((employee) => employee.name);
+    applyBusinessCustomization();
+    await importLocalDataOnce();
+}
+
+async function initializeOperationalDashboard() {
+    if (!BARBERSHOP_ID) return;
+    await loadOperationalData();
     updateClientCount();
     renderClients();
     renderDashboardAgenda();
+    renderBusinessIndicators();
+    renderPrivacyRequests();
     renderAgenda();
 }
+
+initializeOperationalDashboard().catch((error) => reportDataError("carregar os dados", error));

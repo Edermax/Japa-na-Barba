@@ -61,7 +61,7 @@ function renderUser(profile) {
         if (eyebrow) eyebrow.textContent = "PAINEL DO FUNCIONÁRIO";
 
         document
-            .querySelectorAll("#quickAddProfessional, #quickFinancial, [data-owner-only]")
+            .querySelectorAll("#quickAddProfessional, #quickFinancial, [data-owner-only], [data-manager-only]")
             .forEach((button) => button.classList.add("hidden"));
     }
 }
