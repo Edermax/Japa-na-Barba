@@ -530,6 +530,7 @@ function escapeHtml(value = "") {
 }
 
 function applyClientBusinessCustomization() {
+    window.applyOgritechBusinessTheme(businessConfig);
     const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
     const logo = document.getElementById("clientBusinessLogo");
     const icon = document.getElementById("clientBusinessIcon");
@@ -538,6 +539,11 @@ function applyClientBusinessCustomization() {
     document.getElementById("clientAreaLabel").textContent = `Área de ${businessConfig.clientLabel.toLowerCase()}`;
     document.getElementById("clientHeroTitle").textContent = businessConfig.hero;
     document.getElementById("clientServiceCount").textContent = businessConfig.services.length;
+    const backToShowcase = document.getElementById("clientBackToShowcase");
+    if (isDemoClient && backToShowcase) {
+        backToShowcase.href = `demonstracoes.html?segmento=${encodeURIComponent(businessConfig.key)}`;
+        backToShowcase.classList.remove("hidden");
+    }
 
     if (businessConfig.key === "barbearia") {
         logo.classList.remove("hidden");

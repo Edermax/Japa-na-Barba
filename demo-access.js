@@ -46,7 +46,7 @@ function enterSegmentDemo(role) {
     supabaseClient.auth.signOut({ scope: "local" }).catch(() => {});
     saveDemoSession(role, business);
     seedDemoAppointments(business);
-    window.location.replace(role === "client" ? "cliente.html" : "index.html");
+    window.location.assign(role === "client" ? "cliente.html" : "index.html");
 }
 
 document.querySelectorAll("[data-demo-role]").forEach((button) => {

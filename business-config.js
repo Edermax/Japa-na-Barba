@@ -16,3 +16,14 @@ window.getOgritechBusiness = function () {
     const key = sessionStorage.getItem("japaDemoSegment") || "barbearia";
     return { key, ...(window.OGRITECH_BUSINESSES[key] || window.OGRITECH_BUSINESSES.barbearia) };
 };
+
+window.applyOgritechBusinessTheme = function (business) {
+    const accent = business?.color || "#d4af37";
+    const hex = accent.replace("#", "");
+    const rgb = hex.length === 6
+        ? [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16)).join(",")
+        : "212,175,55";
+    document.documentElement.style.setProperty("--gold", accent);
+    document.documentElement.style.setProperty("--gold-light", accent);
+    document.documentElement.style.setProperty("--accent-rgb", rgb);
+};

@@ -97,6 +97,7 @@ function todayISO() {
 }
 
 function applyBusinessCustomization() {
+    window.applyOgritechBusinessTheme(businessConfig);
     const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
     const tenantLogo = document.getElementById("tenantLogo");
     const tenantIcon = document.getElementById("tenantIcon");
@@ -105,6 +106,11 @@ function applyBusinessCustomization() {
     document.getElementById("businessPanelEyebrow").textContent = `${businessConfig.name.toUpperCase()} • PAINEL ADMINISTRATIVO`;
     document.getElementById("businessRevenue").textContent = currency.format(businessConfig.revenue);
     document.getElementById("businessTicket").textContent = currency.format(businessConfig.ticket);
+    const backToShowcase = document.getElementById("backToShowcase");
+    if (IS_DEMO && backToShowcase) {
+        backToShowcase.href = `demonstracoes.html?segmento=${encodeURIComponent(businessConfig.key)}`;
+        backToShowcase.classList.remove("hidden");
+    }
 
     if (businessConfig.key === "barbearia") {
         tenantLogo.classList.remove("hidden");
