@@ -70,6 +70,9 @@ a { text-decoration:none; }
 
 .platform-symbol {
     border-radius:22%;
+    padding: 4px;
+    background: #fff;
+    filter: contrast(1.16) saturate(1.04);
 }
 
 .tenant-badge {
@@ -511,7 +514,7 @@ input:focus,select:focus { border-color:var(--gold); }
     margin: 0 auto 22px;
     padding: 14px 18px 16px;
     border-radius: 12px;
-    background: #f7fafb;
+    background: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -524,6 +527,7 @@ input:focus,select:focus { border-color:var(--gold); }
     height: auto;
     aspect-ratio: 1;
     object-fit: contain;
+    filter: contrast(1.16) saturate(1.04);
 }
 
 .ogritech-lockup-name {
@@ -1495,7 +1499,7 @@ textarea:focus {
 .platform-admin-page { background:radial-gradient(circle at 80% 0,rgba(8,185,211,.14),transparent 35%),#080c0e; }
 .platform-shell { min-height:100vh; display:grid; grid-template-columns:250px minmax(0,1fr); }
 .platform-sidebar { position:sticky; top:0; height:100vh; padding:28px 20px 20px; background:#070a0c; border-right:1px solid #1d3035; text-align:center; display:flex; flex-direction:column; }
-.platform-admin-logo { width:76px; height:76px; object-fit:contain; margin:0 auto 12px; }
+.platform-admin-logo { width:76px; height:76px; padding:4px; object-fit:contain; margin:0 auto 12px; border-radius:16px; background:#fff; filter:contrast(1.16) saturate(1.04); }
 .platform-sidebar .brand-subtitle { margin-top:6px; }
 .platform-menu { margin-top:42px; display:flex; flex-direction:column; gap:7px; text-align:left; }
 .platform-menu a { padding:12px 14px; border-radius:8px; color:#849398; font-size:12px; font-weight:700; }
