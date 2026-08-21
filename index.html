@@ -6,7 +6,7 @@
     <!-- Torna a interface responsiva -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Nome da aba -->
-    <title>SaaS Ogritech | Japa na Barba</title>
+    <title>SaaS Ogritech | Gestão do negócio</title>
     <link rel="icon" href="ogritech-favicon.ico" sizes="any">
     <!-- IMPORTANTE: este é o arquivo CSS separado -->
     <link rel="stylesheet" href="style.css">
@@ -24,10 +24,11 @@
 
                 <!-- Primeira empresa atendida pela plataforma -->
                 <div class="tenant-badge">
-                    <img src="Logo-japa.jpeg" alt="Logo Japa na Barba">
+                    <img src="Logo-japa.jpeg" alt="Logo da empresa" id="tenantLogo">
+                    <span class="tenant-icon hidden" id="tenantIcon" aria-hidden="true"></span>
                     <div>
                         <small>EMPRESA ATIVA</small>
-                        <strong>Japa na Barba</strong>
+                        <strong id="tenantName">Japa na Barba</strong>
                     </div>
                 </div>
             </div>
@@ -62,7 +63,7 @@
         <main class="main-content">
             <header class="topbar">
                 <div>
-                    <p class="eyebrow">JAPA NA BARBA • PAINEL ADMINISTRATIVO</p>
+                    <p class="eyebrow" id="businessPanelEyebrow">JAPA NA BARBA • PAINEL ADMINISTRATIVO</p>
                     <h1 id="page-title">Dashboard</h1>
                 </div>
                 <!-- Abre o modal de agendamento -->
@@ -81,8 +82,8 @@
                     <div class="stats-grid">
                         <article class="stat-card"><span>Agendamentos hoje</span><strong id="todayAppointmentCount">0</strong><small id="todayAppointmentSubtitle">Agenda integrada</small></article>
                         <article class="stat-card"><span>Clientes cadastrados</span><strong id="clientCount">0</strong><small>Total salvo neste navegador</small></article>
-                        <article class="stat-card" data-owner-only><span>Faturamento</span><strong>R$ 4.850</strong><small>Este mês</small></article>
-                        <article class="stat-card" data-owner-only><span>Ticket médio</span><strong>R$ 78</strong><small class="positive">+5,4% este mês</small></article>
+                        <article class="stat-card" data-owner-only><span>Faturamento</span><strong id="businessRevenue">R$ 4.850</strong><small>Este mês</small></article>
+                        <article class="stat-card" data-owner-only><span>Ticket médio</span><strong id="businessTicket">R$ 78</strong><small class="positive">+5,4% este mês</small></article>
                     </div>
 
                     <div class="dashboard-grid">
@@ -108,10 +109,7 @@
                         <!-- Serviços -->
                         <article class="panel">
                             <div class="panel-header"><div><p class="eyebrow">DESEMPENHO</p><h2>Serviços populares</h2></div></div>
-                            <div class="service"><i>✂</i><div><strong>Corte masculino</strong><span>86 atendimentos</span></div><b>R$ 45</b></div>
-                            <div class="service"><i>✦</i><div><strong>Corte + Barba</strong><span>62 atendimentos</span></div><b>R$ 75</b></div>
-                            <div class="service"><i>◈</i><div><strong>Barba</strong><span>48 atendimentos</span></div><b>R$ 35</b></div>
-                            <div class="service"><i>★</i><div><strong>Platinado</strong><span>21 atendimentos</span></div><b>R$ 120</b></div>
+                            <div id="popularServices"></div>
                         </article>
                     </div>
 
@@ -378,6 +376,7 @@
     <!-- Cliente oficial do Supabase e configuração pública do projeto -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
+    <script src="business-config.js"></script>
 
     <!-- auth.js verifica se existe uma sessão válida -->
     <script src="auth.js"></script>

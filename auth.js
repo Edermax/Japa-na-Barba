@@ -9,7 +9,7 @@ const ROLE_LABELS = {
 
 const SESSION_KEYS = [
     "japaAuth", "japaRole", "japaUserName", "japaUserRole",
-    "japaUserEmail", "japaUserId", "japaBarbershopId", "japaDemo"
+    "japaUserEmail", "japaUserId", "japaBarbershopId", "japaDemo", "japaDemoSegment"
 ];
 
 document.documentElement.style.visibility = "hidden";
@@ -75,9 +75,14 @@ async function initializeAuthenticatedPage() {
             barbershop_id: sessionStorage.getItem("japaBarbershopId")
         };
 
+        if (role === "client") {
+            window.location.replace("cliente.html");
+            return;
+        }
+
         if (!profile.barbershop_id || !["owner", "employee"].includes(role)) {
             clearLocalSession();
-            window.location.replace(role === "client" ? "cliente.html" : "login.html");
+            window.location.replace("login.html");
             return;
         }
 

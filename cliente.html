@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Título -->
-    <title>Japa na Barba | SaaS Ogritech</title>
+    <title>Área do cliente | SaaS Ogritech</title>
     <link rel="icon" href="ogritech-favicon.ico" sizes="any">
 
     <!-- CSS compartilhado -->
@@ -27,11 +27,13 @@
                 src="Logo-japa.jpeg"
                 alt="Logo Japa na Barba"
                 class="client-header-logo"
+                id="clientBusinessLogo"
             >
+            <span class="client-business-icon hidden" id="clientBusinessIcon" aria-hidden="true"></span>
 
             <div>
-                <strong>JAPA NA BARBA</strong>
-                <span>Área do cliente</span>
+                <strong id="clientBusinessName">JAPA NA BARBA</strong>
+                <span id="clientAreaLabel">Área do cliente</span>
                 <span class="powered-by">Tecnologia SaaS Ogritech</span>
             </div>
         </div>
@@ -62,7 +64,7 @@
         <section class="client-hero">
             <p class="eyebrow">BEM-VINDO</p>
 
-            <h1>
+            <h1 id="clientHeroTitle">
                 Seu próximo visual começa aqui.
             </h1>
 
@@ -90,7 +92,7 @@
 
             <article class="client-summary-card">
                 <span>Serviços disponíveis</span>
-                <strong>4</strong>
+                <strong id="clientServiceCount">4</strong>
                 <small>Escolha o que deseja fazer.</small>
             </article>
 
@@ -112,37 +114,7 @@
                 </div>
             </div>
 
-            <div class="client-services-grid">
-
-                <article class="client-service-card">
-                    <span class="large-service-icon">✂</span>
-                    <h3>Corte masculino</h3>
-                    <p>Corte tradicional ou moderno.</p>
-                    <strong>R$ 45</strong>
-                </article>
-
-                <article class="client-service-card">
-                    <span class="large-service-icon">✦</span>
-                    <h3>Corte + Barba</h3>
-                    <p>Combo completo para renovar o visual.</p>
-                    <strong>R$ 75</strong>
-                </article>
-
-                <article class="client-service-card">
-                    <span class="large-service-icon">◈</span>
-                    <h3>Barba</h3>
-                    <p>Acabamento e alinhamento da barba.</p>
-                    <strong>R$ 35</strong>
-                </article>
-
-                <article class="client-service-card">
-                    <span class="large-service-icon">★</span>
-                    <h3>Platinado</h3>
-                    <p>Serviço especial de transformação.</p>
-                    <strong>R$ 120</strong>
-                </article>
-
-            </div>
+            <div class="client-services-grid" id="clientServicesGrid"></div>
 
         </section>
 
@@ -263,6 +235,7 @@
 
     <!-- Cliente oficial do Supabase e configuração pública do projeto -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="business-config.js"></script>
     <script src="supabase-config.js"></script>
 
     <!-- Controle de acesso do cliente -->

@@ -24,6 +24,7 @@ const APPOINTMENTS_STORAGE_KEY = `japaNaBarbaAppointments:${BARBERSHOP_ID}`;
 // =========================================================
 const currentRole = sessionStorage.getItem("japaRole") || "owner";
 const currentUserName = sessionStorage.getItem("japaUserName") || "Administrador";
+const businessConfig = window.getOgritechBusiness();
 
 // Neste protótipo o login do funcionário "Carlos"
 // corresponde ao profissional Carlos.
@@ -87,6 +88,46 @@ function todayISO() {
 
     return `${year}-${month}-${day}`;
 }
+
+function applyBusinessCustomization() {
+    const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+    const tenantLogo = document.getElementById("tenantLogo");
+    const tenantIcon = document.getElementById("tenantIcon");
+    document.title = `SaaS Ogritech | ${businessConfig.name}`;
+    document.getElementById("tenantName").textContent = businessConfig.name;
+    document.getElementById("businessPanelEyebrow").textContent = `${businessConfig.name.toUpperCase()} • PAINEL ADMINISTRATIVO`;
+    document.getElementById("businessRevenue").textContent = currency.format(businessConfig.revenue);
+    document.getElementById("businessTicket").textContent = currency.format(businessConfig.ticket);
+
+    if (businessConfig.key === "barbearia") {
+        tenantLogo.classList.remove("hidden");
+        tenantIcon.classList.add("hidden");
+    } else {
+        tenantLogo.classList.add("hidden");
+        tenantIcon.textContent = businessConfig.icon;
+        tenantIcon.style.color = businessConfig.color;
+        tenantIcon.classList.remove("hidden");
+    }
+
+    const clientsMenu = document.querySelector('[data-section="clientes"]');
+    if (clientsMenu) clientsMenu.innerHTML = `<span>♙</span>${escapeHtml(businessConfig.clientPlural)}`;
+
+    document.getElementById("popularServices").innerHTML = businessConfig.services.map((service, index) =>
+        `<div class="service"><i style="color:${businessConfig.color}">${escapeHtml(businessConfig.icon)}</i><div><strong>${escapeHtml(service[0])}</strong><span>${86 - index * 13} atendimentos</span></div><b>${currency.format(service[1])}</b></div>`
+    ).join("");
+
+    const serviceOptions = '<option value="">Selecione</option>' + businessConfig.services.map((service) =>
+        `<option value="${escapeHtml(service[0])}">${escapeHtml(service[0])} — ${currency.format(service[1])}</option>`
+    ).join("");
+    const professionalOptions = businessConfig.professionals.map((name) =>
+        `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`
+    ).join("");
+    document.getElementById("appointmentService").innerHTML = serviceOptions;
+    document.getElementById("appointmentProfessional").innerHTML = '<option value="">Selecione</option>' + professionalOptions;
+    document.getElementById("agendaProfessionalFilter").innerHTML = '<option value="all">Todos</option>' + professionalOptions;
+}
+
+applyBusinessCustomization();
 
 const STATUS_INFO = {
     requested: {
@@ -623,15 +664,15 @@ function getClients() {
         const starterClients = [
             {
                 id: createId(),
-                name: "João Silva",
+                name: businessConfig.client,
                 phone: "(16) 99911-2233",
-                email: "cliente@japanabarba.com",
+                email: `cliente.${businessConfig.key}@demo.ogritech.com.br`,
                 birthday: "1990-05-14",
-                notes: "Prefere corte baixo nas laterais."
+                notes: `Cadastro demonstrativo de ${businessConfig.clientLabel.toLowerCase()}.`
             },
             {
                 id: createId(),
-                name: "Marcos Oliveira",
+                name: businessConfig.clientLabel === "Paciente" ? "Renata Alves" : "Marcos Oliveira",
                 phone: "(16) 99844-5566",
                 email: "marcos@email.com",
                 birthday: "1987-09-21",

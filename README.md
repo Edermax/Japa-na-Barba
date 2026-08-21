@@ -16,6 +16,7 @@ Plataforma SaaS de gestão para barbearias.
 - banco PostgreSQL com RLS;
 - painel administrativo e área do cliente;
 - vitrine comercial com demonstrações adaptadas a dez segmentos em `demonstracoes.html`;
+- acessos demonstrativos de gestor, funcionário e cliente personalizados por segmento;
 - agenda integrada ainda armazenada localmente durante a migração gradual.
 
 ## Segurança

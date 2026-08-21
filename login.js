@@ -8,6 +8,7 @@ const submitButton = loginForm.querySelector('button[type="submit"]');
 const forgotPasswordButton = document.getElementById("forgotPasswordButton");
 const togglePasswordButton = document.getElementById("togglePasswordButton");
 const demoAccessButtons = document.querySelectorAll("[data-demo-role]");
+const demoSegment = document.getElementById("demoSegment");
 
 togglePasswordButton.addEventListener("click", () => {
     const isVisible = passwordInput.type === "text";
@@ -26,14 +27,9 @@ const ROLE_LABELS = {
     client: "Cliente"
 };
 
-const DEMO_PROFILES = {
-    owner: { full_name: "Marina Costa", email: "gestor.demo@ogritech.com.br" },
-    employee: { full_name: "Carlos", email: "funcionario.demo@ogritech.com.br" },
-    client: { full_name: "João Silva", email: "cliente.demo@ogritech.com.br" }
-};
-
 function saveLocalSession(user, profile) {
     sessionStorage.removeItem("japaDemo");
+    sessionStorage.removeItem("japaDemoSegment");
     sessionStorage.setItem("japaAuth", "true");
     sessionStorage.setItem("japaRole", profile.role);
     sessionStorage.setItem("japaUserName", profile.full_name);
@@ -55,29 +51,34 @@ function dateFromToday(days) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function seedDemoData() {
-    const appointmentKey = "japaNaBarbaAppointments:demo-ogritech";
+function seedDemoData(business) {
+    const appointmentKey = `japaNaBarbaAppointments:demo-${business.key}`;
     if (!localStorage.getItem(appointmentKey)) {
+        const clientEmail = `cliente.${business.key}@demo.ogritech.com.br`;
         localStorage.setItem(appointmentKey, JSON.stringify([
-            { id: "demo-appointment-1", clientName: "João Silva", clientEmail: "cliente.demo@ogritech.com.br", service: "Corte + Barba", professional: "Carlos", date: dateFromToday(1), time: "10:00", status: "confirmed", createdBy: "client" },
-            { id: "demo-appointment-2", clientName: "Ana Martins", clientEmail: "ana.demo@example.com", service: "Corte masculino", professional: "Carlos", date: dateFromToday(0), time: "18:00", status: "requested", createdBy: "client" },
-            { id: "demo-appointment-3", clientName: "Pedro Rocha", clientEmail: "pedro.demo@example.com", service: "Barba", professional: "Rafael", date: dateFromToday(1), time: "13:30", status: "confirmed", createdBy: "owner" }
+            { id: `demo-${business.key}-1`, clientName: business.client, clientEmail, service: business.services[0][0], professional: business.professionals[0], date: dateFromToday(1), time: "10:00", status: "confirmed", createdBy: "client" },
+            { id: `demo-${business.key}-2`, clientName: "Ana Martins", clientEmail: "ana@demo.ogritech.com.br", service: business.services[1][0], professional: business.professionals[0], date: dateFromToday(0), time: "18:00", status: "requested", createdBy: "client" },
+            { id: `demo-${business.key}-3`, clientName: "Pedro Rocha", clientEmail: "pedro@demo.ogritech.com.br", service: business.services[2][0], professional: business.professionals[1] || business.professionals[0], date: dateFromToday(1), time: "13:30", status: "confirmed", createdBy: "owner" }
         ]));
     }
 }
 
 function enterDemo(role) {
-    const demo = DEMO_PROFILES[role];
-    if (!demo) return;
+    const key = demoSegment.value;
+    const business = { key, ...(window.OGRITECH_BUSINESSES[key] || window.OGRITECH_BUSINESSES.barbearia) };
+    const names = { owner: business.owner, employee: business.employee, client: business.client };
+    const emails = { owner: `gestor.${key}@demo.ogritech.com.br`, employee: `funcionario.${key}@demo.ogritech.com.br`, client: `cliente.${key}@demo.ogritech.com.br` };
+    if (!names[role]) return;
 
     // A demonstração não depende da rede; encerra eventual sessão real em segundo plano.
     supabaseClient.auth.signOut({ scope: "local" }).catch(() => {});
     saveLocalSession(
-        { id: `demo-${role}`, email: demo.email },
-        { role, full_name: demo.full_name, barbershop_id: "demo-ogritech" }
+        { id: `demo-${key}-${role}`, email: emails[role] },
+        { role, full_name: names[role], barbershop_id: `demo-${key}` }
     );
     sessionStorage.setItem("japaDemo", "true");
-    seedDemoData();
+    sessionStorage.setItem("japaDemoSegment", key);
+    seedDemoData(business);
     window.location.replace(role === "client" ? "cliente.html" : "index.html");
 }
 

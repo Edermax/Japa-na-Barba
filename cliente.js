@@ -17,6 +17,7 @@ document.documentElement.style.visibility = "hidden";
 let loggedClientName = "Cliente";
 let loggedClientEmail = "";
 let clientBarbershopId = "";
+const businessConfig = window.getOgritechBusiness();
 
 // =========================================================
 // 3. ELEMENTOS
@@ -418,7 +419,7 @@ clientLogout.addEventListener(
     "click",
     async () => {
         await supabaseClient.auth.signOut();
-        ["japaAuth", "japaRole", "japaUserName", "japaUserRole", "japaUserEmail", "japaUserId", "japaBarbershopId", "japaDemo"]
+        ["japaAuth", "japaRole", "japaUserName", "japaUserRole", "japaUserEmail", "japaUserId", "japaBarbershopId", "japaDemo", "japaDemoSegment"]
             .forEach((key) => sessionStorage.removeItem(key));
         window.location.replace("login.html");
     }
@@ -433,17 +434,50 @@ function escapeHtml(value = "") {
     }[character]));
 }
 
+function applyClientBusinessCustomization() {
+    const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+    const logo = document.getElementById("clientBusinessLogo");
+    const icon = document.getElementById("clientBusinessIcon");
+    document.title = `${businessConfig.name} | SaaS Ogritech`;
+    document.getElementById("clientBusinessName").textContent = businessConfig.name.toUpperCase();
+    document.getElementById("clientAreaLabel").textContent = `Área de ${businessConfig.clientLabel.toLowerCase()}`;
+    document.getElementById("clientHeroTitle").textContent = businessConfig.hero;
+    document.getElementById("clientServiceCount").textContent = businessConfig.services.length;
+
+    if (businessConfig.key === "barbearia") {
+        logo.classList.remove("hidden");
+        icon.classList.add("hidden");
+    } else {
+        logo.classList.add("hidden");
+        icon.textContent = businessConfig.icon;
+        icon.style.color = businessConfig.color;
+        icon.classList.remove("hidden");
+    }
+
+    document.getElementById("clientServicesGrid").innerHTML = businessConfig.services.map((service) =>
+        `<article class="client-service-card"><span class="large-service-icon" style="color:${businessConfig.color}">${escapeHtml(businessConfig.icon)}</span><h3>${escapeHtml(service[0])}</h3><p>${escapeHtml(service[2])}</p><strong>${currency.format(service[1])}</strong></article>`
+    ).join("");
+
+    clientService.innerHTML = '<option value="">Selecione</option>' + businessConfig.services.map((service) =>
+        `<option value="${escapeHtml(service[0])}">${escapeHtml(service[0])} — ${currency.format(service[1])}</option>`
+    ).join("");
+    clientProfessional.innerHTML = '<option value="">Selecione</option>' + businessConfig.professionals.map((name) =>
+        `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`
+    ).join("");
+}
+
 async function initializeClientPage() {
     if (
         sessionStorage.getItem("japaDemo") === "true" &&
         sessionStorage.getItem("japaRole") === "client" &&
-        sessionStorage.getItem("japaBarbershopId") === "demo-ogritech"
+        sessionStorage.getItem("japaBarbershopId") === `demo-${businessConfig.key}`
     ) {
         loggedClientName = sessionStorage.getItem("japaUserName") || "Cliente";
         loggedClientEmail = sessionStorage.getItem("japaUserEmail") || "";
-        clientBarbershopId = "demo-ogritech";
+        clientBarbershopId = `demo-${businessConfig.key}`;
         clientUserName.textContent = loggedClientName;
         clientDate.min = todayISO();
+        applyClientBusinessCustomization();
         document.documentElement.style.visibility = "visible";
         renderClientAppointments();
         return;
@@ -476,6 +510,7 @@ async function initializeClientPage() {
     clientBarbershopId = profile.barbershop_id;
     clientUserName.textContent = loggedClientName;
     clientDate.min = todayISO();
+    applyClientBusinessCustomization();
     document.documentElement.style.visibility = "visible";
     renderClientAppointments();
 }
