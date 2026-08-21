@@ -14,7 +14,7 @@ togglePasswordButton.addEventListener("click", () => {
     togglePasswordButton.setAttribute("aria-pressed", String(!isVisible));
     togglePasswordButton.setAttribute("aria-label", isVisible ? "Mostrar senha" : "Ocultar senha");
     togglePasswordButton.title = isVisible ? "Mostrar senha" : "Ocultar senha";
-    togglePasswordButton.querySelector("span").textContent = isVisible ? "◉" : "◎";
+    togglePasswordButton.classList.toggle("is-visible", !isVisible);
     passwordInput.focus();
 });
 
