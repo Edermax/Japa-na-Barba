@@ -100,7 +100,7 @@ function applyBusinessCustomization() {
     const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
     const tenantLogo = document.getElementById("tenantLogo");
     const tenantIcon = document.getElementById("tenantIcon");
-    document.title = `SaaS Ogritech | ${businessConfig.name}`;
+    document.title = `Ogritech | ${businessConfig.name}`;
     document.getElementById("tenantName").textContent = businessConfig.name;
     document.getElementById("businessPanelEyebrow").textContent = `${businessConfig.name.toUpperCase()} • PAINEL ADMINISTRATIVO`;
     document.getElementById("businessRevenue").textContent = currency.format(businessConfig.revenue);

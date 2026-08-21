@@ -533,7 +533,7 @@ function applyClientBusinessCustomization() {
     const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
     const logo = document.getElementById("clientBusinessLogo");
     const icon = document.getElementById("clientBusinessIcon");
-    document.title = `${businessConfig.name} | SaaS Ogritech`;
+    document.title = `${businessConfig.name} | Ogritech`;
     document.getElementById("clientBusinessName").textContent = businessConfig.name.toUpperCase();
     document.getElementById("clientAreaLabel").textContent = `Área de ${businessConfig.clientLabel.toLowerCase()}`;
     document.getElementById("clientHeroTitle").textContent = businessConfig.hero;

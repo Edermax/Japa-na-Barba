@@ -140,6 +140,6 @@ function bindEvents() {
 
 async function initializeDashboard() {
     try { if (!await validatePlatformAdmin()) return; await loadData(); populateSelectors(); refreshViews(); bindEvents(); $("adminLoading").classList.add("hidden"); }
-    catch (error) { $("adminLoading").textContent = "Não foi possível carregar a administração da SaaS Ogritech."; console.error("Erro no painel SaaS Ogritech:", error.message); }
+    catch (error) { $("adminLoading").textContent = "Não foi possível carregar a administração da Ogritech."; console.error("Erro no painel Ogritech:", error.message); }
 }
 initializeDashboard();

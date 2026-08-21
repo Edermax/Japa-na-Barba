@@ -1,10 +1,10 @@
-# SaaS Ogritech
+# Ogritech
 
-Plataforma SaaS de gestão para barbearias.
+Plataforma de gestão para negócios de atendimento.
 
 ## Estrutura de marca
 
-- **SaaS Ogritech** é a plataforma.
+- **Ogritech** é a plataforma.
 - **Japa na Barba** é a primeira barbearia atendida.
 - Cada barbearia é isolada por `barbershop_id` e pelas políticas RLS do Supabase.
 
