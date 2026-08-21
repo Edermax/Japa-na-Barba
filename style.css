@@ -506,6 +506,30 @@ input:focus,select:focus { border-color:var(--gold); }
     background:#f7fafb;
 }
 
+.ogritech-lockup {
+    width: min(310px, 94%);
+    margin: 0 auto 22px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: #f7fafb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+}
+
+.ogritech-lockup-symbol {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+}
+
+.ogritech-lockup-name {
+    width: min(205px, calc(100% - 54px));
+    height: auto;
+    object-fit: contain;
+}
+
 .login-title {
     color: var(--white);
     font-size: 30px;
