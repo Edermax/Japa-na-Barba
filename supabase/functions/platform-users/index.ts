@@ -20,12 +20,9 @@ Deno.serve(async (request) => {
   if (body.action === "list") {
     const { data: profiles, error } = await admin.from("profiles").select("id,barbershop_id,full_name,role,active");
     if (error) return reply({ error: error.message }, 400);
-    const { data: authData, error: authError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (authError) return reply({ error: authError.message }, 400);
     const { data: masters } = await admin.from("platform_admins").select("user_id");
     const masterIds = new Set((masters || []).map((item) => item.user_id));
-    const emails = new Map(authData.users.map((user) => [user.id, user.email || ""]));
-    return reply({ users: (profiles || []).filter((profile) => !masterIds.has(profile.id)).map((profile) => ({ ...profile, email: emails.get(profile.id) || "" })) });
+    return reply({ users: (profiles || []).filter((profile) => !masterIds.has(profile.id)).map((profile) => ({ ...profile, email: "" })) });
   }
   if (body.action === "invite") {
     if (!body.email || !body.full_name || !body.barbershop_id || !["owner", "admin", "employee", "client"].includes(body.role)) return reply({ error: "Dados inválidos" }, 400);

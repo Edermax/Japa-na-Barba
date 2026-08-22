@@ -23,17 +23,17 @@ async function validatePlatformAdmin() {
 }
 
 async function loadData() {
-    const [businessResult, planResult] = await Promise.all([
+    const [businessResult, planResult, profileResult] = await Promise.all([
         supabaseClient.from("saas_clients").select("*").order("created_at", { ascending: true }),
-        supabaseClient.from("saas_plans").select("*").eq("active", true).order("display_order")
+        supabaseClient.from("saas_plans").select("*").eq("active", true).order("display_order"),
+        supabaseClient.from("profiles").select("id,barbershop_id,full_name,role,active").order("full_name")
     ]);
     if (businessResult.error) throw businessResult.error;
     if (planResult.error) throw planResult.error;
+    if (profileResult.error) throw profileResult.error;
     businesses = businessResult.data || [];
     plans = planResult.data || [];
-    const { data: userData, error: userError } = await supabaseClient.functions.invoke("platform-users", { body: { action: "list" } });
-    if (userError || userData?.error) throw userError || new Error(userData.error);
-    users = userData?.users || [];
+    users = (profileResult.data || []).filter((profile) => profile.id !== sessionStorage.getItem("japaUserId")).map((profile) => ({ ...profile, email: "" }));
 }
 
 function renderSummary() {
