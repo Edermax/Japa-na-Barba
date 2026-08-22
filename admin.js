@@ -23,17 +23,17 @@ async function validatePlatformAdmin() {
 }
 
 async function loadData() {
-    const [businessResult, planResult, userResult] = await Promise.all([
+    const [businessResult, planResult, profileResult] = await Promise.all([
         supabaseClient.from("saas_clients").select("id,barbershop_id,name,segment,contact_name,owner_email,phone,plan,monthly_fee,origin,notes,status,invite_status,user_count,client_count,appointment_count,business_revenue,created_at").is("deleted_at", null).order("created_at", { ascending: true }).limit(500),
         supabaseClient.from("saas_plans").select("id,name,monthly_fee,description,features,featured,display_order").eq("active", true).order("display_order"),
-        supabaseClient.functions.invoke("platform-users", { body: { action: "list" } })
+        supabaseClient.from("profiles").select("id,barbershop_id,full_name,role,active").order("full_name").limit(1000)
     ]);
     if (businessResult.error) throw businessResult.error;
     if (planResult.error) throw planResult.error;
-    if (userResult.error || userResult.data?.error) throw userResult.error || new Error(userResult.data.error);
+    if (profileResult.error) throw profileResult.error;
     businesses = businessResult.data || [];
     plans = planResult.data || [];
-    users = userResult.data?.users || [];
+    users = (profileResult.data || []).filter((profile) => profile.id !== sessionStorage.getItem("japaUserId")).map((profile) => ({ ...profile, email: "" }));
 }
 
 function renderSummary() {
