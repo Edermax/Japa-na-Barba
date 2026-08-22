@@ -10,6 +10,7 @@ create table if not exists public.financial_entries (
 create index if not exists financial_entries_business_date_idx on public.financial_entries (barbershop_id, occurred_on desc);
 alter table public.financial_entries enable row level security;
 grant select, insert, update, delete on public.financial_entries to authenticated;
+drop policy if exists "Business managers manage finances" on public.financial_entries;
 create policy "Business managers manage finances" on public.financial_entries for all to authenticated using (public.is_business_manager(barbershop_id)) with check (public.is_business_manager(barbershop_id));
 drop trigger if exists financial_entries_set_updated_at on public.financial_entries;
 create trigger financial_entries_set_updated_at before update on public.financial_entries for each row execute function public.ogritech_set_updated_at();

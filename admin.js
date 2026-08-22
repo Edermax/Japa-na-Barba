@@ -5,12 +5,13 @@ const SEGMENTS = {
     "Professor de música": { icon: "♫", color: "#6ba8f7" }, "Personal training": { icon: "◆", color: "#65d39b" },
     "Outro": { icon: "●", color: "#8fa3aa" }
 };
-let businesses = [], plans = [], selectedBusinessId = null;
+let businesses = [], plans = [], users = [], selectedBusinessId = null;
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 const $ = (id) => document.getElementById(id);
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 
 async function validatePlatformAdmin() {
+    sessionStorage.removeItem("ogritechMasterMode"); sessionStorage.removeItem("ogritechMasterBusinessId"); sessionStorage.removeItem("ogritechMasterBusinessName");
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) { window.location.replace("login.html"); return false; }
     const { data: isAdmin, error } = await supabaseClient.rpc("is_platform_admin");
@@ -30,6 +31,9 @@ async function loadData() {
     if (planResult.error) throw planResult.error;
     businesses = businessResult.data || [];
     plans = planResult.data || [];
+    const { data: userData, error: userError } = await supabaseClient.functions.invoke("platform-users", { body: { action: "list" } });
+    if (userError || userData?.error) throw userError || new Error(userData.error);
+    users = userData?.users || [];
 }
 
 function renderSummary() {
@@ -56,7 +60,7 @@ function renderBusinesses() {
         return `<tr><td><button class="business-link" data-action="detail" data-id="${business.id}"><span style="--segment-color:${meta.color}">${meta.icon}</span><strong>${escapeHtml(business.name)}</strong></button></td>
         <td>${escapeHtml(business.segment)}</td><td>${escapeHtml(business.contact_name)}</td><td><span class="origin-badge ${business.origin === "Cliente real" ? "real" : ""}">${escapeHtml(business.origin)}</span></td>
         <td><span class="plan-badge">${escapeHtml(business.plan)}</span></td><td>${money.format(business.monthly_fee)}</td><td><span class="${business.status === "Ativo" ? "active-badge" : "suspended-badge"}">${escapeHtml(business.status)}</span></td>
-        <td><div class="admin-row-actions"><button data-action="edit" data-id="${business.id}">Editar</button><button class="danger" data-action="delete" data-id="${business.id}">Excluir</button></div></td></tr>`;
+        <td><div class="admin-row-actions"><button data-action="operate" data-id="${business.id}">Operar</button><button data-action="edit" data-id="${business.id}">Editar</button><button class="danger" data-action="delete" data-id="${business.id}">Excluir</button></div></td></tr>`;
     }).join("");
     $("businessEmpty").classList.toggle("hidden", filtered.length > 0);
     document.querySelector(".business-table-wrap").classList.toggle("hidden", filtered.length === 0);
@@ -69,11 +73,22 @@ function renderPlans() {
     }).join("");
 }
 
-function refreshViews() { renderSummary(); renderSegments(); renderBusinesses(); renderPlans(); }
+const roleLabels = { owner: "Proprietário", admin: "Gestor", employee: "Funcionário", client: "Cliente final" };
+function renderUsers() {
+    const filter = $("userBusinessFilter").value;
+    const filtered = users.filter((user) => filter === "all" || user.barbershop_id === filter);
+    $("usersTableBody").innerHTML = filtered.map((user) => { const business = businesses.find((item) => item.barbershop_id === user.barbershop_id); return `<tr><td><strong>${escapeHtml(user.full_name)}</strong></td><td>${escapeHtml(user.email || "—")}</td><td>${escapeHtml(business?.name || "Sem vínculo")}</td><td><span class="plan-badge">${escapeHtml(roleLabels[user.role] || user.role)}</span></td><td><span class="${user.active ? "active-badge" : "suspended-badge"}">${user.active ? "Ativo" : "Inativo"}</span></td><td><div class="admin-row-actions"><button data-user-action="edit" data-id="${user.id}">Editar</button><button data-user-action="toggle" data-id="${user.id}">${user.active ? "Desativar" : "Ativar"}</button><button class="danger" data-user-action="delete" data-id="${user.id}">Excluir</button></div></td></tr>`; }).join("");
+    $("usersEmpty").classList.toggle("hidden", filtered.length > 0);
+}
+
+function refreshViews() { renderSummary(); renderSegments(); renderBusinesses(); renderPlans(); renderUsers(); }
 function populateSelectors() {
     $("businessSegment").innerHTML = Object.keys(SEGMENTS).map((segment) => `<option>${segment}</option>`).join("");
     $("segmentFilter").innerHTML = '<option value="all">Todos os segmentos</option>' + Object.keys(SEGMENTS).map((segment) => `<option>${segment}</option>`).join("");
     $("businessPlan").innerHTML = plans.map((plan) => `<option value="${escapeHtml(plan.name)}" data-price="${plan.monthly_fee}">${escapeHtml(plan.name)}</option>`).join("");
+    const businessOptions = businesses.filter((business) => business.barbershop_id).map((business) => `<option value="${business.barbershop_id}">${escapeHtml(business.name)}</option>`).join("");
+    $("userBusiness").innerHTML = businessOptions;
+    $("userBusinessFilter").innerHTML = '<option value="all">Todos os negócios</option>' + businessOptions;
 }
 
 function openBusinessForm(business = null) {
@@ -104,10 +119,17 @@ async function saveBusiness(event) {
     const payload = { name: $("businessName").value.trim(), segment: $("businessSegment").value, contact_name: $("businessOwner").value.trim(), owner_email: $("businessEmail").value.trim().toLowerCase(), phone: $("businessPhone").value.trim() || null, plan: $("businessPlan").value, monthly_fee: Number($("businessPrice").value), origin: $("businessOrigin").value, notes: $("businessNotes").value.trim() || null };
     if (!id) payload.invite_status = "Pendente";
     $("saveBusinessButton").disabled = true; $("businessFormMessage").textContent = "Salvando...";
-    const { error } = await (id ? supabaseClient.from("saas_clients").update(payload).eq("id", id) : supabaseClient.from("saas_clients").insert(payload));
+    let error;
+    if (id) {
+        const current = businesses.find((item) => item.id === id);
+        ({ error } = await supabaseClient.from("saas_clients").update(payload).eq("id", id));
+        if (!error && current?.barbershop_id) ({ error } = await supabaseClient.from("barbershops").update({ name: payload.name }).eq("id", current.barbershop_id));
+    } else {
+        ({ error } = await supabaseClient.rpc("platform_create_business", { business_name: payload.name, business_segment: payload.segment, responsible_name: payload.contact_name, responsible_email: payload.owner_email, business_phone: payload.phone || "", plan_name: payload.plan, plan_price: payload.monthly_fee, business_origin: payload.origin, business_notes: payload.notes || "" }));
+    }
     $("saveBusinessButton").disabled = false;
     if (error) { $("businessFormMessage").textContent = error.code === "23505" ? "Já existe um negócio com esse nome ou e-mail." : "Não foi possível salvar o negócio."; $("businessFormMessage").className = "form-message error"; return; }
-    await loadData(); refreshViews(); closeModals();
+    await loadData(); populateSelectors(); refreshViews(); closeModals();
 }
 
 async function toggleBusinessStatus(business) {
@@ -119,9 +141,34 @@ async function toggleBusinessStatus(business) {
 
 async function deleteBusiness(business) {
     if (!confirm(`Excluir o cadastro de ${business.name}? Esta ação não pode ser desfeita.`)) return;
-    const { error } = await supabaseClient.from("saas_clients").delete().eq("id", business.id);
+    let error;
+    if (business.barbershop_id) {
+        const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete_business", barbershop_id: business.barbershop_id } });
+        error = result.error || (result.data?.error ? new Error(result.data.error) : null);
+    } else ({ error } = await supabaseClient.from("saas_clients").delete().eq("id", business.id));
     if (error) return alert("Não foi possível excluir o negócio.");
-    await loadData(); refreshViews();
+    await loadData(); populateSelectors(); refreshViews();
+}
+
+function operateBusiness(business) {
+    if (!business.barbershop_id) return alert("Este cadastro ainda não está vinculado a uma unidade operacional.");
+    sessionStorage.setItem("ogritechMasterMode", "true");
+    sessionStorage.setItem("ogritechMasterBusinessId", business.barbershop_id);
+    sessionStorage.setItem("ogritechMasterBusinessName", business.name);
+    sessionStorage.setItem("japaBarbershopId", business.barbershop_id);
+    sessionStorage.setItem("japaRole", "owner");
+    sessionStorage.setItem("japaUserRole", "Master Ogritech");
+    window.location.assign("index.html");
+}
+
+function updateEmployeeFields() { document.querySelectorAll(".employee-field").forEach((field) => field.classList.toggle("hidden", $("userRole").value !== "employee")); }
+function openUserForm(businessId = "", user = null) { $("userForm").reset(); $("userFormMessage").textContent = ""; $("userId").value = user?.id || ""; $("userModalTitle").textContent = user ? "Editar usuário" : "Adicionar usuário"; $("saveUserButton").textContent = user ? "Salvar alterações" : "Enviar convite"; if (businessId) $("userBusiness").value = businessId; if (user) { $("userBusiness").value = user.barbershop_id; $("userRole").value = user.role; $("userName").value = user.full_name; $("userEmail").value = user.email; } updateEmployeeFields(); $("userModal").classList.remove("hidden"); }
+async function saveUser(event) {
+    event.preventDefault(); $("saveUserButton").disabled = true; $("userFormMessage").textContent = "Enviando convite...";
+    const { data, error } = await supabaseClient.functions.invoke("platform-users", { body: { action: $("userId").value ? "update" : "invite", user_id: $("userId").value || undefined, barbershop_id: $("userBusiness").value, role: $("userRole").value, full_name: $("userName").value.trim(), email: $("userEmail").value.trim().toLowerCase(), specialty: $("userSpecialty").value.trim(), commission: Number($("userCommission").value || 0) } });
+    $("saveUserButton").disabled = false;
+    if (error || data?.error) { $("userFormMessage").textContent = data?.error || "Não foi possível enviar o convite."; $("userFormMessage").className = "form-message error"; return; }
+    await loadData(); populateSelectors(); refreshViews(); closeModals();
 }
 
 function bindEvents() {
@@ -129,12 +176,16 @@ function bindEvents() {
     $("newBusinessButton").addEventListener("click", () => openBusinessForm()); $("businessPlan").addEventListener("change", syncPlanPrice); $("businessForm").addEventListener("submit", saveBusiness);
     document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", closeModals));
     document.querySelectorAll(".platform-modal").forEach((modal) => modal.addEventListener("click", (event) => { if (event.target === modal) closeModals(); }));
-    $("businessTableBody").addEventListener("click", (event) => { const button = event.target.closest("[data-action]"); if (!button) return; const business = businesses.find((item) => item.id === button.dataset.id); if (!business) return; if (button.dataset.action === "detail") openBusinessDetail(business); if (button.dataset.action === "edit") openBusinessForm(business); if (button.dataset.action === "delete") deleteBusiness(business); });
+    $("businessTableBody").addEventListener("click", (event) => { const button = event.target.closest("[data-action]"); if (!button) return; const business = businesses.find((item) => item.id === button.dataset.id); if (!business) return; if (button.dataset.action === "detail") openBusinessDetail(business); if (button.dataset.action === "operate") operateBusiness(business); if (button.dataset.action === "edit") openBusinessForm(business); if (button.dataset.action === "delete") deleteBusiness(business); });
     $("detailEditButton").addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); closeModals(); openBusinessForm(business); });
     $("detailStatusButton").addEventListener("click", () => {
         const business = businesses.find((item) => item.id === selectedBusinessId);
         if (business) toggleBusinessStatus(business);
     });
+    $("detailOperateButton").addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); if (business) operateBusiness(business); });
+    $("detailAddUserButton").addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); closeModals(); openUserForm(business?.barbershop_id); });
+    $("newUserButton").addEventListener("click", () => openUserForm()); $("userRole").addEventListener("change", updateEmployeeFields); $("userForm").addEventListener("submit", saveUser); $("userBusinessFilter").addEventListener("change", renderUsers);
+    $("usersTableBody").addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const { error } = await supabaseClient.from("profiles").update({ active: !user.active }).eq("id", user.id); if (error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Excluir o acesso de ${user.full_name}?`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível excluir o usuário."); } await loadData(); refreshViews(); });
     $("platformLogout").addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
 }
 

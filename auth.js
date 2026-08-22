@@ -108,8 +108,14 @@ async function initializeAuthenticatedPage() {
 
     const { data: isPlatformAdmin } = await supabaseClient.rpc("is_platform_admin");
     if (isPlatformAdmin && !location.pathname.endsWith("admin.html")) {
-        window.location.replace("admin.html");
-        return;
+        if (sessionStorage.getItem("ogritechMasterMode") === "true" && sessionStorage.getItem("ogritechMasterBusinessId")) {
+            await waitForDocument();
+            renderUser({ role: "owner", full_name: "Master Ogritech", barbershop_id: sessionStorage.getItem("ogritechMasterBusinessId") });
+            document.documentElement.style.visibility = "visible";
+            document.getElementById("logoutButton")?.addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
+            return;
+        }
+        window.location.replace("admin.html"); return;
     }
 
     const { data: profile, error } = await supabaseClient

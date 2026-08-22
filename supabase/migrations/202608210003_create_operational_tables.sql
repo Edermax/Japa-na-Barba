@@ -79,6 +79,10 @@ revoke all on function public.current_profile_name() from public;
 grant execute on function public.current_profile_name() to authenticated;
 
 drop policy if exists "Business team manages clients" on public.business_clients;
+drop policy if exists "Business team views clients" on public.business_clients;
+drop policy if exists "Business managers create clients" on public.business_clients;
+drop policy if exists "Business managers update clients" on public.business_clients;
+drop policy if exists "Business managers delete clients" on public.business_clients;
 create policy "Business team views clients" on public.business_clients for select to authenticated using (public.is_business_team(barbershop_id));
 create policy "Business managers create clients" on public.business_clients for insert to authenticated with check (public.is_business_manager(barbershop_id));
 create policy "Business managers update clients" on public.business_clients for update to authenticated using (public.is_business_manager(barbershop_id)) with check (public.is_business_manager(barbershop_id));
@@ -109,6 +113,7 @@ with check (
 );
 
 drop policy if exists "Business users update appointments" on public.business_appointments;
+drop policy if exists "Business team updates appointments" on public.business_appointments;
 create policy "Business team updates appointments" on public.business_appointments
 for update to authenticated
 using (

@@ -18,12 +18,19 @@
 const BARBERSHOP_ID = sessionStorage.getItem("japaBarbershopId");
 const CLIENTS_STORAGE_KEY = `japaNaBarbaClients:${BARBERSHOP_ID}`;
 const APPOINTMENTS_STORAGE_KEY = `japaNaBarbaAppointments:${BARBERSHOP_ID}`;
+const SERVICES_STORAGE_KEY = `ogritechServices:${BARBERSHOP_ID}`;
+const PROFESSIONALS_STORAGE_KEY = `ogritechProfessionals:${BARBERSHOP_ID}`;
+const FINANCIAL_STORAGE_KEY = `ogritechFinancial:${BARBERSHOP_ID}`;
+const SETTINGS_STORAGE_KEY = `ogritechSettings:${BARBERSHOP_ID}`;
 const IS_DEMO = sessionStorage.getItem("japaDemo") === "true";
 let appointmentsCache = [];
 let clientsCache = [];
 let remoteAppointmentIds = new Set();
 let remoteClientIds = new Set();
 let privacyRequestsCache = [];
+let servicesCache = [];
+let professionalsCache = [];
+let financialCache = [];
 
 // =========================================================
 // 2. SESSÃO ATUAL
@@ -31,6 +38,10 @@ let privacyRequestsCache = [];
 const currentRole = sessionStorage.getItem("japaRole") || "owner";
 const currentUserName = sessionStorage.getItem("japaUserName") || "Administrador";
 const businessConfig = window.getOgritechBusiness();
+const IS_MASTER_MODE = sessionStorage.getItem("ogritechMasterMode") === "true";
+if (IS_MASTER_MODE && sessionStorage.getItem("ogritechMasterBusinessName")) {
+    businessConfig.name = sessionStorage.getItem("ogritechMasterBusinessName");
+}
 
 // Neste protótipo o login do funcionário "Carlos"
 // corresponde ao profissional Carlos.
@@ -48,6 +59,10 @@ const menuItems = document.querySelectorAll(".menu-item");
 const dashboardView = document.getElementById("dashboardView");
 const clientsView = document.getElementById("clientsView");
 const agendaView = document.getElementById("agendaView");
+const servicesView = document.getElementById("servicesView");
+const professionalsView = document.getElementById("professionalsView");
+const financialView = document.getElementById("financialView");
+const settingsView = document.getElementById("settingsView");
 
 const openAppointmentButton = document.getElementById("newAppointment");
 const agendaNewAppointment = document.getElementById("agendaNewAppointment");
@@ -107,7 +122,11 @@ function applyBusinessCustomization() {
     document.getElementById("businessRevenue").textContent = currency.format(businessConfig.revenue);
     document.getElementById("businessTicket").textContent = currency.format(businessConfig.ticket);
     const backToShowcase = document.getElementById("backToShowcase");
-    if (IS_DEMO && backToShowcase) {
+    if (IS_MASTER_MODE && backToShowcase) {
+        backToShowcase.href = "admin.html";
+        backToShowcase.textContent = "← Voltar ao painel master";
+        backToShowcase.classList.remove("hidden");
+    } else if (IS_DEMO && backToShowcase) {
         backToShowcase.href = `demonstracoes.html?segmento=${encodeURIComponent(businessConfig.key)}`;
         backToShowcase.classList.remove("hidden");
     }
@@ -390,6 +409,10 @@ function hideAllViews() {
     dashboardView.classList.add("hidden");
     clientsView.classList.add("hidden");
     agendaView.classList.add("hidden");
+    servicesView.classList.add("hidden");
+    professionalsView.classList.add("hidden");
+    financialView.classList.add("hidden");
+    settingsView.classList.add("hidden");
 }
 
 function showSection(section) {
@@ -403,9 +426,23 @@ function showSection(section) {
         agendaView.classList.remove("hidden");
         openAppointmentButton.classList.remove("hidden");
         renderAgenda();
+    } else if (section === "servicos") {
+        servicesView.classList.remove("hidden");
+        openAppointmentButton.classList.add("hidden");
+        renderServices();
+    } else if (section === "profissionais") {
+        professionalsView.classList.remove("hidden");
+        openAppointmentButton.classList.add("hidden");
+        renderProfessionals();
+    } else if (section === "financeiro") {
+        financialView.classList.remove("hidden");
+        openAppointmentButton.classList.add("hidden");
+        renderFinancial();
+    } else if (section === "configuracoes") {
+        settingsView.classList.remove("hidden");
+        openAppointmentButton.classList.add("hidden");
+        renderSettings();
     } else {
-        // Módulos ainda não implementados continuam usando
-        // o dashboard como tela de apoio.
         dashboardView.classList.remove("hidden");
         openAppointmentButton.classList.remove("hidden");
         renderDashboardAgenda();
@@ -594,6 +631,11 @@ document.getElementById("privacyRequestList")?.addEventListener("click", async (
     if (request) request.status = "completed";
     renderPrivacyRequests();
 });
+
+function navigateTo(section) {
+    menuItems.forEach((menu) => menu.classList.toggle("active", menu.dataset.section === section));
+    showSection(section);
+}
 
 // =========================================================
 // 9. TELA AGENDA
@@ -1073,7 +1115,176 @@ clientsTableBody.addEventListener(
 );
 
 // =========================================================
-// 11. INICIALIZAÇÃO
+// 11. SERVIÇOS, EQUIPE, FINANCEIRO E CONFIGURAÇÕES
+// =========================================================
+function readDemoCollection(key, fallback) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(key));
+        if (Array.isArray(saved)) return saved;
+    } catch (error) { console.error("Dados demonstrativos inválidos:", error); }
+    const initial = fallback();
+    localStorage.setItem(key, JSON.stringify(initial));
+    return initial;
+}
+
+function getServices() {
+    if (!IS_DEMO) return servicesCache;
+    return readDemoCollection(SERVICES_STORAGE_KEY, () => businessConfig.services.map((item) => ({
+        id: createId(), name: item[0], price: Number(item[1]), description: item[2] || "",
+        cost: Number(item[3]) || 0, category: item[4] || "Geral", duration_minutes: Number(item[5]) || 30
+    })));
+}
+
+function getProfessionals() {
+    if (!IS_DEMO) return professionalsCache;
+    return readDemoCollection(PROFESSIONALS_STORAGE_KEY, () => businessConfig.professionals.map((name) => ({
+        id: createId(), name, specialty: "Atendimento geral", commission_percentage: 0
+    })));
+}
+
+function syncOperationalOptions() {
+    const services = getServices();
+    const professionals = getProfessionals();
+    businessConfig.services = services.map((item) => [item.name, Number(item.price), item.description || "", Number(item.cost), item.category, Number(item.duration_minutes)]);
+    businessConfig.professionals = professionals.map((item) => item.name);
+    applyBusinessCustomization();
+    renderBusinessIndicators();
+}
+
+async function persistService(item) {
+    if (IS_DEMO) {
+        const items = getServices();
+        const index = items.findIndex((current) => current.id === item.id);
+        if (index >= 0) items[index] = item; else items.push(item);
+        localStorage.setItem(SERVICES_STORAGE_KEY, JSON.stringify(items));
+        servicesCache = items;
+    } else {
+        const row = { barbershop_id: BARBERSHOP_ID, name: item.name, description: item.description, category: item.category,
+            duration_minutes: item.duration_minutes, price: item.price, cost: item.cost, active: true };
+        if (item.id) row.id = item.id;
+        const { data, error } = await supabaseClient.from("services").upsert(row).select().single();
+        if (error) return reportDataError("salvar o serviço", error);
+        const index = servicesCache.findIndex((current) => current.id === data.id);
+        if (index >= 0) servicesCache[index] = data; else servicesCache.push(data);
+    }
+    syncOperationalOptions(); renderServices(); closeGenericModal("serviceModal");
+}
+
+async function persistProfessional(item) {
+    if (IS_DEMO) {
+        const items = getProfessionals();
+        const index = items.findIndex((current) => current.id === item.id);
+        if (index >= 0) items[index] = item; else items.push(item);
+        localStorage.setItem(PROFESSIONALS_STORAGE_KEY, JSON.stringify(items));
+        professionalsCache = items;
+    } else {
+        const row = { barbershop_id: BARBERSHOP_ID, name: item.name, specialty: item.specialty,
+            commission_percentage: item.commission_percentage, active: true };
+        if (item.id) row.id = item.id;
+        const { data, error } = await supabaseClient.from("employees").upsert(row).select().single();
+        if (error) return reportDataError("salvar o profissional", error);
+        const index = professionalsCache.findIndex((current) => current.id === data.id);
+        if (index >= 0) professionalsCache[index] = data; else professionalsCache.push(data);
+    }
+    syncOperationalOptions(); renderProfessionals(); closeGenericModal("professionalModal");
+}
+
+function renderServices() {
+    document.getElementById("servicesTableBody").innerHTML = getServices().map((service) => `<tr><td><strong>${escapeHtml(service.name)}</strong><small class="table-subtitle">${escapeHtml(service.description || "Sem descrição")}</small></td><td>${escapeHtml(service.category || "Geral")}</td><td>${Number(service.duration_minutes) || 30} min</td><td>${moneyFormatter.format(service.price)}</td><td>${moneyFormatter.format(service.cost || 0)}</td><td><div class="table-actions"><button class="table-button edit" data-edit-service="${service.id}">Editar</button><button class="table-button delete" data-delete-service="${service.id}">Excluir</button></div></td></tr>`).join("");
+}
+
+function renderProfessionals() {
+    document.getElementById("professionalsTableBody").innerHTML = getProfessionals().map((professional) => {
+        const future = getAppointments().filter((item) => item.professional === professional.name && item.date >= todayISO() && !["cancelled", "completed"].includes(item.status)).length;
+        return `<tr><td><strong>${escapeHtml(professional.name)}</strong></td><td>${escapeHtml(professional.specialty || "Atendimento geral")}</td><td>${Number(professional.commission_percentage || 0).toLocaleString("pt-BR")}%</td><td><button class="table-button edit" data-professional-agenda="${escapeHtml(professional.name)}">${future} próximos</button></td><td><div class="table-actions"><button class="table-button edit" data-edit-professional="${professional.id}">Editar</button><button class="table-button delete" data-delete-professional="${professional.id}">Excluir</button></div></td></tr>`;
+    }).join("");
+}
+
+function closeGenericModal(id) { document.getElementById(id).classList.add("hidden"); }
+function openServiceModal(service = {}) {
+    document.getElementById("serviceForm").reset();
+    document.getElementById("serviceId").value = service.id || "";
+    document.getElementById("serviceName").value = service.name || "";
+    document.getElementById("serviceCategory").value = service.category || "Geral";
+    document.getElementById("serviceDuration").value = service.duration_minutes || 30;
+    document.getElementById("servicePrice").value = service.price ?? "";
+    document.getElementById("serviceCost").value = service.cost || 0;
+    document.getElementById("serviceDescription").value = service.description || "";
+    document.getElementById("serviceModalTitle").textContent = service.id ? "Editar serviço" : "Novo serviço";
+    document.getElementById("serviceModal").classList.remove("hidden");
+}
+function openProfessionalModal(professional = {}) {
+    document.getElementById("professionalForm").reset();
+    document.getElementById("professionalId").value = professional.id || "";
+    document.getElementById("professionalName").value = professional.name || "";
+    document.getElementById("professionalSpecialty").value = professional.specialty || "";
+    document.getElementById("professionalCommission").value = professional.commission_percentage || 0;
+    document.getElementById("professionalModalTitle").textContent = professional.id ? "Editar profissional" : "Novo profissional";
+    document.getElementById("professionalModal").classList.remove("hidden");
+}
+
+document.getElementById("newServiceButton").addEventListener("click", () => openServiceModal());
+document.getElementById("quickAddService").addEventListener("click", () => { navigateTo("servicos"); openServiceModal(); });
+document.getElementById("newProfessionalButton").addEventListener("click", () => openProfessionalModal());
+document.getElementById("quickAddProfessional").addEventListener("click", () => { navigateTo("profissionais"); openProfessionalModal(); });
+document.getElementById("quickFinancial").addEventListener("click", () => navigateTo("financeiro"));
+document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", () => closeGenericModal(button.dataset.closeModal)));
+
+document.getElementById("serviceForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await persistService({ id: document.getElementById("serviceId").value || createId(), name: document.getElementById("serviceName").value.trim(), category: document.getElementById("serviceCategory").value.trim(), duration_minutes: Number(document.getElementById("serviceDuration").value), price: Number(document.getElementById("servicePrice").value), cost: Number(document.getElementById("serviceCost").value), description: document.getElementById("serviceDescription").value.trim() });
+});
+document.getElementById("professionalForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await persistProfessional({ id: document.getElementById("professionalId").value || createId(), name: document.getElementById("professionalName").value.trim(), specialty: document.getElementById("professionalSpecialty").value.trim(), commission_percentage: Number(document.getElementById("professionalCommission").value) });
+});
+
+document.getElementById("servicesTableBody").addEventListener("click", async (event) => {
+    const edit = event.target.closest("[data-edit-service]"); const remove = event.target.closest("[data-delete-service]");
+    if (edit) openServiceModal(getServices().find((item) => item.id === edit.dataset.editService));
+    if (remove && confirm("Excluir este serviço? Ele deixará de aparecer em novos agendamentos.")) {
+        const id = remove.dataset.deleteService;
+        if (IS_DEMO) localStorage.setItem(SERVICES_STORAGE_KEY, JSON.stringify(getServices().filter((item) => item.id !== id)));
+        else { const { error } = await supabaseClient.from("services").update({ active: false }).eq("id", id); if (error) return reportDataError("excluir o serviço", error); servicesCache = servicesCache.filter((item) => item.id !== id); }
+        syncOperationalOptions(); renderServices();
+    }
+});
+document.getElementById("professionalsTableBody").addEventListener("click", async (event) => {
+    const edit = event.target.closest("[data-edit-professional]"); const remove = event.target.closest("[data-delete-professional]"); const agenda = event.target.closest("[data-professional-agenda]");
+    if (edit) openProfessionalModal(getProfessionals().find((item) => item.id === edit.dataset.editProfessional));
+    if (agenda) { navigateTo("agenda"); agendaDateFilter.value = ""; agendaProfessionalFilter.value = agenda.dataset.professionalAgenda; renderAgenda(); }
+    if (remove && confirm("Remover este profissional dos novos agendamentos?")) {
+        const id = remove.dataset.deleteProfessional;
+        if (IS_DEMO) localStorage.setItem(PROFESSIONALS_STORAGE_KEY, JSON.stringify(getProfessionals().filter((item) => item.id !== id)));
+        else { const { error } = await supabaseClient.from("employees").update({ active: false }).eq("id", id); if (error) return reportDataError("remover o profissional", error); professionalsCache = professionalsCache.filter((item) => item.id !== id); }
+        syncOperationalOptions(); renderProfessionals();
+    }
+});
+
+function getFinancialEntries() { return IS_DEMO ? readDemoCollection(FINANCIAL_STORAGE_KEY, () => []) : financialCache; }
+function renderFinancial() {
+    const start = document.getElementById("financeStart").value; const end = document.getElementById("financeEnd").value; const type = document.getElementById("financeTypeFilter").value;
+    const entries = getFinancialEntries().filter((item) => (!start || item.occurred_on >= start) && (!end || item.occurred_on <= end) && (type === "all" || item.entry_type === type)).sort((a,b) => b.occurred_on.localeCompare(a.occurred_on));
+    const income = entries.filter((item) => item.entry_type === "income").reduce((sum, item) => sum + Number(item.amount), 0); const expense = entries.filter((item) => item.entry_type === "expense").reduce((sum, item) => sum + Number(item.amount), 0);
+    document.getElementById("financeIncome").textContent = moneyFormatter.format(income); document.getElementById("financeExpense").textContent = moneyFormatter.format(expense); document.getElementById("financeBalance").textContent = moneyFormatter.format(income - expense);
+    document.getElementById("financialTableBody").innerHTML = entries.map((item) => `<tr><td>${formatDate(item.occurred_on)}</td><td><strong>${escapeHtml(item.description)}</strong></td><td>${escapeHtml(item.category)}</td><td><span class="status ${item.entry_type === "income" ? "completed" : "cancelled"}">${item.entry_type === "income" ? "Entrada" : "Saída"}</span></td><td>${moneyFormatter.format(item.amount)}</td><td><button class="table-button delete" data-delete-financial="${item.id}">Excluir</button></td></tr>`).join("");
+    document.getElementById("financialEmpty").classList.toggle("hidden", entries.length > 0);
+}
+document.getElementById("newFinancialButton").addEventListener("click", () => { document.getElementById("financialForm").reset(); document.getElementById("financialDate").value = todayISO(); document.getElementById("financialModal").classList.remove("hidden"); });
+["financeStart", "financeEnd", "financeTypeFilter"].forEach((id) => document.getElementById(id).addEventListener("change", renderFinancial));
+document.getElementById("financialForm").addEventListener("submit", async (event) => {
+    event.preventDefault(); const item = { id: createId(), entry_type: document.getElementById("financialType").value, description: document.getElementById("financialDescription").value.trim(), category: document.getElementById("financialCategory").value.trim(), amount: Number(document.getElementById("financialAmount").value), occurred_on: document.getElementById("financialDate").value, payment_method: document.getElementById("financialPayment").value, status: "paid", notes: "" };
+    if (IS_DEMO) localStorage.setItem(FINANCIAL_STORAGE_KEY, JSON.stringify([...getFinancialEntries(), item])); else { const { data, error } = await supabaseClient.from("financial_entries").insert({ ...item, barbershop_id: BARBERSHOP_ID }).select().single(); if (error) return reportDataError("salvar o lançamento", error); financialCache.push(data); }
+    closeGenericModal("financialModal"); renderFinancial();
+});
+document.getElementById("financialTableBody").addEventListener("click", async (event) => { const button = event.target.closest("[data-delete-financial]"); if (!button || !confirm("Excluir este lançamento?")) return; const id = button.dataset.deleteFinancial; if (IS_DEMO) localStorage.setItem(FINANCIAL_STORAGE_KEY, JSON.stringify(getFinancialEntries().filter((item) => item.id !== id))); else { const { error } = await supabaseClient.from("financial_entries").delete().eq("id", id); if (error) return reportDataError("excluir o lançamento", error); financialCache = financialCache.filter((item) => item.id !== id); } renderFinancial(); });
+
+function getSettings() { try { return JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY)) || {}; } catch { return {}; } }
+function renderSettings() { const settings = getSettings(); document.getElementById("settingsBusinessName").value = settings.name || businessConfig.name; document.getElementById("settingsSegment").value = settings.segment || businessConfig.segment; document.getElementById("settingsOpenTime").value = settings.openTime || "09:00"; document.getElementById("settingsCloseTime").value = settings.closeTime || "18:00"; document.getElementById("settingsSlotDuration").value = settings.slotDuration || "60"; }
+document.getElementById("settingsForm").addEventListener("submit", (event) => { event.preventDefault(); const settings = { name: document.getElementById("settingsBusinessName").value.trim(), segment: document.getElementById("settingsSegment").value.trim(), openTime: document.getElementById("settingsOpenTime").value, closeTime: document.getElementById("settingsCloseTime").value, slotDuration: document.getElementById("settingsSlotDuration").value }; if (settings.closeTime <= settings.openTime) { document.getElementById("settingsMessage").textContent = "O encerramento deve ser posterior ao início."; document.getElementById("settingsMessage").className = "form-message error"; return; } localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings)); businessConfig.name = settings.name; businessConfig.segment = settings.segment; applyBusinessCustomization(); document.getElementById("settingsMessage").textContent = "Configurações salvas."; document.getElementById("settingsMessage").className = "form-message success-message"; });
+
+// =========================================================
+// 12. INICIALIZAÇÃO
 // =========================================================
 function validUuid(value) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || "");
@@ -1108,31 +1319,39 @@ async function importLocalDataOnce() {
 
 async function loadOperationalData() {
     if (IS_DEMO) return;
-    const [appointmentsResult, clientsResult, privacyResult, servicesResult, employeesResult] = await Promise.all([
+    const [appointmentsResult, clientsResult, privacyResult, servicesResult, employeesResult, financialResult] = await Promise.all([
         supabaseClient.from("business_appointments").select("*").eq("barbershop_id", BARBERSHOP_ID),
         supabaseClient.from("business_clients").select("*").eq("barbershop_id", BARBERSHOP_ID),
         supabaseClient.from("privacy_requests").select("*").eq("barbershop_id", BARBERSHOP_ID).order("created_at", { ascending: false }),
         supabaseClient.from("services").select("*").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name"),
-        supabaseClient.from("employees").select("*").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name")
+        supabaseClient.from("employees").select("*").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name"),
+        supabaseClient.from("financial_entries").select("*").eq("barbershop_id", BARBERSHOP_ID).order("occurred_on", { ascending: false })
     ]);
     if (appointmentsResult.error) throw appointmentsResult.error;
     if (clientsResult.error) throw clientsResult.error;
     if (privacyResult.error) throw privacyResult.error;
     if (servicesResult.error) throw servicesResult.error;
     if (employeesResult.error) throw employeesResult.error;
+    if (financialResult.error) throw financialResult.error;
     appointmentsCache = (appointmentsResult.data || []).map(appointmentFromDatabase);
     clientsCache = (clientsResult.data || []).map((row) => ({ id: row.id, name: row.name, phone: row.phone,
         email: row.email, birthday: row.birthday || "", notes: row.notes || "" }));
     remoteAppointmentIds = new Set(appointmentsCache.map((item) => item.id));
     remoteClientIds = new Set(clientsCache.map((item) => item.id));
     privacyRequestsCache = privacyResult.data || [];
-    if (servicesResult.data?.length) businessConfig.services = servicesResult.data.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);
-    if (employeesResult.data?.length) businessConfig.professionals = employeesResult.data.map((employee) => employee.name);
+    servicesCache = servicesResult.data || [];
+    professionalsCache = employeesResult.data || [];
+    financialCache = financialResult.data || [];
+    if (servicesCache.length) businessConfig.services = servicesCache.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);
+    if (professionalsCache.length) businessConfig.professionals = professionalsCache.map((employee) => employee.name);
     applyBusinessCustomization();
     await importLocalDataOnce();
 }
 
 async function initializeOperationalDashboard() {
+    const savedSettings = getSettings();
+    if (savedSettings.name) businessConfig.name = savedSettings.name;
+    if (savedSettings.segment) businessConfig.segment = savedSettings.segment;
     if (!BARBERSHOP_ID) return;
     await loadOperationalData();
     updateClientCount();
@@ -1141,6 +1360,9 @@ async function initializeOperationalDashboard() {
     renderBusinessIndicators();
     renderPrivacyRequests();
     renderAgenda();
+    renderServices();
+    renderProfessionals();
+    renderFinancial();
 }
 
 initializeOperationalDashboard().catch((error) => reportDataError("carregar os dados", error));

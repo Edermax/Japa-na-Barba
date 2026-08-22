@@ -19,6 +19,7 @@
             <nav class="platform-menu" aria-label="Navegação administrativa">
                 <a href="#overview" class="active"><span>⌂</span>Visão geral</a>
                 <a href="#businesses"><span>▦</span>Negócios</a>
+                <a href="#users"><span>♙</span>Usuários</a>
                 <a href="#segments"><span>◫</span>Segmentos</a>
                 <a href="#plans"><span>◈</span>Planos</a>
                 <a href="demonstracoes.html" target="_blank" rel="noopener"><span>↗</span>Demonstrações</a>
@@ -82,6 +83,12 @@
                 </div>
                 <div class="plans-grid" id="plansGrid"></div>
             </section>
+
+            <section class="platform-panel" id="users">
+                <div class="platform-section-title business-heading"><div><p class="platform-kicker">ACESSOS</p><h2>Usuários dos negócios</h2></div><div class="business-controls"><select id="userBusinessFilter" aria-label="Filtrar usuários por negócio"></select><button type="button" class="cyan-button" id="newUserButton">+ Adicionar usuário</button></div></div>
+                <div class="business-table-wrap"><table class="business-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Negócio</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                <div class="empty-state hidden" id="usersEmpty"><strong>Nenhum usuário encontrado.</strong><span>Adicione gestores, funcionários ou clientes finais.</span></div>
+            </section>
         </main>
     </div>
 
@@ -119,9 +126,27 @@
             <div class="detail-stats" id="detailStats"></div>
             <div class="detail-information" id="detailInformation"></div>
             <div class="detail-actions">
+                <button type="button" class="cyan-button" id="detailOperateButton">Operar negócio</button>
+                <button type="button" class="outline-cyan-button" id="detailAddUserButton">Adicionar usuário</button>
                 <button type="button" class="outline-cyan-button" id="detailEditButton">Editar cadastro</button>
                 <button type="button" class="outline-cyan-button" id="detailStatusButton">Suspender</button>
             </div>
+        </div>
+    </div>
+
+    <div class="platform-modal hidden" id="userModal" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
+        <div class="platform-modal-card">
+            <button type="button" class="modal-close" data-close-modal aria-label="Fechar">×</button>
+            <p class="platform-kicker">ACESSO AO SISTEMA</p><h2 id="userModalTitle">Adicionar usuário</h2>
+            <p class="modal-description">O usuário receberá um convite por e-mail para definir a senha.</p>
+            <form id="userForm"><input type="hidden" id="userId"><div class="platform-form-grid">
+                <label>Negócio<select id="userBusiness" required></select></label>
+                <label>Perfil<select id="userRole" required><option value="owner">Proprietário</option><option value="admin">Gestor</option><option value="employee">Funcionário</option><option value="client">Cliente final</option></select></label>
+                <label>Nome completo<input id="userName" required maxlength="100"></label>
+                <label>E-mail<input id="userEmail" type="email" required maxlength="160"></label>
+                <label class="employee-field">Especialidade<input id="userSpecialty" maxlength="120"></label>
+                <label class="employee-field">Comissão (%)<input id="userCommission" type="number" min="0" max="100" step="0.01" value="0"></label>
+            </div><p class="form-message" id="userFormMessage"></p><button type="submit" class="cyan-button full" id="saveUserButton">Enviar convite</button></form>
         </div>
     </div>
 

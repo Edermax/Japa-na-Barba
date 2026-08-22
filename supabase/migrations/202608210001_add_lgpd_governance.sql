@@ -60,31 +60,38 @@ grant select, insert on public.privacy_acknowledgements to authenticated;
 grant select, insert, update on public.data_retention_settings to authenticated;
 grant select on public.data_audit_logs to authenticated;
 
+drop policy if exists "Users create their privacy requests" on public.privacy_requests;
 create policy "Users create their privacy requests" on public.privacy_requests
 for insert to authenticated with check (
     requester_id = auth.uid() and public.belongs_to_barbershop(barbershop_id)
     and lower(requester_email) = lower(coalesce(auth.jwt() ->> 'email', ''))
 );
+drop policy if exists "Users view their privacy requests" on public.privacy_requests;
 create policy "Users view their privacy requests" on public.privacy_requests
 for select to authenticated using (
     requester_id = auth.uid() or public.is_business_manager(barbershop_id)
 );
+drop policy if exists "Business team handles privacy requests" on public.privacy_requests;
 create policy "Business team handles privacy requests" on public.privacy_requests
 for update to authenticated using (public.is_business_manager(barbershop_id))
 with check (public.is_business_manager(barbershop_id));
 
+drop policy if exists "Users register privacy acknowledgement" on public.privacy_acknowledgements;
 create policy "Users register privacy acknowledgement" on public.privacy_acknowledgements
 for insert to authenticated with check (
     user_id = auth.uid() and public.belongs_to_barbershop(barbershop_id)
 );
+drop policy if exists "Users view privacy acknowledgement" on public.privacy_acknowledgements;
 create policy "Users view privacy acknowledgement" on public.privacy_acknowledgements
 for select to authenticated using (
     user_id = auth.uid() or public.is_business_manager(barbershop_id)
 );
 
+drop policy if exists "Business team manages retention" on public.data_retention_settings;
 create policy "Business team manages retention" on public.data_retention_settings
 for all to authenticated using (public.is_business_manager(barbershop_id))
 with check (public.is_business_manager(barbershop_id));
+drop policy if exists "Business team views audit logs" on public.data_audit_logs;
 create policy "Business team views audit logs" on public.data_audit_logs
 for select to authenticated using (public.is_business_manager(barbershop_id));
 
