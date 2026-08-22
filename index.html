@@ -3,6 +3,7 @@
 <head>
     <!-- Define acentos e caracteres especiais -->
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
     <!-- Torna a interface responsiva -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive">
@@ -19,7 +20,7 @@
         <!-- Menu lateral -->
         <aside class="sidebar">
             <!-- Identidade da plataforma -->
-            <div class="brand">
+            <a class="brand header-logo-link" href="./" aria-label="Ir para a página principal da Ogritech">
                 <img src="ogritech-brand-symbol.png" alt="Símbolo Ogritech" class="logo-image platform-symbol">
                 <div class="brand-name">OGRITECH</div>
                 <div class="brand-subtitle">GESTÃO INTELIGENTE</div>
@@ -33,7 +34,7 @@
                         <strong id="tenantName">Japa na Barba</strong>
                     </div>
                 </div>
-            </div>
+            </a>
 
             <!-- Menu de módulos -->
             <nav class="menu">
@@ -84,8 +85,8 @@
                     <div class="stats-grid">
                         <article class="stat-card"><span>Agendamentos hoje</span><strong id="todayAppointmentCount">0</strong><small id="todayAppointmentSubtitle">Agenda integrada</small></article>
                         <article class="stat-card"><span>Clientes cadastrados</span><strong id="clientCount">0</strong><small>Dados protegidos no Supabase</small></article>
-                        <article class="stat-card" data-owner-only><span>Faturamento</span><strong id="businessRevenue">R$ 4.850</strong><small>Este mês</small></article>
-                        <article class="stat-card" data-owner-only><span>Ticket médio</span><strong id="businessTicket">R$ 78</strong><small class="positive">+5,4% este mês</small></article>
+                        <article class="stat-card" data-owner-only><span>Faturamento</span><strong id="businessRevenue">R$ 0</strong><small>Este mês</small></article>
+                        <article class="stat-card" data-owner-only><span>Ticket médio</span><strong id="businessTicket">R$ 0</strong><small class="positive" id="businessTicketSubtitle">Ainda sem operação</small></article>
                         <article class="stat-card" data-owner-only><span>Margem de lucro global</span><strong id="globalProfitMargin">—</strong><small id="globalProfitMarginSubtitle">Sobre atendimentos concluídos</small></article>
                         <article class="stat-card" data-owner-only><span>Clientes sem retorno</span><strong id="inactiveClientCount">0</strong><small>Sem agendamento há mais de 60 dias</small></article>
                         <article class="stat-card" data-owner-only><span>Comparativo anual</span><strong id="yearComparison">—</strong><small id="yearComparisonSubtitle">Mês atual x mesmo mês do ano passado</small></article>
@@ -438,7 +439,7 @@
     <footer class="app-legal-links"><a href="privacidade.html">Privacidade</a><a href="termos.html">Termos de Uso</a><a href="mailto:privacidade@ogritech.com.br">Canal do titular</a></footer>
 
     <!-- Cliente oficial do Supabase e configuração pública do projeto -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
     <script src="business-config.js"></script>
 

@@ -3,6 +3,7 @@
 <head>
     <!-- Codificação -->
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 
     <!-- Responsividade -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +25,7 @@
          ===================================================== -->
     <header class="client-header">
 
-        <div class="client-brand">
+        <a class="client-brand header-logo-link" href="./" aria-label="Ir para a página principal">
             <img
                 src="Logo-japa.jpeg"
                 alt="Logo Japa na Barba"
@@ -38,7 +39,7 @@
                 <span id="clientAreaLabel">Área do cliente</span>
                 <span class="powered-by">Tecnologia Ogritech</span>
             </div>
-        </div>
+        </a>
 
         <div class="client-user">
             <a class="outline-button hidden" id="clientBackToShowcase" href="demonstracoes.html">← Voltar</a>
@@ -253,11 +254,11 @@
                 <p class="form-message" id="privacyRequestMessage"></p>
                 <button class="gold-button full" id="sendPrivacyRequest" type="submit">Enviar solicitação</button>
             </form>
-        </div>
+        </a>
     </div>
 
     <!-- Cliente oficial do Supabase e configuração pública do projeto -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="business-config.js"></script>
     <script src="supabase-config.js"></script>
 

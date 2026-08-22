@@ -3,6 +3,7 @@
 <head>
     <!-- Codificação para acentos e caracteres especiais -->
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 
     <!-- Responsividade -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,10 +38,10 @@
         <section class="login-card">
 
             <!-- Marca da plataforma -->
-            <div class="ogritech-lockup" aria-label="Ogritech">
+            <a class="ogritech-lockup header-logo-link" href="./" aria-label="Ir para a página principal da Ogritech">
                 <img src="ogritech-brand-symbol.png" alt="" class="ogritech-lockup-symbol">
                 <img src="ogritech-logo.png" alt="Ogritech" class="ogritech-lockup-name">
-            </div>
+            </a>
 
             <!-- Identidade da tela -->
             <p class="eyebrow platform-eyebrow">GESTÃO INTELIGENTE PARA NEGÓCIOS</p>
@@ -129,7 +130,7 @@
     </main>
 
     <!-- Cliente oficial do Supabase e configuração pública do projeto -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
 
     <!-- Lógica do login -->

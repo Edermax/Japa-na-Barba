@@ -1,0 +1,11 @@
+supabase/.temp/
+.DS_Store
+Thumbs.db
+node_modules/
+coverage/
+test-results/
+playwright-report/
+*.log
+.env
+.env.*
+!.env.example

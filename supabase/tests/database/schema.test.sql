@@ -1,0 +1,17 @@
+begin;
+select plan(13);
+select has_table('public', 'barbershops', 'barbershops existe');
+select has_table('public', 'profiles', 'profiles existe');
+select has_table('public', 'business_appointments', 'agenda existe');
+select has_table('public', 'business_settings', 'configurações existem');
+select has_table('public', 'platform_admin_events', 'auditoria administrativa existe');
+select has_function('public', 'create_appointment', array['uuid','uuid','uuid','date','time without time zone','text','text'], 'RPC de agenda existe');
+select has_function('public', 'is_platform_admin', array[]::text[], 'helper master existe');
+select col_is_fk('public', 'profiles', 'id', 'perfil referencia auth.users');
+select col_is_fk('public', 'services', 'barbershop_id', 'serviço referencia empresa');
+select col_is_fk('public', 'employees', 'barbershop_id', 'profissional referencia empresa');
+select col_is_fk('public', 'business_appointments', 'barbershop_id', 'agenda referencia empresa');
+select is((select relrowsecurity from pg_class where oid = 'public.business_appointments'::regclass), true, 'RLS ativa na agenda');
+select is((select relrowsecurity from pg_class where oid = 'public.platform_admin_events'::regclass), true, 'RLS ativa na auditoria master');
+select * from finish();
+rollback;

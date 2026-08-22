@@ -1,0 +1,11 @@
+{
+  "name": "ogritech-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "node tests/static-checks.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "validate": "npm run check && npm test"
+  },
+  "engines": { "node": ">=20" }
+}

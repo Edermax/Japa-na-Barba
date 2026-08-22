@@ -124,12 +124,8 @@ $$;
 
 revoke all on function public.log_personal_data_change() from public;
 
-drop trigger if exists audit_business_clients on public.business_clients;
-create trigger audit_business_clients after insert or update or delete on public.business_clients
-for each row execute function public.log_personal_data_change();
-drop trigger if exists audit_business_appointments on public.business_appointments;
-create trigger audit_business_appointments after insert or update or delete on public.business_appointments
-for each row execute function public.log_personal_data_change();
+-- As tabelas operacionais são criadas em uma migration posterior; os triggers
+-- são instalados em 202608220001_harden_schema_and_booking.sql.
 
 drop trigger if exists privacy_requests_set_updated_at on public.privacy_requests;
 create trigger privacy_requests_set_updated_at before update on public.privacy_requests

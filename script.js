@@ -31,6 +31,7 @@ let privacyRequestsCache = [];
 let servicesCache = [];
 let professionalsCache = [];
 let financialCache = [];
+let businessSettingsCache = {};
 
 // =========================================================
 // 2. SESSÃO ATUAL
@@ -38,6 +39,10 @@ let financialCache = [];
 const currentRole = sessionStorage.getItem("japaRole") || "owner";
 const currentUserName = sessionStorage.getItem("japaUserName") || "Administrador";
 const businessConfig = window.getOgritechBusiness();
+if (!IS_DEMO) {
+    businessConfig.revenue = 0;
+    businessConfig.ticket = 0;
+}
 const IS_MASTER_MODE = sessionStorage.getItem("ogritechMasterMode") === "true";
 if (IS_MASTER_MODE && sessionStorage.getItem("ogritechMasterBusinessName")) {
     businessConfig.name = sessionStorage.getItem("ogritechMasterBusinessName");
@@ -121,6 +126,8 @@ function applyBusinessCustomization() {
     document.getElementById("businessPanelEyebrow").textContent = `${businessConfig.name.toUpperCase()} • PAINEL ADMINISTRATIVO`;
     document.getElementById("businessRevenue").textContent = currency.format(businessConfig.revenue);
     document.getElementById("businessTicket").textContent = currency.format(businessConfig.ticket);
+    const ticketSubtitle = document.getElementById("businessTicketSubtitle");
+    if (ticketSubtitle) ticketSubtitle.textContent = IS_DEMO ? "+5,4% este mês" : "Ainda sem operação";
     const backToShowcase = document.getElementById("backToShowcase");
     if (IS_MASTER_MODE && backToShowcase) {
         backToShowcase.href = "admin.html";
@@ -145,7 +152,7 @@ function applyBusinessCustomization() {
     if (clientsMenu) clientsMenu.innerHTML = `<span>♙</span>${escapeHtml(businessConfig.clientPlural)}`;
 
     document.getElementById("popularServices").innerHTML = businessConfig.services.map((service, index) =>
-        `<div class="service"><i style="color:${businessConfig.color}">${escapeHtml(businessConfig.icon)}</i><div><strong>${escapeHtml(service[0])}</strong><span>${86 - index * 13} atendimentos</span></div><b>${currency.format(service[1])}</b></div>`
+        `<div class="service"><i style="color:${businessConfig.color}">${escapeHtml(businessConfig.icon)}</i><div><strong>${escapeHtml(service[0])}</strong><span>${IS_DEMO ? 86 - index * 13 : 0} atendimentos</span></div><b>${currency.format(service[1])}</b></div>`
     ).join("");
 
     const serviceOptions = '<option value="">Selecione</option>' + businessConfig.services.map((service) =>
@@ -334,7 +341,7 @@ appointmentModal.addEventListener("click", (event) => {
     }
 });
 
-appointmentForm.addEventListener("submit", (event) => {
+appointmentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const professional =
@@ -358,9 +365,7 @@ appointmentForm.addEventListener("submit", (event) => {
         return;
     }
 
-    const appointments = getAppointments();
-
-    appointments.push({
+    const newAppointment = {
         id: createId(),
         clientName: appointmentClientName.value.trim(),
         clientEmail: "",
@@ -374,9 +379,26 @@ appointmentForm.addEventListener("submit", (event) => {
 
         createdBy: currentRole,
         createdAt: new Date().toISOString()
-    });
-
-    saveAppointments(appointments);
+    };
+    if (IS_DEMO) {
+        if (!await saveAppointments([...getAppointments(), newAppointment])) return;
+    } else {
+        const service = servicesCache.find((item) => item.name === newAppointment.service);
+        const employee = professionalsCache.find((item) => item.name === newAppointment.professional);
+        if (!service || !employee) return reportDataError("criar o agendamento", new Error("Serviço ou profissional inválido"));
+        const { data, error } = await supabaseClient.rpc("create_appointment", {
+            target_barbershop_id: BARBERSHOP_ID, target_service_id: service.id, target_employee_id: employee.id,
+            target_date: newAppointment.date, target_time: newAppointment.time,
+            supplied_client_name: newAppointment.clientName, supplied_client_email: newAppointment.clientEmail
+        });
+        if (error) return reportDataError("criar o agendamento", error);
+        const created = appointmentFromDatabase(data);
+        const { error: confirmError } = await supabaseClient.from("business_appointments").update({ status: "confirmed" }).eq("id", created.id);
+        if (confirmError) return reportDataError("confirmar o agendamento", confirmError);
+        created.status = "confirmed";
+        appointmentsCache.push(created); remoteAppointmentIds.add(created.id);
+        renderAgenda(); renderDashboardAgenda(); renderBusinessIndicators();
+    }
 
     closeAppointmentModal();
 
@@ -785,7 +807,7 @@ agendaDateFilter.addEventListener("change", renderAgenda);
 agendaProfessionalFilter.addEventListener("change", renderAgenda);
 agendaStatusFilter.addEventListener("change", renderAgenda);
 
-agendaList.addEventListener("click", (event) => {
+agendaList.addEventListener("click", async (event) => {
     const button =
         event.target.closest("[data-agenda-status]");
 
@@ -817,7 +839,7 @@ agendaList.addEventListener("click", (event) => {
     appointments[index].updatedAt =
         new Date().toISOString();
 
-    saveAppointments(appointments);
+    await saveAppointments(appointments);
 });
 
 // =========================================================
@@ -1027,7 +1049,7 @@ clientModal.addEventListener("click", (event) => {
     }
 });
 
-clientForm.addEventListener("submit", (event) => {
+clientForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const clients = getClients();
@@ -1053,7 +1075,7 @@ clientForm.addEventListener("submit", (event) => {
         clients.push(clientData);
     }
 
-    saveClients(clients);
+    if (!await saveClients(clients)) return;
     closeClientModal();
     renderClients();
 });
@@ -1065,7 +1087,7 @@ clientSearch.addEventListener(
 
 clientsTableBody.addEventListener(
     "click",
-    (event) => {
+    async (event) => {
 
         const editButton =
             event.target.closest(
@@ -1107,7 +1129,7 @@ clientsTableBody.addEventListener(
                             item.id !== id
                     );
 
-                saveClients(updatedClients);
+                if (!await saveClients(updatedClients)) return;
                 renderClients();
             }
         }
@@ -1162,10 +1184,11 @@ async function persistService(item) {
         const row = { barbershop_id: BARBERSHOP_ID, name: item.name, description: item.description, category: item.category,
             duration_minutes: item.duration_minutes, price: item.price, cost: item.cost, active: true };
         if (item.id) row.id = item.id;
-        const { data, error } = await supabaseClient.from("services").upsert(row).select().single();
+        const { error } = await supabaseClient.from("services").upsert(row);
         if (error) return reportDataError("salvar o serviço", error);
-        const index = servicesCache.findIndex((current) => current.id === data.id);
-        if (index >= 0) servicesCache[index] = data; else servicesCache.push(data);
+        const saved = { ...row, id: item.id, cost: Number(item.cost), price: Number(item.price) };
+        const index = servicesCache.findIndex((current) => current.id === saved.id);
+        if (index >= 0) servicesCache[index] = saved; else servicesCache.push(saved);
     }
     syncOperationalOptions(); renderServices(); closeGenericModal("serviceModal");
 }
@@ -1279,9 +1302,9 @@ document.getElementById("financialForm").addEventListener("submit", async (event
 });
 document.getElementById("financialTableBody").addEventListener("click", async (event) => { const button = event.target.closest("[data-delete-financial]"); if (!button || !confirm("Excluir este lançamento?")) return; const id = button.dataset.deleteFinancial; if (IS_DEMO) localStorage.setItem(FINANCIAL_STORAGE_KEY, JSON.stringify(getFinancialEntries().filter((item) => item.id !== id))); else { const { error } = await supabaseClient.from("financial_entries").delete().eq("id", id); if (error) return reportDataError("excluir o lançamento", error); financialCache = financialCache.filter((item) => item.id !== id); } renderFinancial(); });
 
-function getSettings() { try { return JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY)) || {}; } catch { return {}; } }
+function getSettings() { if (!IS_DEMO) return businessSettingsCache; try { return JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY)) || {}; } catch { return {}; } }
 function renderSettings() { const settings = getSettings(); document.getElementById("settingsBusinessName").value = settings.name || businessConfig.name; document.getElementById("settingsSegment").value = settings.segment || businessConfig.segment; document.getElementById("settingsOpenTime").value = settings.openTime || "09:00"; document.getElementById("settingsCloseTime").value = settings.closeTime || "18:00"; document.getElementById("settingsSlotDuration").value = settings.slotDuration || "60"; }
-document.getElementById("settingsForm").addEventListener("submit", (event) => { event.preventDefault(); const settings = { name: document.getElementById("settingsBusinessName").value.trim(), segment: document.getElementById("settingsSegment").value.trim(), openTime: document.getElementById("settingsOpenTime").value, closeTime: document.getElementById("settingsCloseTime").value, slotDuration: document.getElementById("settingsSlotDuration").value }; if (settings.closeTime <= settings.openTime) { document.getElementById("settingsMessage").textContent = "O encerramento deve ser posterior ao início."; document.getElementById("settingsMessage").className = "form-message error"; return; } localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings)); businessConfig.name = settings.name; businessConfig.segment = settings.segment; applyBusinessCustomization(); document.getElementById("settingsMessage").textContent = "Configurações salvas."; document.getElementById("settingsMessage").className = "form-message success-message"; });
+document.getElementById("settingsForm").addEventListener("submit", async (event) => { event.preventDefault(); const settings = { name: document.getElementById("settingsBusinessName").value.trim(), segment: document.getElementById("settingsSegment").value.trim(), openTime: document.getElementById("settingsOpenTime").value, closeTime: document.getElementById("settingsCloseTime").value, slotDuration: document.getElementById("settingsSlotDuration").value }; if (settings.closeTime <= settings.openTime) { document.getElementById("settingsMessage").textContent = "O encerramento deve ser posterior ao início."; document.getElementById("settingsMessage").className = "form-message error"; return; } if (IS_DEMO) localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings)); else { const { error } = await supabaseClient.from("business_settings").upsert({ barbershop_id: BARBERSHOP_ID, display_name: settings.name, segment: settings.segment, open_time: settings.openTime, close_time: settings.closeTime, slot_duration_minutes: Number(settings.slotDuration) }); if (error) return reportDataError("salvar as configurações", error); businessSettingsCache = settings; } businessConfig.name = settings.name; businessConfig.segment = settings.segment; applyBusinessCustomization(); document.getElementById("settingsMessage").textContent = "Configurações salvas."; document.getElementById("settingsMessage").className = "form-message success-message"; });
 
 // =========================================================
 // 12. INICIALIZAÇÃO
@@ -1319,13 +1342,15 @@ async function importLocalDataOnce() {
 
 async function loadOperationalData() {
     if (IS_DEMO) return;
-    const [appointmentsResult, clientsResult, privacyResult, servicesResult, employeesResult, financialResult] = await Promise.all([
-        supabaseClient.from("business_appointments").select("*").eq("barbershop_id", BARBERSHOP_ID),
-        supabaseClient.from("business_clients").select("*").eq("barbershop_id", BARBERSHOP_ID),
-        supabaseClient.from("privacy_requests").select("*").eq("barbershop_id", BARBERSHOP_ID).order("created_at", { ascending: false }),
-        supabaseClient.from("services").select("*").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name"),
-        supabaseClient.from("employees").select("*").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name"),
-        supabaseClient.from("financial_entries").select("*").eq("barbershop_id", BARBERSHOP_ID).order("occurred_on", { ascending: false })
+    const historyStart = new Date(); historyStart.setFullYear(historyStart.getFullYear() - 1);
+    const [appointmentsResult, clientsResult, privacyResult, servicesResult, employeesResult, financialResult, settingsResult] = await Promise.all([
+        supabaseClient.from("business_appointments").select("id,client_name,client_email,service,professional,appointment_date,appointment_time,status,created_by,created_at,updated_at").eq("barbershop_id", BARBERSHOP_ID).gte("appointment_date", historyStart.toISOString().slice(0, 10)).order("appointment_date").limit(1000),
+        supabaseClient.from("business_clients").select("id,name,phone,email,birthday,notes").eq("barbershop_id", BARBERSHOP_ID).order("name").limit(500),
+        supabaseClient.from("privacy_requests").select("id,requester_name,request_type,status,created_at").eq("barbershop_id", BARBERSHOP_ID).order("created_at", { ascending: false }).limit(100),
+        supabaseClient.rpc("list_services_catalog", { target_barbershop_id: BARBERSHOP_ID }),
+        supabaseClient.from("employees").select("id,name,specialty,commission_percentage,active").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name"),
+        supabaseClient.from("financial_entries").select("id,description,category,entry_type,amount,occurred_on").eq("barbershop_id", BARBERSHOP_ID).gte("occurred_on", historyStart.toISOString().slice(0, 10)).order("occurred_on", { ascending: false }).limit(1000),
+        supabaseClient.from("business_settings").select("display_name,segment,open_time,close_time,slot_duration_minutes").eq("barbershop_id", BARBERSHOP_ID).maybeSingle()
     ]);
     if (appointmentsResult.error) throw appointmentsResult.error;
     if (clientsResult.error) throw clientsResult.error;
@@ -1333,6 +1358,7 @@ async function loadOperationalData() {
     if (servicesResult.error) throw servicesResult.error;
     if (employeesResult.error) throw employeesResult.error;
     if (financialResult.error) throw financialResult.error;
+    if (settingsResult.error) throw settingsResult.error;
     appointmentsCache = (appointmentsResult.data || []).map(appointmentFromDatabase);
     clientsCache = (clientsResult.data || []).map((row) => ({ id: row.id, name: row.name, phone: row.phone,
         email: row.email, birthday: row.birthday || "", notes: row.notes || "" }));
@@ -1342,6 +1368,7 @@ async function loadOperationalData() {
     servicesCache = servicesResult.data || [];
     professionalsCache = employeesResult.data || [];
     financialCache = financialResult.data || [];
+    if (settingsResult.data) { businessSettingsCache = { name: settingsResult.data.display_name, segment: settingsResult.data.segment, openTime: String(settingsResult.data.open_time).slice(0,5), closeTime: String(settingsResult.data.close_time).slice(0,5), slotDuration: String(settingsResult.data.slot_duration_minutes) }; businessConfig.name = businessSettingsCache.name; businessConfig.segment = businessSettingsCache.segment; }
     if (servicesCache.length) businessConfig.services = servicesCache.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);
     if (professionalsCache.length) businessConfig.professionals = professionalsCache.map((employee) => employee.name);
     applyBusinessCustomization();

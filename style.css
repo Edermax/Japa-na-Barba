@@ -1600,3 +1600,19 @@ textarea:focus {
 .detail-card { width:min(760px,100%); }.detail-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin:20px 0; }.detail-stats article { padding:16px; border:1px solid #20343a; border-radius:8px; background:#080d0f; }.detail-stats span,.detail-stats strong { display:block; }.detail-stats span { color:#718287; font-size:8px; }.detail-stats strong { margin-top:8px; font-size:19px; color:#eaf8fa; }.detail-information { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #1d3035; }.detail-information p { padding:14px 0; border-bottom:1px solid #1d3035; }.detail-information span,.detail-information strong { display:block; }.detail-information span { color:#6e8085; font-size:8px; }.detail-information strong { margin-top:5px; color:#dbe8ea; font-size:10px; }.full-detail { grid-column:1/-1; }.detail-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
 @media(max-width:900px){.plans-grid{grid-template-columns:1fr}.business-controls{flex-wrap:wrap}.detail-stats{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.platform-form-grid,.detail-information{grid-template-columns:1fr}.full-field,.full-detail{grid-column:auto}.platform-modal{padding:10px}.platform-modal-card{padding:22px 16px;max-height:calc(100vh - 20px)}.detail-stats{grid-template-columns:1fr 1fr}}
+/* Logos de cabeçalho funcionam como retorno consistente à página principal. */
+.header-logo-link {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.header-logo-link:focus-visible {
+    outline: 2px solid var(--gold, #d4af37);
+    outline-offset: 4px;
+    border-radius: 8px;
+}
+
+.platform-brand-link {
+    display: block;
+}

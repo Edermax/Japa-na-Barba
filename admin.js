@@ -23,17 +23,17 @@ async function validatePlatformAdmin() {
 }
 
 async function loadData() {
-    const [businessResult, planResult, profileResult] = await Promise.all([
-        supabaseClient.from("saas_clients").select("*").order("created_at", { ascending: true }),
-        supabaseClient.from("saas_plans").select("*").eq("active", true).order("display_order"),
-        supabaseClient.from("profiles").select("id,barbershop_id,full_name,role,active").order("full_name")
+    const [businessResult, planResult, userResult] = await Promise.all([
+        supabaseClient.from("saas_clients").select("id,barbershop_id,name,segment,contact_name,owner_email,phone,plan,monthly_fee,origin,notes,status,invite_status,user_count,client_count,appointment_count,business_revenue,created_at").is("deleted_at", null).order("created_at", { ascending: true }).limit(500),
+        supabaseClient.from("saas_plans").select("id,name,monthly_fee,description,features,featured,display_order").eq("active", true).order("display_order"),
+        supabaseClient.functions.invoke("platform-users", { body: { action: "list" } })
     ]);
     if (businessResult.error) throw businessResult.error;
     if (planResult.error) throw planResult.error;
-    if (profileResult.error) throw profileResult.error;
+    if (userResult.error || userResult.data?.error) throw userResult.error || new Error(userResult.data.error);
     businesses = businessResult.data || [];
     plans = planResult.data || [];
-    users = (profileResult.data || []).filter((profile) => profile.id !== sessionStorage.getItem("japaUserId")).map((profile) => ({ ...profile, email: "" }));
+    users = userResult.data?.users || [];
 }
 
 function renderSummary() {
@@ -41,7 +41,8 @@ function renderSummary() {
     $("businessCount").textContent = businesses.length;
     $("segmentCount").textContent = new Set(businesses.map((business) => business.segment)).size;
     $("activeCount").textContent = active.length;
-    $("monthlyRevenue").textContent = money.format(active.reduce((sum, business) => sum + Number(business.monthly_fee), 0));
+    const realBusinesses = active.filter((business) => business.origin === "Cliente real");
+    $("monthlyRevenue").textContent = money.format(realBusinesses.reduce((sum, business) => sum + Number(business.monthly_fee), 0));
 }
 
 function renderSegments() {
@@ -58,9 +59,9 @@ function renderBusinesses() {
     $("businessTableBody").innerHTML = filtered.map((business) => {
         const meta = SEGMENTS[business.segment] || SEGMENTS.Outro;
         return `<tr><td><button class="business-link" data-action="detail" data-id="${business.id}"><span style="--segment-color:${meta.color}">${meta.icon}</span><strong>${escapeHtml(business.name)}</strong></button></td>
-        <td>${escapeHtml(business.segment)}</td><td>${escapeHtml(business.contact_name)}</td><td><span class="origin-badge ${business.origin === "Cliente real" ? "real" : ""}">${escapeHtml(business.origin)}</span></td>
+        <td>${escapeHtml(business.segment)}</td><td>${escapeHtml(business.contact_name)}</td><td><span class="origin-badge">${escapeHtml(business.origin)}</span></td>
         <td><span class="plan-badge">${escapeHtml(business.plan)}</span></td><td>${money.format(business.monthly_fee)}</td><td><span class="${business.status === "Ativo" ? "active-badge" : "suspended-badge"}">${escapeHtml(business.status)}</span></td>
-        <td><div class="admin-row-actions"><button data-action="operate" data-id="${business.id}">Operar</button><button data-action="edit" data-id="${business.id}">Editar</button><button class="danger" data-action="delete" data-id="${business.id}">Excluir</button></div></td></tr>`;
+        <td><div class="admin-row-actions"><button data-action="operate" data-id="${business.id}">Operar</button><button data-action="edit" data-id="${business.id}">Editar</button><button class="danger" data-action="delete" data-id="${business.id}">Arquivar</button></div></td></tr>`;
     }).join("");
     $("businessEmpty").classList.toggle("hidden", filtered.length > 0);
     document.querySelector(".business-table-wrap").classList.toggle("hidden", filtered.length === 0);
@@ -78,7 +79,7 @@ function renderUsers() {
     if (!$("usersTableBody") || !$("userBusinessFilter")) return;
     const filter = $("userBusinessFilter").value;
     const filtered = users.filter((user) => filter === "all" || user.barbershop_id === filter);
-    $("usersTableBody").innerHTML = filtered.map((user) => { const business = businesses.find((item) => item.barbershop_id === user.barbershop_id); return `<tr><td><strong>${escapeHtml(user.full_name)}</strong></td><td>${escapeHtml(user.email || "—")}</td><td>${escapeHtml(business?.name || "Sem vínculo")}</td><td><span class="plan-badge">${escapeHtml(roleLabels[user.role] || user.role)}</span></td><td><span class="${user.active ? "active-badge" : "suspended-badge"}">${user.active ? "Ativo" : "Inativo"}</span></td><td><div class="admin-row-actions"><button data-user-action="edit" data-id="${user.id}">Editar</button><button data-user-action="toggle" data-id="${user.id}">${user.active ? "Desativar" : "Ativar"}</button><button class="danger" data-user-action="delete" data-id="${user.id}">Excluir</button></div></td></tr>`; }).join("");
+    $("usersTableBody").innerHTML = filtered.map((user) => { const business = businesses.find((item) => item.barbershop_id === user.barbershop_id); return `<tr><td><strong>${escapeHtml(user.full_name)}</strong></td><td>${escapeHtml(user.email || "—")}</td><td>${escapeHtml(business?.name || "Sem vínculo")}</td><td><span class="plan-badge">${escapeHtml(roleLabels[user.role] || user.role)}</span></td><td><span class="${user.active ? "active-badge" : "suspended-badge"}">${user.active ? "Ativo" : "Inativo"}</span></td><td><div class="admin-row-actions"><button data-user-action="edit" data-id="${user.id}">Editar</button><button data-user-action="toggle" data-id="${user.id}">${user.active ? "Desativar" : "Ativar"}</button><button class="danger" data-user-action="delete" data-id="${user.id}">Arquivar</button></div></td></tr>`; }).join("");
     $("usersEmpty").classList.toggle("hidden", filtered.length > 0);
 }
 
@@ -141,13 +142,13 @@ async function toggleBusinessStatus(business) {
 }
 
 async function deleteBusiness(business) {
-    if (!confirm(`Excluir o cadastro de ${business.name}? Esta ação não pode ser desfeita.`)) return;
+    if (!confirm(`Arquivar ${business.name}? Os acessos serão bloqueados e os dados ficarão preservados conforme a política de retenção.`)) return;
     let error;
     if (business.barbershop_id) {
         const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete_business", barbershop_id: business.barbershop_id } });
         error = result.error || (result.data?.error ? new Error(result.data.error) : null);
-    } else ({ error } = await supabaseClient.from("saas_clients").delete().eq("id", business.id));
-    if (error) return alert("Não foi possível excluir o negócio.");
+    } else ({ error } = await supabaseClient.from("saas_clients").update({ status: "Arquivado", deleted_at: new Date().toISOString() }).eq("id", business.id));
+    if (error) return alert("Não foi possível arquivar o negócio.");
     await loadData(); populateSelectors(); refreshViews();
 }
 
@@ -186,7 +187,7 @@ function bindEvents() {
     $("detailOperateButton")?.addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); if (business) operateBusiness(business); });
     $("detailAddUserButton")?.addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); closeModals(); openUserForm(business?.barbershop_id); });
     $("newUserButton")?.addEventListener("click", () => openUserForm()); $("userRole")?.addEventListener("change", updateEmployeeFields); $("userForm")?.addEventListener("submit", saveUser); $("userBusinessFilter")?.addEventListener("change", renderUsers);
-    $("usersTableBody")?.addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const { error } = await supabaseClient.from("profiles").update({ active: !user.active }).eq("id", user.id); if (error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Excluir o acesso de ${user.full_name}?`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível excluir o usuário."); } await loadData(); refreshViews(); });
+    $("usersTableBody")?.addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "set_active", user_id: user.id, active: !user.active } }); if (result.error || result.data?.error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Arquivar o acesso de ${user.full_name}? O histórico será preservado.`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível arquivar o usuário."); } await loadData(); refreshViews(); });
     $("platformLogout").addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
 }
 

@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ogritech: gestão e agendamento para negócios de serviços</title>
     <meta name="description" content="Conheça a Ogritech, plataforma de gestão, agenda, clientes e financeiro para barbearias, salões e outros negócios de serviços. Teste a demonstração.">
@@ -56,7 +57,7 @@
 </head>
 <body>
     <header class="demo-header">
-        <a class="demo-brand" href="demonstracoes.html" aria-label="Ogritech">
+        <a class="demo-brand" href="./" aria-label="Ir para a página principal da Ogritech">
             <span class="demo-lockup" aria-label="Ogritech">
                 <img src="ogritech-brand-symbol.png" alt="" class="demo-lockup-symbol">
                 <img src="ogritech-logo.png" alt="Ogritech" class="demo-lockup-name">
@@ -129,7 +130,7 @@
         </main>
     </div>
     <div class="toast" id="toast" role="status"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
     <script src="business-config.js"></script>
     <script src="demo-access.js"></script>

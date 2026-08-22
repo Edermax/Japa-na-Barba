@@ -3,9 +3,8 @@ create table if not exists public.platform_admins (
     created_at timestamptz not null default now()
 );
 
-insert into public.platform_admins (user_id)
-values ('852ca2d2-6249-4c7c-9f9b-5550695121e5'::uuid)
-on conflict (user_id) do nothing;
+-- O primeiro administrador é promovido explicitamente por scripts/bootstrap-platform-admin.sql
+-- depois que o usuário correspondente existir em auth.users.
 
 alter table public.platform_admins enable row level security;
 
@@ -91,19 +90,3 @@ drop policy if exists "Ogritech owner can delete SaaS clients" on public.saas_cl
 drop policy if exists "Platform admins manage SaaS clients" on public.saas_clients;
 create policy "Platform admins manage SaaS clients" on public.saas_clients
 for all to authenticated using (public.is_platform_admin()) with check (public.is_platform_admin());
-
-update public.saas_clients set
-    owner_email = case name
-        when 'Japa na Barba' then 'ederogrizio@gmail.com'
-        when 'Studio Bella Forma' then 'camila@example.com'
-        when 'Nail Art Boutique' then 'bianca@example.com'
-        when 'Sol Dourado Bronze' then 'mariana@example.com'
-        when 'Acorde Vivo' then 'marcelo@example.com'
-        when 'Prime Fit Coach' then 'natalia@example.com'
-        else owner_email end,
-    phone = coalesce(phone, '(11) 99999-0000'),
-    user_count = case when name = 'Japa na Barba' then 3 else 1 end,
-    client_count = case when name = 'Japa na Barba' then 86 else 0 end,
-    appointment_count = case when name = 'Japa na Barba' then 142 else 0 end,
-    business_revenue = case when name = 'Japa na Barba' then 4850 else 0 end,
-    invite_status = case when name = 'Japa na Barba' then 'Ativo' else 'Pendente' end;

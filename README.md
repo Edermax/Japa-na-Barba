@@ -5,7 +5,8 @@ Plataforma de gestão para negócios de atendimento.
 ## Estrutura de marca
 
 - **Ogritech** é a plataforma.
-- **Japa na Barba** é a primeira barbearia atendida.
+- **Japa na Barba** é uma empresa fictícia usada na demonstração inicial.
+- A plataforma está em pré-operação; todos os negócios atualmente cadastrados são demonstrativos.
 - Cada barbearia é isolada por `barbershop_id` e pelas políticas RLS do Supabase.
 
 ## Estado atual
@@ -43,9 +44,9 @@ Esses controles apoiam a adequação, mas não substituem revisão jurídica, co
 
 ## Próximas etapas
 
-1. Carregar identidade e configurações de cada barbearia pelo banco.
-2. Migrar Serviços e Profissionais para o Supabase.
-3. Publicar a plataforma em `ogritech.com.br`.
+1. Aplicar e validar as migrations primeiro em staging.
+2. Publicar a Edge Function com `ALLOWED_ORIGINS=https://ogritech.com.br`.
+3. Executar o checklist de produção em `docs/OPERACAO_PRODUCAO.md`.
 
 ## Central master
 
@@ -58,3 +59,18 @@ O usuário registrado em `platform_admins` possui uma central exclusiva em `admi
 - administrar clientes, agenda, serviços, equipe, financeiro e configurações usando o painel operacional existente.
 
 Para ativar a central em um projeto Supabase, aplique as migrations e publique a Edge Function `platform-users`. A função usa `SUPABASE_SERVICE_ROLE_KEY` somente no ambiente seguro do Supabase; essa chave nunca deve ser colocada no frontend.
+
+## Desenvolvimento e validação
+
+Requisitos: Node.js 20+ e Supabase CLI com Docker.
+
+```sh
+npm run validate
+supabase start
+supabase db reset
+supabase test db
+```
+
+Para promover o primeiro administrador, crie o usuário no Auth e execute uma cópia local, não versionada, de `scripts/bootstrap-platform-admin.sql` com o e-mail correto.
+
+O arquivo `_headers` configura CSP, HSTS e outros cabeçalhos em hosts compatíveis. GitHub Pages não processa esse arquivo; para produção, configure os mesmos cabeçalhos no CDN/proxy ou migre a entrega para um host compatível.

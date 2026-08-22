@@ -411,10 +411,7 @@ clientAppointmentForm.addEventListener(
             return;
         }
 
-        const appointments =
-            getAppointments();
-
-        appointments.push({
+        const newAppointment = {
             id: createId(),
             clientName: loggedClientName,
             clientEmail: loggedClientEmail,
@@ -429,9 +426,21 @@ clientAppointmentForm.addEventListener(
 
             createdBy: "client",
             createdAt: new Date().toISOString()
-        });
-
-        if (!await saveAppointments(appointments)) return;
+        };
+        if (isDemoClient) {
+            if (!await saveAppointments([...getAppointments(), newAppointment])) return;
+        } else {
+            const service = (window.__ogritechServices || []).find((item) => item.name === newAppointment.service);
+            const employee = (window.__ogritechEmployees || []).find((item) => item.name === newAppointment.professional);
+            if (!service || !employee) return alert("Serviço ou profissional inválido. Atualize a página.");
+            const { data, error } = await supabaseClient.rpc("create_appointment", {
+                target_barbershop_id: clientBarbershopId, target_service_id: service.id, target_employee_id: employee.id,
+                target_date: newAppointment.date, target_time: newAppointment.time,
+                supplied_client_name: null, supplied_client_email: null
+            });
+            if (error) return alert(error.code === "23505" ? "Esse horário acabou de ser ocupado." : "Não foi possível agendar. Verifique o horário e tente novamente.");
+            const created = appointmentFromDatabase(data); clientAppointmentsCache.push(created); remoteClientAppointmentIds.add(created.id);
+        }
         await registerPrivacyAcknowledgement();
 
         clientAppointmentForm.reset();
@@ -610,16 +619,18 @@ async function initializeClientPage() {
     loggedClientEmail = session.user.email || "";
     clientBarbershopId = profile.barbershop_id;
     const { data: appointments, error: appointmentsError } = await supabaseClient
-        .from("business_appointments").select("*").eq("barbershop_id", clientBarbershopId).order("appointment_date");
+        .from("business_appointments").select("id,client_name,client_email,service,professional,appointment_date,appointment_time,status,created_by,created_at,updated_at").eq("barbershop_id", clientBarbershopId).gte("appointment_date", todayISO()).order("appointment_date").limit(100);
     if (appointmentsError) throw appointmentsError;
     clientAppointmentsCache = (appointments || []).map(appointmentFromDatabase);
     remoteClientAppointmentIds = new Set(clientAppointmentsCache.map((item) => item.id));
     const [servicesResult, employeesResult] = await Promise.all([
-        supabaseClient.from("services").select("*").eq("barbershop_id", clientBarbershopId).eq("active", true).order("name"),
-        supabaseClient.from("employees").select("*").eq("barbershop_id", clientBarbershopId).eq("active", true).order("name")
+        supabaseClient.rpc("list_services_catalog", { target_barbershop_id: clientBarbershopId }),
+        supabaseClient.from("employees").select("id,name,specialty").eq("barbershop_id", clientBarbershopId).eq("active", true).order("name")
     ]);
     if (servicesResult.error) throw servicesResult.error;
     if (employeesResult.error) throw employeesResult.error;
+    window.__ogritechServices = servicesResult.data || [];
+    window.__ogritechEmployees = employeesResult.data || [];
     if (servicesResult.data?.length) businessConfig.services = servicesResult.data.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);
     if (employeesResult.data?.length) businessConfig.professionals = employeesResult.data.map((employee) => employee.name);
     clientUserName.textContent = loggedClientName;

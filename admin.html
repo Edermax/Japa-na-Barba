@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title>Ogritech | Administração da plataforma</title>
@@ -12,9 +13,11 @@
 <body class="platform-admin-page">
     <div class="platform-shell">
         <aside class="platform-sidebar">
-            <img src="ogritech-brand-symbol.png" alt="Ogritech" class="platform-admin-logo">
-            <div class="brand-name">OGRITECH</div>
-            <div class="brand-subtitle">ADMINISTRAÇÃO DA PLATAFORMA</div>
+            <a class="platform-brand-link header-logo-link" href="./" aria-label="Ir para a página principal da Ogritech">
+                <img src="ogritech-brand-symbol.png" alt="" class="platform-admin-logo">
+                <div class="brand-name">OGRITECH</div>
+                <div class="brand-subtitle">ADMINISTRAÇÃO DA PLATAFORMA</div>
+            </a>
 
             <nav class="platform-menu" aria-label="Navegação administrativa">
                 <a href="#overview" class="active"><span>⌂</span>Visão geral</a>
@@ -43,9 +46,9 @@
             </header>
 
             <section class="platform-stats" aria-label="Resumo da carteira">
-                <article><span>Negócios na carteira</span><strong id="businessCount">6</strong><small>1 cliente real + 5 exemplos</small></article>
-                <article><span>Segmentos atendidos</span><strong id="segmentCount">6</strong><small>Carteira diversificada</small></article>
-                <article><span>Negócios ativos</span><strong id="activeCount">6</strong><small class="cyan-positive">100% da carteira</small></article>
+                <article><span>Negócios na carteira</span><strong id="businessCount">0</strong><small>Cadastros demonstrativos</small></article>
+                <article><span>Segmentos atendidos</span><strong id="segmentCount">0</strong><small>Cenários simulados</small></article>
+                <article><span>Negócios ativos</span><strong id="activeCount">0</strong><small class="cyan-positive">Nenhuma operação real</small></article>
                 <article><span>Receita mensal estimada</span><strong id="monthlyRevenue">R$ 0</strong><small>Planos simulados</small></article>
             </section>
 
@@ -66,7 +69,7 @@
                         <button type="button" class="cyan-button" id="newBusinessButton">+ Novo negócio</button>
                     </div>
                 </div>
-                <p class="demo-notice">Cadastros demonstrativos para preencher e validar o painel. Japa na Barba permanece como seu primeiro cliente real.</p>
+                <p class="demo-notice">Todos os cadastros atuais são fictícios e existem somente para demonstração e validação da plataforma.</p>
                 <div class="business-table-wrap">
                     <table class="business-table">
                         <thead><tr><th>Negócio</th><th>Segmento</th><th>Responsável</th><th>Origem</th><th>Plano</th><th>Mensalidade</th><th>Status</th><th>Ações</th></tr></thead>
@@ -108,7 +111,7 @@
                     <label>Telefone<input id="businessPhone" type="tel" maxlength="30"></label>
                     <label>Plano<select id="businessPlan" required></select></label>
                     <label>Mensalidade<input id="businessPrice" type="number" min="0" step="0.01" required></label>
-                    <label>Origem<select id="businessOrigin"><option>Cliente real</option><option>Demonstração</option></select></label>
+                    <label>Origem<select id="businessOrigin"><option selected>Demonstração</option><option>Cliente real</option></select></label>
                     <label class="full-field">Observações<textarea id="businessNotes" rows="3" maxlength="500"></textarea></label>
                 </div>
                 <p class="form-message" id="businessFormMessage"></p>
@@ -151,7 +154,7 @@
     </div>
 
     <div class="admin-loading" id="adminLoading">Validando acesso seguro...</div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
     <script src="admin.js?v=20260821.3"></script>
 </body>
