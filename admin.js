@@ -75,6 +75,7 @@ function renderPlans() {
 
 const roleLabels = { owner: "Proprietário", admin: "Gestor", employee: "Funcionário", client: "Cliente final" };
 function renderUsers() {
+    if (!$("usersTableBody") || !$("userBusinessFilter")) return;
     const filter = $("userBusinessFilter").value;
     const filtered = users.filter((user) => filter === "all" || user.barbershop_id === filter);
     $("usersTableBody").innerHTML = filtered.map((user) => { const business = businesses.find((item) => item.barbershop_id === user.barbershop_id); return `<tr><td><strong>${escapeHtml(user.full_name)}</strong></td><td>${escapeHtml(user.email || "—")}</td><td>${escapeHtml(business?.name || "Sem vínculo")}</td><td><span class="plan-badge">${escapeHtml(roleLabels[user.role] || user.role)}</span></td><td><span class="${user.active ? "active-badge" : "suspended-badge"}">${user.active ? "Ativo" : "Inativo"}</span></td><td><div class="admin-row-actions"><button data-user-action="edit" data-id="${user.id}">Editar</button><button data-user-action="toggle" data-id="${user.id}">${user.active ? "Desativar" : "Ativar"}</button><button class="danger" data-user-action="delete" data-id="${user.id}">Excluir</button></div></td></tr>`; }).join("");
@@ -87,8 +88,8 @@ function populateSelectors() {
     $("segmentFilter").innerHTML = '<option value="all">Todos os segmentos</option>' + Object.keys(SEGMENTS).map((segment) => `<option>${segment}</option>`).join("");
     $("businessPlan").innerHTML = plans.map((plan) => `<option value="${escapeHtml(plan.name)}" data-price="${plan.monthly_fee}">${escapeHtml(plan.name)}</option>`).join("");
     const businessOptions = businesses.filter((business) => business.barbershop_id).map((business) => `<option value="${business.barbershop_id}">${escapeHtml(business.name)}</option>`).join("");
-    $("userBusiness").innerHTML = businessOptions;
-    $("userBusinessFilter").innerHTML = '<option value="all">Todos os negócios</option>' + businessOptions;
+    if ($("userBusiness")) $("userBusiness").innerHTML = businessOptions;
+    if ($("userBusinessFilter")) $("userBusinessFilter").innerHTML = '<option value="all">Todos os negócios</option>' + businessOptions;
 }
 
 function openBusinessForm(business = null) {
@@ -162,7 +163,7 @@ function operateBusiness(business) {
 }
 
 function updateEmployeeFields() { document.querySelectorAll(".employee-field").forEach((field) => field.classList.toggle("hidden", $("userRole").value !== "employee")); }
-function openUserForm(businessId = "", user = null) { $("userForm").reset(); $("userFormMessage").textContent = ""; $("userId").value = user?.id || ""; $("userModalTitle").textContent = user ? "Editar usuário" : "Adicionar usuário"; $("saveUserButton").textContent = user ? "Salvar alterações" : "Enviar convite"; if (businessId) $("userBusiness").value = businessId; if (user) { $("userBusiness").value = user.barbershop_id; $("userRole").value = user.role; $("userName").value = user.full_name; $("userEmail").value = user.email; } updateEmployeeFields(); $("userModal").classList.remove("hidden"); }
+function openUserForm(businessId = "", user = null) { if (!$("userForm")) return alert("Atualize a página para carregar o módulo de usuários."); $("userForm").reset(); $("userFormMessage").textContent = ""; $("userId").value = user?.id || ""; $("userModalTitle").textContent = user ? "Editar usuário" : "Adicionar usuário"; $("saveUserButton").textContent = user ? "Salvar alterações" : "Enviar convite"; if (businessId) $("userBusiness").value = businessId; if (user) { $("userBusiness").value = user.barbershop_id; $("userRole").value = user.role; $("userName").value = user.full_name; $("userEmail").value = user.email; } updateEmployeeFields(); $("userModal").classList.remove("hidden"); }
 async function saveUser(event) {
     event.preventDefault(); $("saveUserButton").disabled = true; $("userFormMessage").textContent = "Enviando convite...";
     const { data, error } = await supabaseClient.functions.invoke("platform-users", { body: { action: $("userId").value ? "update" : "invite", user_id: $("userId").value || undefined, barbershop_id: $("userBusiness").value, role: $("userRole").value, full_name: $("userName").value.trim(), email: $("userEmail").value.trim().toLowerCase(), specialty: $("userSpecialty").value.trim(), commission: Number($("userCommission").value || 0) } });
@@ -182,15 +183,15 @@ function bindEvents() {
         const business = businesses.find((item) => item.id === selectedBusinessId);
         if (business) toggleBusinessStatus(business);
     });
-    $("detailOperateButton").addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); if (business) operateBusiness(business); });
-    $("detailAddUserButton").addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); closeModals(); openUserForm(business?.barbershop_id); });
-    $("newUserButton").addEventListener("click", () => openUserForm()); $("userRole").addEventListener("change", updateEmployeeFields); $("userForm").addEventListener("submit", saveUser); $("userBusinessFilter").addEventListener("change", renderUsers);
-    $("usersTableBody").addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const { error } = await supabaseClient.from("profiles").update({ active: !user.active }).eq("id", user.id); if (error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Excluir o acesso de ${user.full_name}?`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível excluir o usuário."); } await loadData(); refreshViews(); });
+    $("detailOperateButton")?.addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); if (business) operateBusiness(business); });
+    $("detailAddUserButton")?.addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); closeModals(); openUserForm(business?.barbershop_id); });
+    $("newUserButton")?.addEventListener("click", () => openUserForm()); $("userRole")?.addEventListener("change", updateEmployeeFields); $("userForm")?.addEventListener("submit", saveUser); $("userBusinessFilter")?.addEventListener("change", renderUsers);
+    $("usersTableBody")?.addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const { error } = await supabaseClient.from("profiles").update({ active: !user.active }).eq("id", user.id); if (error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Excluir o acesso de ${user.full_name}?`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível excluir o usuário."); } await loadData(); refreshViews(); });
     $("platformLogout").addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
 }
 
 async function initializeDashboard() {
     try { if (!await validatePlatformAdmin()) return; await loadData(); populateSelectors(); refreshViews(); bindEvents(); $("adminLoading").classList.add("hidden"); }
-    catch (error) { $("adminLoading").textContent = "Não foi possível carregar a administração da Ogritech."; console.error("Erro no painel Ogritech:", error.message); }
+    catch (error) { $("adminLoading").textContent = `Não foi possível carregar a administração da Ogritech. ${error?.message || "Tente atualizar a página."}`; console.error("Erro no painel Ogritech:", error); }
 }
 initializeDashboard();
