@@ -21,3 +21,20 @@ test("agendamento real usa RPC validada", async () => {
   assert.match(migration, /Horário indisponível/);
   assert.match(migration, /Serviço ou profissional inválido/);
 });
+
+test("cobranças da plataforma são isoladas e transacionais", async () => {
+  const migration = await readFile(new URL("supabase/migrations/202608240001_platform_billing.sql", root), "utf8");
+  for (const marker of [
+    "create table if not exists public.platform_invoices",
+    "create table if not exists public.platform_payments",
+    "create table if not exists public.platform_refunds",
+    "public.is_platform_admin()",
+    "create or replace function public.platform_create_invoice",
+    "create or replace function public.platform_record_payment",
+    "create or replace function public.platform_register_refund",
+    "for update",
+    "platform_billing_audit_log"
+  ]) assert.ok(migration.includes(marker), marker);
+  assert.match(migration, /Pagamento excede o saldo da fatura/);
+  assert.match(migration, /Crédito maior que o saldo disponível/);
+});

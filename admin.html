@@ -25,6 +25,7 @@
                 <a href="#users"><span>♙</span>Usuários</a>
                 <a href="#segments"><span>◫</span>Segmentos</a>
                 <a href="#plans"><span>◈</span>Planos</a>
+                <a href="#billing"><span>R$</span>Cobranças</a>
                 <a href="demonstracoes.html" target="_blank" rel="noopener"><span>↗</span>Demonstrações</a>
             </nav>
 
@@ -87,6 +88,33 @@
                 <div class="plans-grid" id="plansGrid"></div>
             </section>
 
+            <section class="platform-panel" id="billing">
+                <div class="platform-section-title business-heading">
+                    <div><p class="platform-kicker">FINANCEIRO OGRITECH</p><h2>Cobranças dos clientes SaaS</h2></div>
+                    <div class="business-controls">
+                        <select id="billingStatusFilter" aria-label="Filtrar cobranças por status">
+                            <option value="all">Todos os status</option><option value="open">Em aberto</option><option value="overdue">Atrasada</option><option value="paid">Paga</option><option value="partially_refunded">Devolução parcial</option><option value="refunded">Devolvida</option><option value="void">Cancelada</option>
+                        </select>
+                        <button type="button" class="cyan-button" id="newInvoiceButton">+ Nova cobrança</button>
+                    </div>
+                </div>
+                <p class="demo-notice">Este módulo controla somente valores cobrados pela Ogritech: implantação, assinatura, descontos, créditos e serviços adicionais.</p>
+                <div class="billing-summary" aria-label="Resumo financeiro da Ogritech">
+                    <article><span>Recebido</span><strong id="billingReceived">R$ 0</strong></article>
+                    <article><span>Em aberto</span><strong id="billingOpen">R$ 0</strong></article>
+                    <article><span>Em atraso</span><strong id="billingOverdue">R$ 0</strong></article>
+                    <article><span>Descontos e créditos</span><strong id="billingBenefits">R$ 0</strong></article>
+                    <article><span>Devolvido</span><strong id="billingRefunded">R$ 0</strong></article>
+                </div>
+                <div class="business-table-wrap" id="billingTableWrap">
+                    <table class="business-table billing-table">
+                        <thead><tr><th>Fatura</th><th>Empresa</th><th>Emissão</th><th>Vencimento</th><th>Total</th><th>Recebido</th><th>Status</th><th>Ações</th></tr></thead>
+                        <tbody id="billingTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state hidden" id="billingEmpty"><strong>Nenhuma cobrança encontrada.</strong><span>Gere a primeira fatura de implantação, mensalidade ou serviço adicional.</span></div>
+            </section>
+
             <section class="platform-panel" id="users">
                 <div class="platform-section-title business-heading"><div><p class="platform-kicker">ACESSOS</p><h2>Usuários dos negócios</h2></div><div class="business-controls"><select id="userBusinessFilter" aria-label="Filtrar usuários por negócio"></select><button type="button" class="cyan-button" id="newUserButton">+ Adicionar usuário</button></div></div>
                 <div class="business-table-wrap"><table class="business-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Negócio</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
@@ -132,8 +160,59 @@
                 <button type="button" class="cyan-button" id="detailOperateButton">Operar negócio</button>
                 <button type="button" class="outline-cyan-button" id="detailAddUserButton">Adicionar usuário</button>
                 <button type="button" class="outline-cyan-button" id="detailEditButton">Editar cadastro</button>
+                <button type="button" class="outline-cyan-button" id="detailBillingButton">Nova cobrança</button>
                 <button type="button" class="outline-cyan-button" id="detailStatusButton">Suspender</button>
             </div>
+        </div>
+    </div>
+
+    <div class="platform-modal hidden" id="invoiceModal" role="dialog" aria-modal="true" aria-labelledby="invoiceModalTitle">
+        <div class="platform-modal-card">
+            <button type="button" class="modal-close" data-close-modal aria-label="Fechar">×</button>
+            <p class="platform-kicker">NOVA FATURA</p><h2 id="invoiceModalTitle">Gerar cobrança</h2>
+            <p class="modal-description">Registre mensalidade, implantação ou serviço adicional. O pagamento poderá ser baixado depois.</p>
+            <form id="invoiceForm">
+                <div class="platform-form-grid">
+                    <label>Empresa<select id="invoiceBusiness" required></select></label>
+                    <label>Vencimento<input id="invoiceDueDate" type="date" required></label>
+                    <label>Tipo<select id="invoiceItemType" required><option value="subscription">Mensalidade</option><option value="implementation">Implantação</option><option value="additional_service">Serviço adicional</option><option value="adjustment">Ajuste</option></select></label>
+                    <label>Descrição<input id="invoiceDescription" required maxlength="300" placeholder="Ex.: Mensalidade Plano Pro"></label>
+                    <label>Quantidade<input id="invoiceQuantity" type="number" min="0.01" step="0.01" value="1" required></label>
+                    <label>Valor unitário<input id="invoiceUnitAmount" type="number" min="0" step="0.01" required></label>
+                    <label>Desconto<input id="invoiceDiscount" type="number" min="0" step="0.01" value="0"></label>
+                    <label>Crédito utilizado<input id="invoiceCredit" type="number" min="0" step="0.01" value="0"></label>
+                    <label class="full-field">Observações<textarea id="invoiceNotes" rows="3" maxlength="500"></textarea></label>
+                </div>
+                <div class="invoice-preview"><span>Total previsto</span><strong id="invoicePreviewTotal">R$ 0,00</strong></div>
+                <p class="form-message" id="invoiceFormMessage"></p><button type="submit" class="cyan-button full" id="saveInvoiceButton">Gerar fatura</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="platform-modal hidden" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+        <div class="platform-modal-card compact-card">
+            <button type="button" class="modal-close" data-close-modal aria-label="Fechar">×</button>
+            <p class="platform-kicker">BAIXA FINANCEIRA</p><h2 id="paymentModalTitle">Registrar pagamento</h2>
+            <p class="modal-description" id="paymentInvoiceMeta"></p>
+            <form id="paymentForm"><input type="hidden" id="paymentInvoiceId"><div class="platform-form-grid">
+                <label>Forma<select id="paymentMethod" required><option value="pix">Pix</option><option value="credit_card">Cartão de crédito</option><option value="boleto">Boleto</option><option value="bank_transfer">Transferência</option><option value="manual">Outro/manual</option></select></label>
+                <label>Valor recebido<input id="paymentAmount" type="number" min="0.01" step="0.01" required></label>
+                <label>Taxa do provedor<input id="paymentFee" type="number" min="0" step="0.01" value="0" required></label>
+                <label>Identificador externo<input id="paymentExternalId" maxlength="120" placeholder="Opcional"></label>
+            </div><p class="form-message" id="paymentFormMessage"></p><button type="submit" class="cyan-button full" id="savePaymentButton">Confirmar recebimento</button></form>
+        </div>
+    </div>
+
+    <div class="platform-modal hidden" id="refundModal" role="dialog" aria-modal="true" aria-labelledby="refundModalTitle">
+        <div class="platform-modal-card compact-card">
+            <button type="button" class="modal-close" data-close-modal aria-label="Fechar">×</button>
+            <p class="platform-kicker">DEVOLUÇÃO</p><h2 id="refundModalTitle">Registrar devolução ou crédito</h2>
+            <p class="modal-description" id="refundPaymentMeta"></p>
+            <form id="refundForm"><input type="hidden" id="refundPaymentId"><div class="platform-form-grid">
+                <label>Tratamento<select id="refundType" required><option value="refund">Reembolso</option><option value="credit">Crédito para próxima fatura</option><option value="chargeback">Chargeback</option></select></label>
+                <label>Valor<input id="refundAmount" type="number" min="0.01" step="0.01" required></label>
+                <label class="full-field">Motivo<textarea id="refundReason" rows="3" maxlength="500" required></textarea></label>
+            </div><p class="form-message" id="refundFormMessage"></p><button type="submit" class="cyan-button full" id="saveRefundButton">Confirmar devolução</button></form>
         </div>
     </div>
 
@@ -156,6 +235,6 @@
     <div class="admin-loading" id="adminLoading">Validando acesso seguro...</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
-    <script src="admin.js?v=20260822.1"></script>
+    <script src="admin.js?v=20260824.1"></script>
 </body>
 </html>

@@ -1613,6 +1613,24 @@ textarea:focus {
     border-radius: 8px;
 }
 
+.billing-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; margin:18px 0; }
+.billing-summary article { padding:15px; border:1px solid #20343a; border-radius:9px; background:#080d0f; }
+.billing-summary span,.billing-summary strong { display:block; }
+.billing-summary span { color:#718287; font-size:8px; text-transform:uppercase; letter-spacing:.7px; }
+.billing-summary strong { margin-top:8px; color:#eaf8fa; font-size:16px; }
+.billing-table { min-width:980px; }
+.billing-status { display:inline-block; padding:5px 8px; border-radius:12px; font-size:8px; white-space:nowrap; color:#9fdce5; background:rgba(57,212,232,.08); }
+.billing-status.paid { color:#80dbab; background:rgba(101,211,155,.09); }
+.billing-status.overdue { color:#f0a0a0; background:rgba(235,96,96,.1); }
+.billing-status.refunded,.billing-status.partially_refunded { color:#e8c77a; background:rgba(212,175,55,.1); }
+.billing-status.void { color:#8a999d; background:rgba(120,135,140,.1); }
+.invoice-preview { display:flex; justify-content:space-between; align-items:center; margin:15px 0; padding:14px 16px; border:1px solid #274149; border-radius:9px; background:rgba(8,185,211,.06); }
+.invoice-preview span { color:#829399; font-size:9px; text-transform:uppercase; letter-spacing:.8px; }
+.invoice-preview strong { color:#eafcff; font-size:19px; }
+.compact-card { width:min(580px,100%); }
+@media(max-width:900px){.billing-summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.billing-summary{grid-template-columns:1fr}}
+
 .platform-brand-link {
     display: block;
 }

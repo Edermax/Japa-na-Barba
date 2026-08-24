@@ -57,6 +57,9 @@ O usuário registrado em `platform_admins` possui uma central exclusiva em `admi
 - ativar, desativar e remover acessos;
 - entrar no contexto de qualquer negócio pelo botão **Operar**;
 - administrar clientes, agenda, serviços, equipe, financeiro e configurações usando o painel operacional existente.
+- controlar cobranças próprias da Ogritech, incluindo implantação, mensalidades, serviços adicionais, descontos, créditos, pagamentos e devoluções;
+
+O módulo de cobranças é exclusivo para a relação comercial **Ogritech → empresa contratante**. Ele não participa dos pagamentos realizados pelos consumidores das empresas clientes. A operação inicial é manual e auditável; os campos de provedor e identificadores externos preparam uma integração futura sem armazenar dados de cartão no projeto.
 
 Para ativar a central em um projeto Supabase, aplique as migrations e publique a Edge Function `platform-users`. A função usa `SUPABASE_SERVICE_ROLE_KEY` somente no ambiente seguro do Supabase; essa chave nunca deve ser colocada no frontend.
 

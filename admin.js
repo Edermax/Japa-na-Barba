@@ -5,8 +5,10 @@ const SEGMENTS = {
     "Professor de música": { icon: "♫", color: "#6ba8f7" }, "Personal training": { icon: "◆", color: "#65d39b" },
     "Outro": { icon: "●", color: "#8fa3aa" }
 };
-let businesses = [], plans = [], users = [], selectedBusinessId = null;
+let businesses = [], plans = [], users = [], invoices = [], billingCustomers = [], payments = [], refunds = [], selectedBusinessId = null;
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const moneyPrecise = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
+const shortDate = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 const $ = (id) => document.getElementById(id);
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 
@@ -23,17 +25,29 @@ async function validatePlatformAdmin() {
 }
 
 async function loadData() {
-    const [businessResult, planResult, profileResult] = await Promise.all([
+    const [businessResult, planResult, profileResult, customerResult, invoiceResult, paymentResult, refundResult] = await Promise.all([
         supabaseClient.from("saas_clients").select("id,barbershop_id,name,segment,contact_name,owner_email,phone,plan,monthly_fee,origin,notes,status,invite_status,user_count,client_count,appointment_count,business_revenue,created_at").is("deleted_at", null).order("created_at", { ascending: true }).limit(500),
         supabaseClient.from("saas_plans").select("id,name,monthly_fee,description,features,featured,display_order").eq("active", true).order("display_order"),
-        supabaseClient.from("profiles").select("id,barbershop_id,full_name,role,active").order("full_name").limit(1000)
+        supabaseClient.from("profiles").select("id,barbershop_id,full_name,role,active").order("full_name").limit(1000),
+        supabaseClient.from("billing_customers").select("id,saas_client_id,billing_email,payment_method,billing_day").limit(1000),
+        supabaseClient.from("platform_invoices").select("id,invoice_number,billing_customer_id,status,issue_date,due_date,subtotal,discount_total,credit_total,total,paid_total,refunded_total,notes,created_at").order("created_at", { ascending: false }).limit(1000),
+        supabaseClient.from("platform_payments").select("id,invoice_id,method,status,gross_amount,fee_amount,paid_at,created_at").order("created_at", { ascending: false }).limit(2000),
+        supabaseClient.from("platform_refunds").select("id,payment_id,refund_type,status,amount,reason,created_at").limit(2000)
     ]);
     if (businessResult.error) throw businessResult.error;
     if (planResult.error) throw planResult.error;
     if (profileResult.error) throw profileResult.error;
+    if (customerResult.error) throw customerResult.error;
+    if (invoiceResult.error) throw invoiceResult.error;
+    if (paymentResult.error) throw paymentResult.error;
+    if (refundResult.error) throw refundResult.error;
     businesses = businessResult.data || [];
     plans = planResult.data || [];
     users = (profileResult.data || []).filter((profile) => profile.id !== sessionStorage.getItem("japaUserId")).map((profile) => ({ ...profile, email: "" }));
+    billingCustomers = customerResult.data || [];
+    invoices = invoiceResult.data || [];
+    payments = paymentResult.data || [];
+    refunds = refundResult.data || [];
 }
 
 function renderSummary() {
@@ -74,6 +88,38 @@ function renderPlans() {
     }).join("");
 }
 
+const billingStatusLabels = { draft: "Rascunho", open: "Em aberto", overdue: "Atrasada", paid: "Paga", void: "Cancelada", refunded: "Devolvida", partially_refunded: "Devolução parcial" };
+function effectiveInvoiceStatus(invoice) {
+    return invoice.status === "open" && invoice.due_date < new Date().toISOString().slice(0, 10) ? "overdue" : invoice.status;
+}
+function invoiceBusiness(invoice) {
+    const customer = billingCustomers.find((item) => item.id === invoice.billing_customer_id);
+    return businesses.find((item) => item.id === customer?.saas_client_id);
+}
+function renderBilling() {
+    if (!$('billingTableBody')) return;
+    const selectedStatus = $('billingStatusFilter').value;
+    const filtered = invoices.filter((invoice) => selectedStatus === "all" || effectiveInvoiceStatus(invoice) === selectedStatus);
+    const approvedPayments = payments.filter((payment) => ["approved", "partially_refunded", "refunded"].includes(payment.status));
+    $('billingReceived').textContent = moneyPrecise.format(approvedPayments.reduce((sum, item) => sum + Number(item.gross_amount), 0));
+    $('billingOpen').textContent = moneyPrecise.format(invoices.filter((item) => effectiveInvoiceStatus(item) === "open").reduce((sum, item) => sum + Number(item.total) - Number(item.paid_total), 0));
+    $('billingOverdue').textContent = moneyPrecise.format(invoices.filter((item) => effectiveInvoiceStatus(item) === "overdue").reduce((sum, item) => sum + Number(item.total) - Number(item.paid_total), 0));
+    $('billingBenefits').textContent = moneyPrecise.format(invoices.reduce((sum, item) => sum + Number(item.discount_total) + Number(item.credit_total), 0));
+    $('billingRefunded').textContent = moneyPrecise.format(refunds.filter((item) => ["approved", "processed"].includes(item.status)).reduce((sum, item) => sum + Number(item.amount), 0));
+    $('billingTableBody').innerHTML = filtered.map((invoice) => {
+        const business = invoiceBusiness(invoice), status = effectiveInvoiceStatus(invoice);
+        const invoicePayments = payments.filter((item) => item.invoice_id === invoice.id);
+        const refundablePayment = invoicePayments.find((payment) => {
+            const returned = refunds.filter((item) => item.payment_id === payment.id && ["approved", "processed"].includes(item.status)).reduce((sum, item) => sum + Number(item.amount), 0);
+            return ["approved", "partially_refunded"].includes(payment.status) && returned < Number(payment.gross_amount);
+        });
+        const balance = Number(invoice.total) - Number(invoice.paid_total);
+        return `<tr><td><strong>${escapeHtml(invoice.invoice_number)}</strong></td><td>${escapeHtml(business?.name || "Cliente removido")}</td><td>${shortDate.format(new Date(`${invoice.issue_date}T00:00:00Z`))}</td><td>${shortDate.format(new Date(`${invoice.due_date}T00:00:00Z`))}</td><td>${moneyPrecise.format(invoice.total)}</td><td>${moneyPrecise.format(invoice.paid_total)}</td><td><span class="billing-status ${status}">${escapeHtml(billingStatusLabels[status] || status)}</span></td><td><div class="admin-row-actions">${balance > 0 && !["void", "refunded"].includes(status) ? `<button data-billing-action="pay" data-id="${invoice.id}">Baixar</button>` : ""}${refundablePayment ? `<button data-billing-action="refund" data-id="${refundablePayment.id}">Devolver</button>` : ""}</div></td></tr>`;
+    }).join("");
+    $('billingEmpty').classList.toggle("hidden", filtered.length > 0);
+    $('billingTableWrap').classList.toggle("hidden", filtered.length === 0);
+}
+
 const roleLabels = { owner: "Proprietário", admin: "Gestor", employee: "Funcionário", client: "Cliente final" };
 function renderUsers() {
     if (!$("usersTableBody") || !$("userBusinessFilter")) return;
@@ -83,7 +129,7 @@ function renderUsers() {
     $("usersEmpty").classList.toggle("hidden", filtered.length > 0);
 }
 
-function refreshViews() { renderSummary(); renderSegments(); renderBusinesses(); renderPlans(); renderUsers(); }
+function refreshViews() { renderSummary(); renderSegments(); renderBusinesses(); renderPlans(); renderUsers(); renderBilling(); }
 function populateSelectors() {
     $("businessSegment").innerHTML = Object.keys(SEGMENTS).map((segment) => `<option>${segment}</option>`).join("");
     $("segmentFilter").innerHTML = '<option value="all">Todos os segmentos</option>' + Object.keys(SEGMENTS).map((segment) => `<option>${segment}</option>`).join("");
@@ -91,6 +137,61 @@ function populateSelectors() {
     const businessOptions = businesses.filter((business) => business.barbershop_id).map((business) => `<option value="${business.barbershop_id}">${escapeHtml(business.name)}</option>`).join("");
     if ($("userBusiness")) $("userBusiness").innerHTML = businessOptions;
     if ($("userBusinessFilter")) $("userBusinessFilter").innerHTML = '<option value="all">Todos os negócios</option>' + businessOptions;
+    if ($("invoiceBusiness")) $("invoiceBusiness").innerHTML = businesses.filter((business) => business.status !== "Arquivado").map((business) => `<option value="${business.id}">${escapeHtml(business.name)}</option>`).join("");
+}
+
+function isoDateWithOffset(days) { const date = new Date(); date.setDate(date.getDate() + days); return date.toISOString().slice(0, 10); }
+function updateInvoicePreview() {
+    const subtotal = Number($('invoiceQuantity').value || 0) * Number($('invoiceUnitAmount').value || 0);
+    const total = Math.max(0, subtotal - Number($('invoiceDiscount').value || 0) - Number($('invoiceCredit').value || 0));
+    $('invoicePreviewTotal').textContent = moneyPrecise.format(total);
+}
+function syncInvoiceBusiness() {
+    const business = businesses.find((item) => item.id === $('invoiceBusiness').value);
+    if (!business) return;
+    if ($('invoiceItemType').value === 'subscription') {
+        $('invoiceDescription').value = `Mensalidade ${business.plan}`;
+        $('invoiceUnitAmount').value = Number(business.monthly_fee).toFixed(2);
+    }
+    updateInvoicePreview();
+}
+function openInvoiceForm(businessId = '') {
+    $('invoiceForm').reset(); $('invoiceFormMessage').textContent = ''; $('invoiceDueDate').value = isoDateWithOffset(7); $('invoiceQuantity').value = '1'; $('invoiceDiscount').value = '0'; $('invoiceCredit').value = '0';
+    if (businessId) $('invoiceBusiness').value = businessId;
+    syncInvoiceBusiness(); $('invoiceModal').classList.remove('hidden');
+}
+async function saveInvoice(event) {
+    event.preventDefault();
+    const quantity = Number($('invoiceQuantity').value), unitAmount = Number($('invoiceUnitAmount').value), discount = Number($('invoiceDiscount').value || 0), credit = Number($('invoiceCredit').value || 0);
+    if (discount + credit > quantity * unitAmount) { $('invoiceFormMessage').textContent = 'Desconto e crédito não podem superar o subtotal.'; $('invoiceFormMessage').className = 'form-message error'; return; }
+    $('saveInvoiceButton').disabled = true; $('invoiceFormMessage').textContent = 'Gerando fatura...';
+    const { error } = await supabaseClient.rpc('platform_create_invoice', { target_saas_client_id: $('invoiceBusiness').value, invoice_due_date: $('invoiceDueDate').value, invoice_items: [{ item_type: $('invoiceItemType').value, description: $('invoiceDescription').value.trim(), quantity, unit_amount: unitAmount }], invoice_discount: discount, invoice_credit: credit, invoice_notes: $('invoiceNotes').value.trim() });
+    $('saveInvoiceButton').disabled = false;
+    if (error) { $('invoiceFormMessage').textContent = error.message || 'Não foi possível gerar a fatura.'; $('invoiceFormMessage').className = 'form-message error'; return; }
+    await loadData(); refreshViews(); closeModals(); document.querySelector('#billing').scrollIntoView({ behavior: 'smooth' });
+}
+function openPaymentForm(invoice) {
+    const balance = Number(invoice.total) - Number(invoice.paid_total);
+    $('paymentForm').reset(); $('paymentFormMessage').textContent = ''; $('paymentInvoiceId').value = invoice.id; $('paymentAmount').value = balance.toFixed(2); $('paymentFee').value = '0';
+    $('paymentInvoiceMeta').textContent = `${invoice.invoice_number} • saldo ${moneyPrecise.format(balance)}`; $('paymentModal').classList.remove('hidden');
+}
+async function savePayment(event) {
+    event.preventDefault(); $('savePaymentButton').disabled = true; $('paymentFormMessage').textContent = 'Registrando recebimento...';
+    const { error } = await supabaseClient.rpc('platform_record_payment', { target_invoice_id: $('paymentInvoiceId').value, payment_method: $('paymentMethod').value, payment_amount: Number($('paymentAmount').value), payment_fee: Number($('paymentFee').value || 0), payment_provider: 'manual', external_id: $('paymentExternalId').value.trim() || null });
+    $('savePaymentButton').disabled = false;
+    if (error) { $('paymentFormMessage').textContent = error.message || 'Não foi possível registrar o pagamento.'; $('paymentFormMessage').className = 'form-message error'; return; }
+    await loadData(); refreshViews(); closeModals();
+}
+function openRefundForm(payment) {
+    const returned = refunds.filter((item) => item.payment_id === payment.id && ["approved", "processed"].includes(item.status)).reduce((sum, item) => sum + Number(item.amount), 0), available = Number(payment.gross_amount) - returned;
+    $('refundForm').reset(); $('refundFormMessage').textContent = ''; $('refundPaymentId').value = payment.id; $('refundAmount').value = available.toFixed(2); $('refundAmount').max = available.toFixed(2); $('refundPaymentMeta').textContent = `Disponível para devolução: ${moneyPrecise.format(available)}`; $('refundModal').classList.remove('hidden');
+}
+async function saveRefund(event) {
+    event.preventDefault(); $('saveRefundButton').disabled = true; $('refundFormMessage').textContent = 'Registrando devolução...';
+    const { error } = await supabaseClient.rpc('platform_register_refund', { target_payment_id: $('refundPaymentId').value, refund_amount: Number($('refundAmount').value), refund_kind: $('refundType').value, refund_reason: $('refundReason').value.trim() });
+    $('saveRefundButton').disabled = false;
+    if (error) { $('refundFormMessage').textContent = error.message || 'Não foi possível registrar a devolução.'; $('refundFormMessage').className = 'form-message error'; return; }
+    await loadData(); refreshViews(); closeModals();
 }
 
 function openBusinessForm(business = null) {
@@ -186,6 +287,14 @@ function bindEvents() {
     });
     $("detailOperateButton")?.addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); if (business) operateBusiness(business); });
     $("detailAddUserButton")?.addEventListener("click", () => { const business = businesses.find((item) => item.id === selectedBusinessId); closeModals(); openUserForm(business?.barbershop_id); });
+    $("detailBillingButton")?.addEventListener("click", () => { closeModals(); openInvoiceForm(selectedBusinessId); });
+    $("newInvoiceButton")?.addEventListener("click", () => openInvoiceForm());
+    $("billingStatusFilter")?.addEventListener("change", renderBilling);
+    $("invoiceBusiness")?.addEventListener("change", syncInvoiceBusiness);
+    $("invoiceItemType")?.addEventListener("change", () => { if ($('invoiceItemType').value === 'subscription') syncInvoiceBusiness(); else { $('invoiceDescription').value = ''; $('invoiceUnitAmount').value = ''; updateInvoicePreview(); } });
+    ["invoiceQuantity", "invoiceUnitAmount", "invoiceDiscount", "invoiceCredit"].forEach((id) => $(id)?.addEventListener("input", updateInvoicePreview));
+    $("invoiceForm")?.addEventListener("submit", saveInvoice); $("paymentForm")?.addEventListener("submit", savePayment); $("refundForm")?.addEventListener("submit", saveRefund);
+    $("billingTableBody")?.addEventListener("click", (event) => { const button = event.target.closest("[data-billing-action]"); if (!button) return; if (button.dataset.billingAction === "pay") { const invoice = invoices.find((item) => item.id === button.dataset.id); if (invoice) openPaymentForm(invoice); } else { const payment = payments.find((item) => item.id === button.dataset.id); if (payment) openRefundForm(payment); } });
     $("newUserButton")?.addEventListener("click", () => openUserForm()); $("userRole")?.addEventListener("change", updateEmployeeFields); $("userForm")?.addEventListener("submit", saveUser); $("userBusinessFilter")?.addEventListener("change", renderUsers);
     $("usersTableBody")?.addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "set_active", user_id: user.id, active: !user.active } }); if (result.error || result.data?.error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Arquivar o acesso de ${user.full_name}? O histórico será preservado.`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível arquivar o usuário."); } await loadData(); refreshViews(); });
     $("platformLogout").addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
