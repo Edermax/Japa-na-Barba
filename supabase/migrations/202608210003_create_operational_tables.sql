@@ -37,6 +37,19 @@ create unique index if not exists business_appointments_active_slot_key
 on public.business_appointments (barbershop_id, appointment_date, appointment_time, professional)
 where status <> 'cancelled';
 
+do $$ begin
+    if not exists (
+        select 1 from pg_constraint
+        where conname = 'financial_entries_appointment_fk'
+          and conrelid = 'public.financial_entries'::regclass
+    ) then
+        alter table public.financial_entries
+            add constraint financial_entries_appointment_fk
+            foreign key (appointment_id) references public.business_appointments(id)
+            on delete set null not valid;
+    end if;
+end $$;
+
 alter table public.business_clients enable row level security;
 alter table public.business_appointments enable row level security;
 grant select, insert, update, delete on public.business_clients, public.business_appointments to authenticated;

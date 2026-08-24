@@ -1,6 +1,8 @@
 create table if not exists public.financial_entries (
     id uuid primary key default gen_random_uuid(), barbershop_id uuid not null,
-    appointment_id uuid references public.business_appointments(id) on delete set null,
+    -- A FK é adicionada na migration operacional seguinte, depois que a tabela
+    -- business_appointments passa a existir em instalações novas.
+    appointment_id uuid,
     entry_type text not null check (entry_type in ('income','expense')),
     category text not null, description text not null, amount numeric(12,2) not null check (amount > 0),
     payment_method text not null default 'other', occurred_on date not null default current_date,
