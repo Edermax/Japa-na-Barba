@@ -6,11 +6,17 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
     <!-- Torna a interface responsiva -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080808">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <!-- Nome da aba -->
     <title>Ogritech | Gestão do negócio</title>
     <link rel="icon" href="ogritech-favicon.ico" sizes="any">
     <link rel="icon" type="image/png" href="ogritech-brand-symbol.png">
+    <link rel="apple-touch-icon" href="ogritech-brand-symbol.png">
+    <link rel="manifest" href="manifest.webmanifest">
     <!-- IMPORTANTE: este é o arquivo CSS separado -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -448,5 +454,6 @@
 
     <!-- JavaScript principal do dashboard -->
     <script src="script.js"></script>
+    <script src="pwa.js"></script>
 </body>
 </html>

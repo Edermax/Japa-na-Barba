@@ -309,16 +309,16 @@ function renderClientAppointments() {
 // =========================================================
 // 8. MODAL
 // =========================================================
-openClientAppointment.addEventListener(
-    "click",
-    () => {
+function openClientAppointmentModal() {
         clientAppointmentForm.reset();
         clientDate.min = todayISO();
 
         clientAppointmentModal
             .classList.remove("hidden");
-    }
-);
+}
+
+openClientAppointment.addEventListener("click", openClientAppointmentModal);
+document.getElementById("mobileOpenClientAppointment")?.addEventListener("click", openClientAppointmentModal);
 
 closeClientAppointment.addEventListener(
     "click",

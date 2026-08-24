@@ -1,0 +1,15 @@
+{
+  "name": "Ogritech — Gestão e Agendamento",
+  "short_name": "Ogritech",
+  "description": "Gestão, agenda, clientes e financeiro para negócios de serviços.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "icons": [
+    { "src": "ogritech-brand-symbol.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
