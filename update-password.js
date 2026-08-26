@@ -31,6 +31,7 @@ const hasRecoveryCallback =
     recoveryUrl.searchParams.has("code") ||
     recoveryHash.get("type") === "recovery";
 let recoveryInitialized = false;
+let recoveryAccessToken = null;
 
 function showRecoveryForm(session) {
     if (!session || recoveryInitialized) return;
@@ -51,19 +52,13 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 
 async function initializeRecovery() {
     const accessToken = recoveryHash.get("access_token");
-    const refreshToken = recoveryHash.get("refresh_token");
 
-    if (accessToken && refreshToken) {
-        const { data, error } = await supabaseClient.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken
-        });
+    if (accessToken) {
+        const { data, error } = await supabaseClient.auth.getUser(accessToken);
 
-        if (!error && data.session) {
-            showRecoveryForm(data.session);
-            const cleanUrl = new URL(window.location.href);
-            cleanUrl.hash = "";
-            window.history.replaceState({}, document.title, cleanUrl);
+        if (!error && data.user) {
+            recoveryAccessToken = accessToken;
+            showRecoveryForm({ user: data.user });
             return;
         }
     }
@@ -113,11 +108,28 @@ updatePasswordForm.addEventListener("submit", async (event) => {
     updatePasswordMessage.textContent = "Salvando nova senha...";
     updatePasswordMessage.className = "login-message";
 
-    const { error } = await supabaseClient.auth.updateUser({
-        password: newPassword
-    });
+    let updateError = null;
 
-    if (error) {
+    if (recoveryAccessToken) {
+        const response = await fetch(`${window.OGRITECH_SUPABASE_URL}/auth/v1/user`, {
+            method: "PUT",
+            headers: {
+                apikey: window.OGRITECH_SUPABASE_PUBLISHABLE_KEY,
+                Authorization: `Bearer ${recoveryAccessToken}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ password: newPassword })
+        });
+
+        if (!response.ok) updateError = new Error("Falha ao atualizar a senha.");
+    } else {
+        const { error } = await supabaseClient.auth.updateUser({
+            password: newPassword
+        });
+        updateError = error;
+    }
+
+    if (updateError) {
         updatePasswordMessage.textContent =
             "Não foi possível atualizar a senha. Solicite um novo link.";
         updatePasswordMessage.className = "login-message error";
@@ -125,7 +137,21 @@ updatePasswordForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    await supabaseClient.auth.signOut();
+    if (recoveryAccessToken) {
+        await fetch(`${window.OGRITECH_SUPABASE_URL}/auth/v1/logout?scope=global`, {
+            method: "POST",
+            headers: {
+                apikey: window.OGRITECH_SUPABASE_PUBLISHABLE_KEY,
+                Authorization: `Bearer ${recoveryAccessToken}`
+            }
+        });
+        recoveryAccessToken = null;
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.hash = "";
+        window.history.replaceState({}, document.title, cleanUrl);
+    } else {
+        await supabaseClient.auth.signOut();
+    }
     sessionStorage.clear();
     updatePasswordMessage.textContent =
         "Senha atualizada. Redirecionando para o login...";
