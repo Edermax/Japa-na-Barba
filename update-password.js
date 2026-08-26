@@ -6,6 +6,24 @@ const confirmPasswordInput = document.getElementById("confirmPassword");
 const updatePasswordMessage = document.getElementById("updatePasswordMessage");
 const invalidRecoveryMessage = document.getElementById("invalidRecoveryMessage");
 const updateButton = updatePasswordForm.querySelector('button[type="submit"]');
+const backToLoginLink = document.getElementById("backToLoginLink");
+const passwordToggleButtons = updatePasswordForm.querySelectorAll("[data-password-target]");
+const loginUrl = window.ogritechEnvironmentUrl("login.html");
+
+backToLoginLink.href = loginUrl;
+
+passwordToggleButtons.forEach((toggleButton) => {
+    toggleButton.addEventListener("click", () => {
+        const passwordInput = document.getElementById(toggleButton.dataset.passwordTarget);
+        const isVisible = passwordInput.type === "text";
+        passwordInput.type = isVisible ? "password" : "text";
+        toggleButton.setAttribute("aria-pressed", String(!isVisible));
+        toggleButton.setAttribute("aria-label", isVisible ? "Mostrar senha" : "Ocultar senha");
+        toggleButton.title = isVisible ? "Mostrar senha" : "Ocultar senha";
+        toggleButton.classList.toggle("is-visible", !isVisible);
+        passwordInput.focus();
+    });
+});
 
 const recoveryUrl = new URL(window.location.href);
 const recoveryHash = new URLSearchParams(recoveryUrl.hash.replace(/^#/, ""));
@@ -87,10 +105,11 @@ updatePasswordForm.addEventListener("submit", async (event) => {
     await supabaseClient.auth.signOut();
     sessionStorage.clear();
     updatePasswordMessage.textContent =
-        "Senha atualizada. Você já pode voltar ao login.";
+        "Senha atualizada. Redirecionando para o login...";
     updatePasswordMessage.className = "login-message success";
     updatePasswordForm.reset();
     updateButton.disabled = true;
+    window.setTimeout(() => window.location.replace(loginUrl), 2000);
 });
 
 initializeRecovery();
