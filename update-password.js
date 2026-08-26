@@ -7,19 +7,46 @@ const updatePasswordMessage = document.getElementById("updatePasswordMessage");
 const invalidRecoveryMessage = document.getElementById("invalidRecoveryMessage");
 const updateButton = updatePasswordForm.querySelector('button[type="submit"]');
 
-async function initializeRecovery() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+const recoveryUrl = new URL(window.location.href);
+const recoveryHash = new URLSearchParams(recoveryUrl.hash.replace(/^#/, ""));
+const hasRecoveryCallback =
+    recoveryUrl.searchParams.has("code") ||
+    recoveryHash.get("type") === "recovery";
+let recoveryInitialized = false;
 
-    if (!session) {
-        invalidRecoveryMessage.textContent =
-            "Este link é inválido ou expirou. Solicite um novo link na tela de login.";
-        invalidRecoveryMessage.className = "login-message error";
-        return;
-    }
-
+function showRecoveryForm(session) {
+    if (!session || recoveryInitialized) return;
+    recoveryInitialized = true;
     invalidRecoveryMessage.classList.add("hidden");
     updatePasswordForm.classList.remove("hidden");
     updatePasswordMessage.textContent = "Use pelo menos 8 caracteres.";
+}
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (
+        event === "PASSWORD_RECOVERY" ||
+        (event === "SIGNED_IN" && hasRecoveryCallback)
+    ) {
+        showRecoveryForm(session);
+    }
+});
+
+async function initializeRecovery() {
+    const authCode = recoveryUrl.searchParams.get("code");
+    if (authCode) {
+        const { data, error } = await supabaseClient.auth.exchangeCodeForSession(authCode);
+        if (!error) showRecoveryForm(data.session);
+    }
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session && hasRecoveryCallback) showRecoveryForm(session);
+
+    window.setTimeout(() => {
+        if (recoveryInitialized) return;
+        invalidRecoveryMessage.textContent =
+            "Este link é inválido ou expirou. Solicite um novo link na tela de login.";
+        invalidRecoveryMessage.className = "login-message error";
+    }, 3000);
 }
 
 updatePasswordForm.addEventListener("submit", async (event) => {
