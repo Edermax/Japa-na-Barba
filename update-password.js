@@ -50,10 +50,33 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 });
 
 async function initializeRecovery() {
+    const accessToken = recoveryHash.get("access_token");
+    const refreshToken = recoveryHash.get("refresh_token");
+
+    if (accessToken && refreshToken) {
+        const { data, error } = await supabaseClient.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+        });
+
+        if (!error && data.session) {
+            showRecoveryForm(data.session);
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.hash = "";
+            window.history.replaceState({}, document.title, cleanUrl);
+            return;
+        }
+    }
+
     const authCode = recoveryUrl.searchParams.get("code");
     if (authCode) {
         const { data, error } = await supabaseClient.auth.exchangeCodeForSession(authCode);
-        if (!error) showRecoveryForm(data.session);
+        if (!error && data.session) {
+            showRecoveryForm(data.session);
+            recoveryUrl.searchParams.delete("code");
+            window.history.replaceState({}, document.title, recoveryUrl);
+            return;
+        }
     }
 
     const { data: { session } } = await supabaseClient.auth.getSession();
