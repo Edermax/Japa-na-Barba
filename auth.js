@@ -13,6 +13,7 @@ const SESSION_KEYS = [
 ];
 
 document.documentElement.style.visibility = "hidden";
+const environmentUrl = (path) => window.ogritechEnvironmentUrl?.(path) || path;
 
 function clearLocalSession() {
     SESSION_KEYS.forEach((key) => sessionStorage.removeItem(key));
@@ -76,13 +77,13 @@ async function initializeAuthenticatedPage() {
         };
 
         if (role === "client") {
-            window.location.replace("cliente.html");
+            window.location.replace(environmentUrl("cliente.html"));
             return;
         }
 
         if (!profile.barbershop_id || !["owner", "employee"].includes(role)) {
             clearLocalSession();
-            window.location.replace("login.html");
+            window.location.replace(environmentUrl("login.html"));
             return;
         }
 
@@ -91,7 +92,7 @@ async function initializeAuthenticatedPage() {
         document.documentElement.style.visibility = "visible";
         document.getElementById("logoutButton")?.addEventListener("click", () => {
             clearLocalSession();
-            window.location.replace("login.html");
+            window.location.replace(environmentUrl("login.html"));
         });
         return;
     }
@@ -102,7 +103,7 @@ async function initializeAuthenticatedPage() {
 
     if (!session) {
         clearLocalSession();
-        window.location.replace("login.html");
+        window.location.replace(environmentUrl("login.html"));
         return;
     }
 
@@ -112,10 +113,15 @@ async function initializeAuthenticatedPage() {
             await waitForDocument();
             renderUser({ role: "owner", full_name: "Master Ogritech", barbershop_id: sessionStorage.getItem("ogritechMasterBusinessId") });
             document.documentElement.style.visibility = "visible";
-            document.getElementById("logoutButton")?.addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
+            document.getElementById("logoutButton")?.addEventListener("click", async () => {
+                const loginUrl = environmentUrl("login.html");
+                await supabaseClient.auth.signOut();
+                sessionStorage.clear();
+                window.location.replace(loginUrl);
+            });
             return;
         }
-        window.location.replace("admin.html"); return;
+        window.location.replace(environmentUrl("admin.html")); return;
     }
 
     const { data: profile, error } = await supabaseClient
@@ -127,21 +133,21 @@ async function initializeAuthenticatedPage() {
     if (error || !profile?.active) {
         await supabaseClient.auth.signOut();
         clearLocalSession();
-        window.location.replace("login.html");
+        window.location.replace(environmentUrl("login.html"));
         return;
     }
 
     if (!profile.barbershop_id || !["owner", "admin", "employee", "client"].includes(profile.role)) {
         await supabaseClient.auth.signOut();
         clearLocalSession();
-        window.location.replace("login.html");
+        window.location.replace(environmentUrl("login.html"));
         return;
     }
 
     saveVerifiedSession(session.user, profile);
 
     if (profile.role === "client") {
-        window.location.replace("cliente.html");
+        window.location.replace(environmentUrl("cliente.html"));
         return;
     }
 
@@ -159,7 +165,7 @@ async function initializeAuthenticatedPage() {
         logoutButton.addEventListener("click", async () => {
             await supabaseClient.auth.signOut();
             clearLocalSession();
-            window.location.replace("login.html");
+            window.location.replace(environmentUrl("login.html"));
         });
     }
 }
@@ -167,5 +173,5 @@ async function initializeAuthenticatedPage() {
 initializeAuthenticatedPage().catch(() => {
     clearLocalSession();
     document.documentElement.style.visibility = "visible";
-    window.location.replace("login.html");
+    window.location.replace(environmentUrl("login.html"));
 });

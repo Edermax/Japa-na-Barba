@@ -10,25 +10,26 @@ const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL
 const moneyPrecise = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 const shortDate = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 const $ = (id) => document.getElementById(id);
+const environmentUrl = (path) => window.ogritechEnvironmentUrl?.(path) || path;
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 
 async function validatePlatformAdmin() {
     sessionStorage.removeItem("ogritechMasterMode"); sessionStorage.removeItem("ogritechMasterBusinessId"); sessionStorage.removeItem("ogritechMasterBusinessName");
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) { window.location.replace("login.html"); return false; }
+    if (!session) { window.location.replace(environmentUrl("login.html")); return false; }
     const { data: isAdmin, error } = await supabaseClient.rpc("is_platform_admin");
-    if (error || !isAdmin) { window.location.replace("index.html"); return false; }
+    if (error || !isAdmin) { window.location.replace(environmentUrl("index.html")); return false; }
     const { data: profile } = await supabaseClient.from("profiles").select("full_name, active").eq("id", session.user.id).single();
-    if (!profile?.active) { await supabaseClient.auth.signOut(); window.location.replace("login.html"); return false; }
+    if (!profile?.active) { await supabaseClient.auth.signOut(); window.location.replace(environmentUrl("login.html")); return false; }
     $("platformOwnerName").textContent = profile.full_name;
     return true;
 }
 
 async function loadData() {
-    const [businessResult, planResult, profileResult, customerResult, invoiceResult, paymentResult, refundResult] = await Promise.all([
+    const [businessResult, planResult, userResult, customerResult, invoiceResult, paymentResult, refundResult] = await Promise.all([
         supabaseClient.from("saas_clients").select("id,barbershop_id,name,segment,contact_name,owner_email,phone,plan,monthly_fee,origin,notes,status,invite_status,user_count,client_count,appointment_count,business_revenue,created_at").is("deleted_at", null).order("created_at", { ascending: true }).limit(500),
         supabaseClient.from("saas_plans").select("id,name,monthly_fee,description,features,featured,display_order").eq("active", true).order("display_order"),
-        supabaseClient.from("profiles").select("id,barbershop_id,full_name,role,active").order("full_name").limit(1000),
+        supabaseClient.functions.invoke("platform-users", { body: { action: "list" } }),
         supabaseClient.from("billing_customers").select("id,saas_client_id,billing_email,payment_method,billing_day").limit(1000),
         supabaseClient.from("platform_invoices").select("id,invoice_number,billing_customer_id,status,issue_date,due_date,subtotal,discount_total,credit_total,total,paid_total,refunded_total,notes,created_at").order("created_at", { ascending: false }).limit(1000),
         supabaseClient.from("platform_payments").select("id,invoice_id,method,status,gross_amount,fee_amount,paid_at,created_at").order("created_at", { ascending: false }).limit(2000),
@@ -36,14 +37,14 @@ async function loadData() {
     ]);
     if (businessResult.error) throw businessResult.error;
     if (planResult.error) throw planResult.error;
-    if (profileResult.error) throw profileResult.error;
+    if (userResult.error || userResult.data?.error) throw userResult.error || new Error(userResult.data.error);
     if (customerResult.error) throw customerResult.error;
     if (invoiceResult.error) throw invoiceResult.error;
     if (paymentResult.error) throw paymentResult.error;
     if (refundResult.error) throw refundResult.error;
     businesses = businessResult.data || [];
     plans = planResult.data || [];
-    users = (profileResult.data || []).filter((profile) => profile.id !== sessionStorage.getItem("japaUserId")).map((profile) => ({ ...profile, email: "" }));
+    users = (userResult.data?.users || []).filter((profile) => profile.id !== sessionStorage.getItem("japaUserId"));
     billingCustomers = customerResult.data || [];
     invoices = invoiceResult.data || [];
     payments = paymentResult.data || [];
@@ -261,13 +262,13 @@ function operateBusiness(business) {
     sessionStorage.setItem("japaBarbershopId", business.barbershop_id);
     sessionStorage.setItem("japaRole", "owner");
     sessionStorage.setItem("japaUserRole", "Master Ogritech");
-    window.location.assign("index.html");
+    window.location.assign(environmentUrl("index.html"));
 }
 
 function updateEmployeeFields() { document.querySelectorAll(".employee-field").forEach((field) => field.classList.toggle("hidden", $("userRole").value !== "employee")); }
 function openUserForm(businessId = "", user = null) { if (!$("userForm")) return alert("Atualize a página para carregar o módulo de usuários."); $("userForm").reset(); $("userFormMessage").textContent = ""; $("userId").value = user?.id || ""; $("userModalTitle").textContent = user ? "Editar usuário" : "Adicionar usuário"; $("saveUserButton").textContent = user ? "Salvar alterações" : "Enviar convite"; if (businessId) $("userBusiness").value = businessId; if (user) { $("userBusiness").value = user.barbershop_id; $("userRole").value = user.role; $("userName").value = user.full_name; $("userEmail").value = user.email; } updateEmployeeFields(); $("userModal").classList.remove("hidden"); }
 async function saveUser(event) {
-    event.preventDefault(); $("saveUserButton").disabled = true; $("userFormMessage").textContent = "Enviando convite...";
+    event.preventDefault(); $("saveUserButton").disabled = true; $("userFormMessage").textContent = $("userId").value ? "Salvando alterações..." : "Enviando convite...";
     const { data, error } = await supabaseClient.functions.invoke("platform-users", { body: { action: $("userId").value ? "update" : "invite", user_id: $("userId").value || undefined, barbershop_id: $("userBusiness").value, role: $("userRole").value, full_name: $("userName").value.trim(), email: $("userEmail").value.trim().toLowerCase(), specialty: $("userSpecialty").value.trim(), commission: Number($("userCommission").value || 0) } });
     $("saveUserButton").disabled = false;
     if (error || data?.error) { $("userFormMessage").textContent = data?.error || "Não foi possível enviar o convite."; $("userFormMessage").className = "form-message error"; return; }
@@ -297,7 +298,7 @@ function bindEvents() {
     $("billingTableBody")?.addEventListener("click", (event) => { const button = event.target.closest("[data-billing-action]"); if (!button) return; if (button.dataset.billingAction === "pay") { const invoice = invoices.find((item) => item.id === button.dataset.id); if (invoice) openPaymentForm(invoice); } else { const payment = payments.find((item) => item.id === button.dataset.id); if (payment) openRefundForm(payment); } });
     $("newUserButton")?.addEventListener("click", () => openUserForm()); $("userRole")?.addEventListener("change", updateEmployeeFields); $("userForm")?.addEventListener("submit", saveUser); $("userBusinessFilter")?.addEventListener("change", renderUsers);
     $("usersTableBody")?.addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "set_active", user_id: user.id, active: !user.active } }); if (result.error || result.data?.error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Arquivar o acesso de ${user.full_name}? O histórico será preservado.`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível arquivar o usuário."); } await loadData(); refreshViews(); });
-    $("platformLogout").addEventListener("click", async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace("login.html"); });
+    $("platformLogout").addEventListener("click", async () => { const loginUrl = environmentUrl("login.html"); await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace(loginUrl); });
 }
 
 async function initializeDashboard() {
