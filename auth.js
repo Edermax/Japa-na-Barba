@@ -26,6 +26,22 @@ function waitForDocument() {
     });
 }
 
+async function showAuthenticationError(message) {
+    await waitForDocument();
+    document.documentElement.style.visibility = "visible";
+    const existingMessage = document.getElementById("authenticationError");
+    if (existingMessage) {
+        existingMessage.textContent = message;
+        return;
+    }
+    const errorMessage = document.createElement("div");
+    errorMessage.id = "authenticationError";
+    errorMessage.setAttribute("role", "alert");
+    errorMessage.textContent = message;
+    errorMessage.style.cssText = "position:fixed;inset:16px 16px auto;z-index:2147483646;padding:14px 18px;border:1px solid #ef4444;border-radius:10px;background:#1f1111;color:#fecaca;font:600 14px/1.4 system-ui,sans-serif;text-align:center";
+    document.body.appendChild(errorMessage);
+}
+
 function saveVerifiedSession(user, profile) {
     sessionStorage.setItem("japaAuth", "true");
     sessionStorage.setItem("japaRole", profile.role);
@@ -97,9 +113,12 @@ async function initializeAuthenticatedPage() {
         return;
     }
 
-    const previousUserId = sessionStorage.getItem("japaUserId");
-    const previousRole = sessionStorage.getItem("japaRole");
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+    if (sessionError) {
+        await showAuthenticationError("Não foi possível validar sua sessão. Atualize a página para tentar novamente.");
+        return;
+    }
 
     if (!session) {
         clearLocalSession();
@@ -107,7 +126,12 @@ async function initializeAuthenticatedPage() {
         return;
     }
 
-    const { data: isPlatformAdmin } = await supabaseClient.rpc("is_platform_admin");
+    const { data: isPlatformAdmin, error: platformAdminError } = await supabaseClient.rpc("is_platform_admin");
+    if (platformAdminError) {
+        console.error("Falha ao validar acesso administrativo:", platformAdminError);
+        await showAuthenticationError("Não foi possível validar seu acesso administrativo. Atualize a página para tentar novamente.");
+        return;
+    }
     if (isPlatformAdmin && !location.pathname.endsWith("admin.html")) {
         if (sessionStorage.getItem("ogritechMasterMode") === "true" && sessionStorage.getItem("ogritechMasterBusinessId")) {
             await waitForDocument();
@@ -151,7 +175,11 @@ async function initializeAuthenticatedPage() {
         return;
     }
 
-    if (previousUserId !== session.user.id || previousRole !== profile.role) {
+    // script.js lê o estabelecimento ao iniciar. Recarregue no máximo uma vez
+    // quando a sessão operacional mudar, evitando ciclos de atualização.
+    const operationalSessionKey = `${session.user.id}:${profile.role}:${profile.barbershop_id}`;
+    if (sessionStorage.getItem("ogritechOperationalSession") !== operationalSessionKey) {
+        sessionStorage.setItem("ogritechOperationalSession", operationalSessionKey);
         window.location.reload();
         return;
     }
@@ -170,8 +198,7 @@ async function initializeAuthenticatedPage() {
     }
 }
 
-initializeAuthenticatedPage().catch(() => {
-    clearLocalSession();
-    document.documentElement.style.visibility = "visible";
-    window.location.replace(environmentUrl("login.html"));
+initializeAuthenticatedPage().catch((error) => {
+    console.error("Falha ao inicializar sessão:", error);
+    showAuthenticationError("Não foi possível carregar sua sessão. Atualize a página para tentar novamente.");
 });

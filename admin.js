@@ -15,10 +15,25 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => (
 
 async function validatePlatformAdmin() {
     sessionStorage.removeItem("ogritechMasterMode"); sessionStorage.removeItem("ogritechMasterBusinessId"); sessionStorage.removeItem("ogritechMasterBusinessName");
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError) {
+        console.error("Falha ao validar sessão administrativa:", sessionError);
+        $("adminLoading").textContent = "Não foi possível validar sua sessão. Atualize a página para tentar novamente.";
+        return false;
+    }
     if (!session) { window.location.replace(environmentUrl("login.html")); return false; }
     const { data: isAdmin, error } = await supabaseClient.rpc("is_platform_admin");
-    if (error || !isAdmin) { window.location.replace(environmentUrl("index.html")); return false; }
+    if (error) {
+        console.error("Falha ao validar privilégio administrativo:", error);
+        $("adminLoading").textContent = "Não foi possível validar seu acesso administrativo. Atualize a página para tentar novamente.";
+        return false;
+    }
+    if (!isAdmin) {
+        await supabaseClient.auth.signOut();
+        sessionStorage.clear();
+        window.location.replace(environmentUrl("login.html"));
+        return false;
+    }
     const { data: profile } = await supabaseClient.from("profiles").select("full_name, active").eq("id", session.user.id).single();
     if (!profile?.active) { await supabaseClient.auth.signOut(); window.location.replace(environmentUrl("login.html")); return false; }
     $("platformOwnerName").textContent = profile.full_name;
