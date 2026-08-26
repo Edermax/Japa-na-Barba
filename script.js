@@ -264,7 +264,14 @@ function appointmentFromDatabase(row) {
 
 function reportDataError(action, error) {
     console.error(`Erro ao ${action}:`, error);
-    alert(`Não foi possível ${action}. Verifique a conexão e tente novamente.`);
+    if (document.getElementById("operationalDataError")) return;
+
+    const message = document.createElement("div");
+    message.id = "operationalDataError";
+    message.setAttribute("role", "alert");
+    message.textContent = `Não foi possível ${action}. Verifique a conexão e tente novamente.`;
+    message.style.cssText = "position:fixed;left:50%;bottom:20px;z-index:10000;max-width:min(520px,calc(100vw - 32px));transform:translateX(-50%);padding:12px 16px;border:1px solid #ef4444;border-radius:10px;background:#1f1111;color:#fecaca;font:600 14px/1.4 system-ui,sans-serif;box-shadow:0 10px 30px #0008";
+    document.body.appendChild(message);
 }
 
 // Verifica conflito de horário para o mesmo profissional.
