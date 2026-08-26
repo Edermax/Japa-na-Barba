@@ -1,4 +1,4 @@
-const CACHE_NAME = "ogritech-shell-v2";
+const CACHE_NAME = "ogritech-shell-v3";
 const APP_SHELL = [
   "./", "./index.html", "./login.html", "./cliente.html", "./style.css",
   "./auth.js", "./script.js", "./cliente.js", "./login.js", "./business-config.js",
@@ -26,10 +26,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-      if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
-      return response;
-    }))
-  );
+  const destination = event.request.destination;
+  const needsFreshCode = ["script", "style", "document"].includes(destination);
+
+  if (needsFreshCode) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
 });

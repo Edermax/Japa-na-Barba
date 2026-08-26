@@ -125,10 +125,7 @@ forgotPasswordButton.addEventListener("click", async () => {
     loginMessage.textContent = "Enviando link de recuperação...";
     loginMessage.className = "login-message";
 
-    const redirectTo = new URL(
-        "update-password.html",
-        window.location.href
-    ).href;
+    const redirectTo = window.ogritechEnvironmentUrl("update-password.html");
 
     const { error } = await supabaseClient.auth.resetPasswordForEmail(
         email,
