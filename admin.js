@@ -13,6 +13,18 @@ const $ = (id) => document.getElementById(id);
 const environmentUrl = (path) => window.ogritechEnvironmentUrl?.(path) || path;
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 
+async function checkPlatformAdminWithRetry() {
+    const delays = [0, 300, 900];
+    let lastError = null;
+    for (const delay of delays) {
+        if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+        const result = await supabaseClient.rpc("is_platform_admin");
+        if (!result.error) return result;
+        lastError = result.error;
+    }
+    return { data: false, error: lastError };
+}
+
 async function validatePlatformAdmin() {
     sessionStorage.removeItem("ogritechMasterMode"); sessionStorage.removeItem("ogritechMasterBusinessId"); sessionStorage.removeItem("ogritechMasterBusinessName");
     const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
@@ -22,7 +34,7 @@ async function validatePlatformAdmin() {
         return false;
     }
     if (!session) { window.location.replace(environmentUrl("login.html")); return false; }
-    const { data: isAdmin, error } = await supabaseClient.rpc("is_platform_admin");
+    const { data: isAdmin, error } = await checkPlatformAdminWithRetry();
     if (error) {
         console.error("Falha ao validar privilégio administrativo:", error);
         $("adminLoading").textContent = "Não foi possível validar seu acesso administrativo. Atualize a página para tentar novamente.";
@@ -53,6 +65,10 @@ async function loadData() {
     if (businessResult.error) throw businessResult.error;
     if (planResult.error) throw planResult.error;
     if (userResult.error || userResult.data?.error) throw userResult.error || new Error(userResult.data.error);
+    const authUsersWithoutProfile = userResult.data?.auth_users_without_profile || [];
+    if (authUsersWithoutProfile.length) {
+        throw new Error(`${authUsersWithoutProfile.length} usuário(s) do Auth estão sem perfil. Não use convites diretos pelo painel Supabase; corrija o provisionamento antes de continuar.`);
+    }
     if (customerResult.error) throw customerResult.error;
     if (invoiceResult.error) throw invoiceResult.error;
     if (paymentResult.error) throw paymentResult.error;
