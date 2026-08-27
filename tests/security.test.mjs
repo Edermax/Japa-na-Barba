@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import vm from "node:vm";
 
 const root = new URL("../", import.meta.url);
 test("não versiona credenciais privilegiadas nem administrador fixo", async () => {
@@ -12,14 +13,96 @@ test("não versiona credenciais privilegiadas nem administrador fixo", async () 
 
 test("função administrativa restringe origem, método, tamanho e autenticação", async () => {
   const source = await readFile(new URL("supabase/functions/platform-users/index.ts", root), "utf8");
-  for (const marker of ["allowedOrigins", "request.method !== \"POST\"", "content-length", "caller.auth.getUser", "platform_check_rate_limit"]) assert.ok(source.includes(marker), marker);
+  for (const marker of ["allowedOrigins", "request.method !== \"POST\"", "content-length", "request.arrayBuffer", "payload.byteLength", "caller.auth.getUser", "platform_check_rate_limit", "auth_users_without_profile"]) assert.ok(source.includes(marker), marker);
+});
+
+test("console administrativo interrompe operação quando Auth e perfis divergem", async () => {
+  const source = await readFile(new URL("admin.js", root), "utf8");
+  assert.match(source, /auth_users_without_profile/);
+  assert.match(source, /Não use convites diretos pelo painel Supabase/);
+  assert.match(source, /checkPlatformAdminWithRetry/);
+  assert.match(source, /const delays = \[0, 300, 900\]/);
+});
+
+test("frontend seleciona local, staging e produção explicitamente", async () => {
+  const [config, headers, admin] = await Promise.all([
+    readFile(new URL("supabase-config.js", root), "utf8"),
+    readFile(new URL("_headers", root), "utf8"),
+    readFile(new URL("admin.js", root), "utf8")
+  ]);
+  assert.match(config, /REQUESTED_OGRITECH_ENV/);
+  assert.match(config, /http:\/\/127\.0\.0\.1:54321/);
+  assert.match(config, /https:\/\/fuesdztsvrkkgnbqhcxi\.supabase\.co/);
+  assert.match(config, /https:\/\/mvzcoaiiwytycdqcvydf\.supabase\.co/);
+  assert.match(config, /STAGING — DADOS DE TESTE/);
+  assert.doesNotMatch(config, /eyJ[A-Za-z0-9_-]+\./);
+  assert.match(headers, /https:\/\/fuesdztsvrkkgnbqhcxi\.supabase\.co/);
+  assert.match(admin, /checkPlatformAdminWithRetry/);
+  const adminHtml = await readFile(new URL("admin.html", root), "utf8");
+  assert.match(adminHtml, /https:\/\/fuesdztsvrkkgnbqhcxi\.supabase\.co/);
+  assert.match(adminHtml, /admin\.js\?v=20260827\.1/);
+  assert.match(admin, /functions\.invoke\("platform-users", \{ body: \{ action: "list" \} \}\)/);
+  assert.doesNotMatch(admin, /map\(\(profile\) => \(\{ \.\.\.profile, email: "" \}\)\)/);
+});
+
+test("env=staging cria o cliente de staging e persiste somente na sessão", async () => {
+  const source = await readFile(new URL("supabase-config.js", root), "utf8");
+  const saved = new Map();
+  let clientConfig;
+  const context = {
+    URL, URLSearchParams, Set, Object,
+    sessionStorage: {
+      getItem: (key) => saved.get(key) ?? null,
+      setItem: (key, value) => saved.set(key, value)
+    },
+    document: {
+      readyState: "complete",
+      getElementById: () => null,
+      createElement: () => ({ setAttribute() {}, style: {} }),
+      body: { appendChild() {} }
+    },
+    window: {
+      location: { hostname: "localhost", search: "?env=staging", href: "http://localhost:8080/login.html?env=staging" },
+      supabase: { createClient: (url, key) => { clientConfig = { url, key }; return {}; } }
+    }
+  };
+  vm.runInNewContext(source, context);
+  assert.equal(context.window.OGRITECH_ENV, "staging");
+  assert.equal(clientConfig.url, "https://fuesdztsvrkkgnbqhcxi.supabase.co");
+  assert.match(clientConfig.key, /^sb_publishable_/);
+  assert.equal(saved.get("ogritechEnvironment"), "staging");
+  assert.equal(context.window.ogritechEnvironmentUrl("update-password.html"), "http://localhost:8080/update-password.html?env=staging");
+});
+
+test("troca de função reconcilia vínculos operacionais e compensa falhas", async () => {
+  const source = await readFile(new URL("supabase/functions/platform-users/index.ts", root), "utf8");
+  for (const marker of ["employee_id: employeeId", "client_record_id: clientRecordId", "previousAuth.user.email", "createdRelated", "ban_duration: active ? \"876000h\" : \"none\""]) assert.ok(source.includes(marker), marker);
+});
+
+test("service worker busca código novo antes de recorrer ao cache", async () => {
+  const source = await readFile(new URL("sw.js", root), "utf8");
+  assert.match(source, /needsFreshCode/);
+  assert.match(source, /fetch\(event\.request\)[\s\S]+catch\(\(\) => caches\.match\(event\.request\)\)/);
+});
+
+test("funções privilegiadas removem o EXECUTE implícito de PUBLIC", async () => {
+  const source = await readFile(new URL("supabase/migrations/20260825140414_harden_function_execution.sql", root), "utf8");
+  assert.match(source, /revoke all on function public\.is_platform_admin\(\) from public, anon/i);
+  assert.match(source, /revoke all on function public\.platform_create_business[\s\S]+from public, anon/i);
+  assert.match(source, /revoke all on function public\.platform_record_payment[\s\S]+from public, anon/i);
+  assert.match(source, /revoke all on function public\.ogritech_set_updated_at\(\) from public, anon, authenticated/i);
 });
 
 test("agendamento real usa RPC validada", async () => {
-  const migration = await readFile(new URL("supabase/migrations/202608220001_harden_schema_and_booking.sql", root), "utf8");
+  const migration = (await Promise.all([
+    readFile(new URL("supabase/migrations/202608220001_harden_schema_and_booking.sql", root), "utf8"),
+    readFile(new URL("supabase/migrations/20260825213752_harden_operations_and_scheduling.sql", root), "utf8")
+  ])).join("\n");
   assert.match(migration, /create or replace function public\.create_appointment/);
   assert.match(migration, /Horário indisponível/);
   assert.match(migration, /Serviço ou profissional inválido/);
+  assert.match(migration, /business_appointments_no_employee_overlap/);
+  assert.match(migration, /caller\.employee_id = selected_employee\.id/);
 });
 
 test("cobranças da plataforma são isoladas e transacionais", async () => {

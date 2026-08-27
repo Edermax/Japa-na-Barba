@@ -8,6 +8,7 @@
    Como `202608180001_create_core_schema.sql` foi adicionada para tornar instalações limpas reproduzíveis, um projeto que já possua migrations posteriores pode exigir `supabase db push --include-all`; use essa opção somente em staging primeiro.
 4. Configurar `ALLOWED_ORIGINS` com os domínios exatos, separados por vírgula.
 5. Publicar `platform-users` e validar convite, bloqueio, reativação e arquivamento.
+   Convites de usuários da aplicação devem ser enviados exclusivamente pelo console Ogritech, que chama `platform-users`. O botão de convite do painel Supabase cria somente o usuário Auth e não conhece função nem empresa; seu uso pode deixar o usuário sem registro em `public.profiles`. O console bloqueia o carregamento quando detecta essa divergência.
 6. Validar owner, admin, employee, client e platform admin em empresas distintas.
 7. Fazer backup do banco de produção e registrar o ponto de restauração.
 8. Aplicar migrations em produção e fazer smoke test sem dados reais.
