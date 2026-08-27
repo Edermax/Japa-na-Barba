@@ -122,7 +122,7 @@ forgotPasswordButton.addEventListener("click", async () => {
     }
 
     forgotPasswordButton.disabled = true;
-    loginMessage.textContent = "Enviando link de recuperação...";
+    loginMessage.textContent = "Enviando código de recuperação...";
     loginMessage.className = "login-message";
 
     const redirectTo = window.ogritechEnvironmentUrl("update-password.html");
@@ -140,8 +140,9 @@ forgotPasswordButton.addEventListener("click", async () => {
         return;
     }
 
+    sessionStorage.setItem("ogritechRecoveryEmail", email);
     loginMessage.textContent =
-        "Enviamos um novo link para seu e-mail. Verifique também o spam.";
+        "Enviamos um código de recuperação para seu e-mail. Verifique também o spam.";
     loginMessage.className = "login-message success";
     forgotPasswordButton.disabled = false;
 });

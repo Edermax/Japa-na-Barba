@@ -1,6 +1,9 @@
 /* OGRITECH - DEFINIÇÃO DE NOVA SENHA */
 
 const updatePasswordForm = document.getElementById("updatePasswordForm");
+const recoveryCredentialFields = document.getElementById("recoveryCredentialFields");
+const recoveryEmailInput = document.getElementById("recoveryEmail");
+const recoveryCodeInput = document.getElementById("recoveryCode");
 const newPasswordInput = document.getElementById("newPassword");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const updatePasswordMessage = document.getElementById("updatePasswordMessage");
@@ -11,6 +14,7 @@ const passwordToggleButtons = updatePasswordForm.querySelectorAll("[data-passwor
 const loginUrl = window.ogritechEnvironmentUrl("login.html");
 
 backToLoginLink.href = loginUrl;
+recoveryEmailInput.value = sessionStorage.getItem("ogritechRecoveryEmail") || "";
 
 passwordToggleButtons.forEach((toggleButton) => {
     toggleButton.addEventListener("click", () => {
@@ -38,6 +42,9 @@ function showRecoveryForm(session) {
     recoveryInitialized = true;
     invalidRecoveryMessage.classList.add("hidden");
     updatePasswordForm.classList.remove("hidden");
+    recoveryCredentialFields.classList.add("hidden");
+    recoveryEmailInput.required = false;
+    recoveryCodeInput.required = false;
     updatePasswordMessage.textContent = "Use pelo menos 8 caracteres.";
 }
 
@@ -77,12 +84,14 @@ async function initializeRecovery() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session && hasRecoveryCallback) showRecoveryForm(session);
 
-    window.setTimeout(() => {
-        if (recoveryInitialized) return;
-        invalidRecoveryMessage.textContent =
-            "Este link é inválido ou expirou. Solicite um novo link na tela de login.";
-        invalidRecoveryMessage.className = "login-message error";
-    }, 3000);
+    if (hasRecoveryCallback) {
+        window.setTimeout(() => {
+            if (recoveryInitialized) return;
+            updatePasswordMessage.textContent =
+                "O link não pôde ser validado. Digite abaixo o código mais recente recebido por e-mail.";
+            updatePasswordMessage.className = "login-message error";
+        }, 3000);
+    }
 }
 
 updatePasswordForm.addEventListener("submit", async (event) => {
@@ -105,8 +114,31 @@ updatePasswordForm.addEventListener("submit", async (event) => {
     }
 
     updateButton.disabled = true;
-    updatePasswordMessage.textContent = "Salvando nova senha...";
+    updatePasswordMessage.textContent = recoveryInitialized
+        ? "Salvando nova senha..."
+        : "Validando código de recuperação...";
     updatePasswordMessage.className = "login-message";
+
+    if (!recoveryInitialized) {
+        const email = recoveryEmailInput.value.trim().toLowerCase();
+        const token = recoveryCodeInput.value.trim();
+        const { data, error } = await supabaseClient.auth.verifyOtp({
+            email,
+            token,
+            type: "recovery"
+        });
+
+        if (error || !data.session) {
+            updatePasswordMessage.textContent =
+                "Código inválido ou expirado. Use o código do e-mail mais recente.";
+            updatePasswordMessage.className = "login-message error";
+            updateButton.disabled = false;
+            return;
+        }
+
+        showRecoveryForm(data.session);
+        updatePasswordMessage.textContent = "Salvando nova senha...";
+    }
 
     let updateError = null;
 
