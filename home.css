@@ -107,3 +107,13 @@ footer{min-height:150px;padding:40px max(5vw,28px);display:flex;align-items:cent
 @media (max-width:699px){.site-header{display:flex;justify-content:flex-end;padding-inline:16px}.site-header .brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1}.brand .header-brand-image{width:92px}.login-button{position:relative;z-index:2;min-width:88px;min-height:42px;padding:0 8px 0 15px;gap:9px;border-color:rgba(8,185,211,.48);background:linear-gradient(135deg,rgba(8,185,211,.14),rgba(8,185,211,.035));color:#e9fbfd;box-shadow:0 8px 24px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.04)}.login-button span{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--cyan);color:#041012;font-size:12px;transition:transform .25s ease}.login-button:hover{border-color:var(--cyan);background:rgba(8,185,211,.18);color:white}.login-button:hover span{transform:translate(1px,-1px)}}
 @media (max-width:340px){.brand .header-brand-image{width:82px}.login-button{min-width:76px;padding-left:11px;font-size:12px}.login-button span{width:24px;height:24px}}
 @media (min-width:700px){.login-button{border-color:rgba(8,185,211,.34);background:rgba(8,185,211,.045)}.login-button span{color:var(--cyan-light)}}
+
+/* Chevron único para todas as ações da página. */
+.action-chevron{position:relative;display:inline-grid;flex:0 0 auto;width:22px;height:22px;place-items:center;border:1px solid rgba(8,185,211,.3);border-radius:50%;color:var(--cyan-light);font-size:0;transition:transform .22s ease,border-color .22s ease,background .22s ease}
+.action-chevron::before{content:"";width:5px;height:5px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;transform:translateX(-1px) rotate(45deg)}
+a:hover>.action-chevron,a:hover .action-chevron{transform:translateX(3px);border-color:var(--cyan);background:rgba(8,185,211,.1)}
+.login-button .action-chevron{width:26px;height:26px;background:var(--cyan);border-color:var(--cyan);color:#041012}
+.login-button:hover .action-chevron{transform:translateX(2px);background:var(--cyan-light)}
+.primary-button .action-chevron{border-color:rgba(4,16,18,.28);color:#041012}
+.footer-channel-list .action-chevron{width:20px;height:20px;color:var(--cyan-light)}
+.solutions-overview em .action-chevron{width:22px;height:22px;color:var(--cyan-light);font-size:0}
