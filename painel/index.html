@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <base href="../">
+    <!-- Define acentos e caracteres especiais -->
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:54321 http://localhost:54321 https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <!-- Torna a interface responsiva -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080808">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <!-- Nome da aba -->
+    <title>Ogritech | Gestão inteligente</title>
+    <meta name="description" content="Gestão inteligente.">
+    <link rel="icon" href="ogritech-favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="ogritech-brand-symbol.png">
+    <link rel="apple-touch-icon" href="ogritech-brand-symbol.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <!-- IMPORTANTE: este é o arquivo CSS separado -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Aplicação principal -->
+    <div class="app">
+        <!-- Menu lateral -->
+        <aside class="sidebar">
+            <!-- Identidade da plataforma -->
+            <a class="brand header-logo-link" href="./" aria-label="Ir para a página principal da Ogritech">
+                <img src="ogritech-brand-symbol.png" alt="Símbolo Ogritech" class="logo-image platform-symbol">
+                <div class="brand-name">OGRITECH</div>
+                <div class="brand-subtitle">GESTÃO INTELIGENTE</div>
+
+                <!-- Primeira empresa atendida pela plataforma -->
+                <div class="tenant-badge">
+                    <img src="Logo-japa.jpeg" alt="Logo da empresa" id="tenantLogo">
+                    <span class="tenant-icon hidden" id="tenantIcon" aria-hidden="true"></span>
+                    <div>
+                        <small>EMPRESA ATIVA</small>
+                        <strong id="tenantName">Japa na Barba</strong>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Menu de módulos -->
+            <nav class="menu">
+                <a href="#" class="menu-item active" data-section="dashboard"><span>⌂</span>Dashboard</a>
+                <a href="#" class="menu-item" data-section="clientes"><span>♙</span>Clientes</a>
+                <a href="#" class="menu-item" data-section="agenda"><span>◷</span>Agenda</a>
+                <a href="#" class="menu-item" data-section="servicos"><span>✂</span>Serviços</a>
+                <a href="#" class="menu-item" data-section="profissionais"><span>♟</span>Profissionais</a>
+                <a href="#" class="menu-item" data-section="financeiro"><span>R$</span>Financeiro</a>
+                <a href="#" class="menu-item" data-section="configuracoes"><span>⚙</span>Configurações</a>
+            </nav>
+
+            <!-- Usuário logado -->
+            <div class="user-area">
+                <div class="avatar">AD</div>
+
+                <!-- Dados preenchidos pelo JavaScript após o login -->
+                <div class="user-session-info">
+                    <strong id="loggedUserName">Administrador</strong>
+                    <small id="loggedUserRole">Proprietário</small>
+                </div>
+
+                <!-- Encerra a sessão atual -->
+                <button type="button" class="logout-button" id="logoutButton" title="Sair do sistema">Sair</button>
+            </div>
+        </aside>
+
+        <!-- Conteúdo -->
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow" id="businessPanelEyebrow">JAPA NA BARBA • PAINEL ADMINISTRATIVO</p>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <!-- Abre o modal de agendamento -->
+                <div class="topbar-actions"><a class="text-button hidden" id="backToShowcase" href="demonstracoes.html">← Voltar às demonstrações</a><button class="gold-button" id="newAppointment">+ Novo agendamento</button></div>
+            </header>
+
+            <section id="content">
+
+                <!-- =================================================
+                     VISÃO: DASHBOARD
+                     Esta é a tela inicial do sistema.
+                     ================================================= -->
+                <div id="dashboardView" class="view-section">
+
+                    <!-- Indicadores -->
+                    <div class="stats-grid">
+                        <article class="stat-card"><span>Agendamentos hoje</span><strong id="todayAppointmentCount">0</strong><small id="todayAppointmentSubtitle">Agenda integrada</small></article>
+                        <article class="stat-card"><span>Clientes cadastrados</span><strong id="clientCount">0</strong><small>Dados protegidos no Supabase</small></article>
+                        <article class="stat-card" data-owner-only><span>Faturamento</span><strong id="businessRevenue">R$ 0</strong><small>Este mês</small></article>
+                        <article class="stat-card" data-owner-only><span>Ticket médio</span><strong id="businessTicket">R$ 0</strong><small class="positive" id="businessTicketSubtitle">Ainda sem operação</small></article>
+                        <article class="stat-card" data-owner-only><span>Margem de lucro global</span><strong id="globalProfitMargin">—</strong><small id="globalProfitMarginSubtitle">Sobre atendimentos concluídos</small></article>
+                        <article class="stat-card" data-owner-only><span>Clientes sem retorno</span><strong id="inactiveClientCount">0</strong><small>Sem agendamento há mais de 60 dias</small></article>
+                        <article class="stat-card" data-owner-only><span>Comparativo anual</span><strong id="yearComparison">—</strong><small id="yearComparisonSubtitle">Mês atual x mesmo mês do ano passado</small></article>
+                        <article class="stat-card" data-owner-only><span>Solicitações LGPD</span><strong id="privacyRequestCount">0</strong><small>Pendentes de atendimento</small></article>
+                    </div>
+
+                    <div class="analytics-grid" data-owner-only>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">RENTABILIDADE</p><h2>Margem por categoria</h2></div></div>
+                            <p class="section-description analytics-note">Estimativa baseada no custo operacional configurado para cada serviço.</p>
+                            <div class="metric-list" id="categoryMarginList"></div>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">RECORRÊNCIA</p><h2>Clientes que precisam de contato</h2></div></div>
+                            <div class="metric-list" id="inactiveClientList"></div>
+                            <div class="empty-state hidden" id="inactiveClientEmpty"><strong>Recorrência em dia.</strong><span>Nenhum cliente está há mais de 60 dias sem agendar.</span></div>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">EVOLUÇÃO</p><h2>Resultado do período</h2></div></div>
+                            <div class="year-comparison-values">
+                                <div><span id="previousYearLabel">Ano passado</span><strong id="previousYearRevenue">R$ 0</strong></div>
+                                <div><span id="currentYearLabel">Ano atual</span><strong id="currentYearRevenue">R$ 0</strong></div>
+                            </div>
+                            <p class="section-description">Somente atendimentos concluídos entram no cálculo.</p>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">PRIVACIDADE</p><h2>Direitos dos titulares</h2></div></div>
+                            <div class="metric-list" id="privacyRequestList"></div>
+                            <div class="empty-state hidden" id="privacyRequestEmpty"><strong>Nenhuma solicitação pendente.</strong><span>Novos pedidos aparecerão aqui.</span></div>
+                        </article>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <!-- Agenda -->
+                        <article class="panel">
+                            <div class="panel-header">
+                                <div><p class="eyebrow">HOJE</p><h2>Próximos agendamentos</h2></div>
+                                <button class="text-button" id="viewAgenda">Ver agenda</button>
+                            </div>
+                            <!--
+                                Esta lista agora é preenchida pelo JavaScript
+                                usando os mesmos agendamentos criados por
+                                clientes, funcionários e proprietário.
+                            -->
+                            <div class="appointment-list" id="dashboardAppointmentList"></div>
+
+                            <div class="empty-state hidden" id="dashboardAppointmentEmpty">
+                                <strong>Nenhum agendamento para hoje.</strong>
+                                <span>Os novos horários aparecerão aqui automaticamente.</span>
+                            </div>
+                        </article>
+
+                        <!-- Serviços -->
+                        <article class="panel">
+                            <div class="panel-header"><div><p class="eyebrow">DESEMPENHO</p><h2>Serviços populares</h2></div></div>
+                            <div id="popularServices"></div>
+                        </article>
+                    </div>
+
+                    <!-- Ações rápidas -->
+                    <article class="panel">
+                        <div class="panel-header"><div><p class="eyebrow">ATALHOS</p><h2>Ações rápidas</h2></div></div>
+                        <div class="actions">
+                            <button class="action-button" id="quickAddClient" data-manager-only>+ Cadastrar cliente</button>
+                            <button class="action-button" id="quickAddService">+ Criar serviço</button>
+                            <button class="action-button" id="quickAddProfessional">+ Adicionar profissional</button>
+                            <button class="action-button" id="quickFinancial">Ver financeiro</button>
+                        </div>
+                    </article>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     VISÃO: AGENDA INTEGRADA
+                     Cliente, funcionário e proprietário compartilham
+                     o mesmo conjunto de agendamentos no protótipo.
+                     ================================================= -->
+                <div id="agendaView" class="view-section hidden">
+
+                    <article class="panel agenda-panel">
+
+                        <div class="agenda-toolbar">
+                            <div>
+                                <p class="eyebrow">AGENDA INTEGRADA</p>
+                                <h2>Atendimentos</h2>
+                                <p class="section-description">
+                                    Acompanhe solicitações, confirme horários e conclua atendimentos.
+                                </p>
+                            </div>
+
+                            <button class="gold-button" id="agendaNewAppointment">
+                                + Novo agendamento
+                            </button>
+                        </div>
+
+                        <!-- Filtros da agenda -->
+                        <div class="agenda-filters">
+
+                            <label>
+                                Data
+                                <input type="date" id="agendaDateFilter">
+                            </label>
+
+                            <label>
+                                Profissional
+                                <select id="agendaProfessionalFilter">
+                                    <option value="all">Todos</option>
+                                    <option value="Carlos">Carlos</option>
+                                    <option value="Rafael">Rafael</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                Status
+                                <select id="agendaStatusFilter">
+                                    <option value="all">Todos</option>
+                                    <option value="requested">Solicitado</option>
+                                    <option value="confirmed">Confirmado</option>
+                                    <option value="completed">Concluído</option>
+                                    <option value="cancelled">Cancelado</option>
+                                    <option value="no_show">Não compareceu</option>
+                                </select>
+                            </label>
+
+                        </div>
+
+                        <!-- Lista preenchida dinamicamente -->
+                        <div id="agendaList" class="agenda-list"></div>
+
+                        <div id="agendaEmpty" class="empty-state hidden">
+                            <strong>Nenhum atendimento encontrado.</strong>
+                            <span>Altere os filtros ou crie um novo agendamento.</span>
+                        </div>
+
+                    </article>
+
+                </div>
+
+                <!-- =================================================
+                     VISÃO: CLIENTES
+                     CRUD integrado ao Supabase para contas reais.
+                     ================================================= -->
+                <div id="clientsView" class="view-section hidden">
+
+                    <article class="panel clients-panel">
+                        <div class="clients-toolbar">
+                            <div>
+                                <p class="eyebrow">CADASTRO</p>
+                                <h2>Clientes</h2>
+                                <p class="section-description">Cadastre, pesquise, edite e exclua clientes.</p>
+                            </div>
+
+                            <button class="gold-button" id="newClientButton" data-manager-only>+ Novo cliente</button>
+                        </div>
+
+                        <!-- Campo de busca -->
+                        <div class="client-search-box">
+                            <input
+                                type="search"
+                                id="clientSearch"
+                                placeholder="Pesquisar por nome, telefone ou e-mail..."
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <!-- Tabela responsiva -->
+                        <div class="table-wrapper">
+                            <table class="clients-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Telefone</th>
+                                        <th>E-mail</th>
+                                        <th>Aniversário</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientsTableBody">
+                                    <!-- Linhas criadas pelo JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Aparece quando não existem clientes -->
+                        <div class="empty-state hidden" id="emptyClients">
+                            <strong>Nenhum cliente encontrado.</strong>
+                            <span>Cadastre o primeiro cliente da Japa na Barba.</span>
+                        </div>
+                    </article>
+
+                </div>
+
+                <div id="servicesView" class="view-section hidden">
+                    <article class="panel module-panel">
+                        <div class="clients-toolbar"><div><p class="eyebrow">CATÁLOGO</p><h2>Serviços</h2><p class="section-description">Preços, duração e custos usados na agenda e nos indicadores.</p></div><button class="gold-button" id="newServiceButton" data-manager-only>+ Novo serviço</button></div>
+                        <div class="table-wrapper"><table class="clients-table"><thead><tr><th>Serviço</th><th>Categoria</th><th>Duração</th><th>Preço</th><th>Custo</th><th>Ações</th></tr></thead><tbody id="servicesTableBody"></tbody></table></div>
+                    </article>
+                </div>
+
+                <div id="professionalsView" class="view-section hidden">
+                    <article class="panel module-panel">
+                        <div class="clients-toolbar"><div><p class="eyebrow">EQUIPE</p><h2>Profissionais</h2><p class="section-description">Gerencie especialidades e comissões da equipe.</p></div><button class="gold-button" id="newProfessionalButton" data-manager-only>+ Novo profissional</button></div>
+                        <div class="table-wrapper"><table class="clients-table"><thead><tr><th>Profissional</th><th>Especialidade</th><th>Comissão</th><th>Agenda</th><th>Ações</th></tr></thead><tbody id="professionalsTableBody"></tbody></table></div>
+                    </article>
+                </div>
+
+                <div id="financialView" class="view-section hidden" data-owner-only>
+                    <div class="stats-grid finance-summary"><article class="stat-card"><span>Entradas</span><strong id="financeIncome">R$ 0</strong><small>No período</small></article><article class="stat-card"><span>Saídas</span><strong id="financeExpense">R$ 0</strong><small>No período</small></article><article class="stat-card"><span>Saldo</span><strong id="financeBalance">R$ 0</strong><small>No período</small></article></div>
+                    <article class="panel module-panel"><div class="clients-toolbar"><div><p class="eyebrow">FLUXO DE CAIXA</p><h2>Lançamentos</h2><p class="section-description">Registre receitas e despesas do negócio.</p></div><button class="gold-button" id="newFinancialButton">+ Novo lançamento</button></div><div class="agenda-filters compact-filters"><label>De<input type="date" id="financeStart"></label><label>Até<input type="date" id="financeEnd"></label><label>Tipo<select id="financeTypeFilter"><option value="all">Todos</option><option value="income">Entradas</option><option value="expense">Saídas</option></select></label></div><div class="table-wrapper"><table class="clients-table"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead><tbody id="financialTableBody"></tbody></table></div><div class="empty-state hidden" id="financialEmpty"><strong>Nenhum lançamento encontrado.</strong><span>Registre uma entrada ou saída para começar.</span></div></article>
+                </div>
+
+                <div id="settingsView" class="view-section hidden" data-owner-only>
+                    <article class="panel settings-panel"><p class="eyebrow">PREFERÊNCIAS</p><h2>Configurações do negócio</h2><p class="section-description">Personalize a identificação e o expediente exibidos no painel.</p><form id="settingsForm"><div class="form-row"><label>Nome do negócio<input id="settingsBusinessName" required maxlength="80"></label><label>Segmento<input id="settingsSegment" required maxlength="60"></label></div><div class="form-row"><label>Início do expediente<input type="time" id="settingsOpenTime" required></label><label>Fim do expediente<input type="time" id="settingsCloseTime" required></label></div><label>Duração padrão dos horários<select id="settingsSlotDuration"><option value="30">30 minutos</option><option value="45">45 minutos</option><option value="60">60 minutos</option></select></label><p class="form-message" id="settingsMessage" role="status"></p><button class="gold-button" type="submit">Salvar configurações</button></form></article>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- =====================================================
+         MODAL DE NOVO AGENDAMENTO
+         Este formulário grava na agenda compartilhada.
+         ===================================================== -->
+    <div class="modal hidden" id="appointmentModal">
+        <div class="modal-box">
+            <button class="close-button" id="closeModal" type="button">×</button>
+
+            <p class="eyebrow">NOVO AGENDAMENTO</p>
+            <h2>Agendar atendimento</h2>
+
+            <form id="appointmentForm">
+
+                <label>
+                    Cliente
+                    <input
+                        type="text"
+                        id="appointmentClientName"
+                        placeholder="Nome do cliente"
+                        required
+                    >
+                </label>
+
+                <label>
+                    Serviço
+                    <select id="appointmentService" required>
+                        <option value="">Selecione</option>
+                        <option value="Corte masculino">Corte masculino — R$ 45</option>
+                        <option value="Barba">Barba — R$ 35</option>
+                        <option value="Corte + Barba">Corte + Barba — R$ 75</option>
+                        <option value="Platinado">Platinado — R$ 120</option>
+                    </select>
+                </label>
+
+                <label>
+                    Profissional
+                    <select id="appointmentProfessional" required>
+                        <option value="">Selecione</option>
+                        <option value="Carlos">Carlos</option>
+                        <option value="Rafael">Rafael</option>
+                    </select>
+                </label>
+
+                <div class="form-row">
+                    <label>
+                        Data
+                        <input type="date" id="appointmentDate" required>
+                    </label>
+
+                    <label>
+                        Horário
+                        <select id="appointmentTime" required>
+                            <option value="">Selecione</option>
+                            <option>09:00</option>
+                            <option>10:00</option>
+                            <option>11:00</option>
+                            <option>13:30</option>
+                            <option>15:00</option>
+                            <option>16:30</option>
+                            <option>18:00</option>
+                        </select>
+                    </label>
+                </div>
+
+                <p class="form-message" id="appointmentMessage"></p>
+
+                <button class="gold-button full" type="submit">
+                    Confirmar agendamento
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         MODAL DE CADASTRO / EDIÇÃO DE CLIENTE
+         ===================================================== -->
+    <div class="modal hidden" id="clientModal">
+        <div class="modal-box">
+            <button class="close-button" id="closeClientModal" type="button">×</button>
+
+            <p class="eyebrow" id="clientModalEyebrow">NOVO CLIENTE</p>
+            <h2 id="clientModalTitle">Cadastrar cliente</h2>
+
+            <form id="clientForm">
+                <!-- ID oculto: usado para saber quando estamos editando -->
+                <input type="hidden" id="clientId">
+
+                <label>
+                    Nome completo
+                    <input type="text" id="clientName" placeholder="Ex.: João da Silva" required>
+                </label>
+
+                <div class="form-row">
+                    <label>
+                        Telefone
+                        <input type="tel" id="clientPhone" placeholder="(16) 99999-9999" required>
+                    </label>
+
+                    <label>
+                        Aniversário
+                        <input type="date" id="clientBirthday">
+                    </label>
+                </div>
+
+                <label>
+                    E-mail
+                    <input type="email" id="clientEmail" placeholder="cliente@email.com">
+                </label>
+
+                <label>
+                    Observações
+                    <textarea id="clientNotes" rows="3" maxlength="1000" placeholder="Preferências necessárias ao atendimento..." ></textarea>
+                    <small class="field-privacy-note">Evite dados sensíveis, diagnósticos, religião ou informações sem relação com o atendimento.</small>
+                </label>
+
+                <button type="submit" class="gold-button full" id="saveClientButton">
+                    Salvar cliente
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="serviceModal"><div class="modal-box"><button class="close-button" data-close-modal="serviceModal" type="button">×</button><p class="eyebrow">SERVIÇO</p><h2 id="serviceModalTitle">Novo serviço</h2><form id="serviceForm"><input type="hidden" id="serviceId"><label>Nome<input id="serviceName" required maxlength="100"></label><div class="form-row"><label>Categoria<input id="serviceCategory" value="Geral" required></label><label>Duração (min)<input id="serviceDuration" type="number" min="5" step="5" value="30" required></label></div><div class="form-row"><label>Preço (R$)<input id="servicePrice" type="number" min="0" step="0.01" required></label><label>Custo (R$)<input id="serviceCost" type="number" min="0" step="0.01" value="0" required></label></div><label>Descrição<textarea id="serviceDescription" rows="3" maxlength="300"></textarea></label><button class="gold-button full" type="submit">Salvar serviço</button></form></div></div>
+
+    <div class="modal hidden" id="professionalModal"><div class="modal-box"><button class="close-button" data-close-modal="professionalModal" type="button">×</button><p class="eyebrow">EQUIPE</p><h2 id="professionalModalTitle">Novo profissional</h2><form id="professionalForm"><input type="hidden" id="professionalId"><label>Nome<input id="professionalName" required maxlength="100"></label><label>Especialidade<input id="professionalSpecialty" required maxlength="120"></label><label>Comissão (%)<input id="professionalCommission" type="number" min="0" max="100" step="0.01" value="0" required></label><button class="gold-button full" type="submit">Salvar profissional</button></form></div></div>
+
+    <div class="modal hidden" id="financialModal"><div class="modal-box"><button class="close-button" data-close-modal="financialModal" type="button">×</button><p class="eyebrow">FINANCEIRO</p><h2>Novo lançamento</h2><form id="financialForm"><label>Tipo<select id="financialType" required><option value="income">Entrada</option><option value="expense">Saída</option></select></label><label>Descrição<input id="financialDescription" required maxlength="120"></label><div class="form-row"><label>Categoria<input id="financialCategory" required maxlength="60"></label><label>Valor (R$)<input id="financialAmount" type="number" min="0.01" step="0.01" required></label></div><div class="form-row"><label>Data<input id="financialDate" type="date" required></label><label>Pagamento<select id="financialPayment"><option value="pix">Pix</option><option value="cash">Dinheiro</option><option value="card">Cartão</option><option value="other">Outro</option></select></label></div><button class="gold-button full" type="submit">Salvar lançamento</button></form></div></div>
+
+    <footer class="app-legal-links"><a href="mailto:suporte@ogritech.com.br">Suporte</a><a href="privacidade.html">Privacidade</a><a href="termos.html">Termos de Uso</a><a href="mailto:privacidade@ogritech.com.br">Canal do titular</a></footer>
+
+    <!-- Cliente oficial do Supabase e configuração pública do projeto -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+    <script src="supabase-config.js"></script>
+    <script src="business-config.js"></script>
+
+    <!-- auth.js verifica se existe uma sessão válida -->
+    <script src="auth.js?v=20260826.1"></script>
+
+    <!-- JavaScript principal do dashboard -->
+    <script src="script.js"></script>
+    <script src="pwa.js"></script>
+</body>
+</html>

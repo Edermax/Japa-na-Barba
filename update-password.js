@@ -11,7 +11,7 @@ const invalidRecoveryMessage = document.getElementById("invalidRecoveryMessage")
 const updateButton = updatePasswordForm.querySelector('button[type="submit"]');
 const backToLoginLink = document.getElementById("backToLoginLink");
 const passwordToggleButtons = updatePasswordForm.querySelectorAll("[data-password-target]");
-const loginUrl = window.ogritechEnvironmentUrl("login.html");
+const loginUrl = window.ogritechEnvironmentUrl("login/");
 
 backToLoginLink.href = loginUrl;
 recoveryEmailInput.value = sessionStorage.getItem("ogritechRecoveryEmail") || "";

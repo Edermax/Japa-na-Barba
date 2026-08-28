@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <base href="../">
+    <!-- Codificação para acentos e caracteres especiais -->
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:54321 http://localhost:54321 https://fuesdztsvrkkgnbqhcxi.supabase.co wss://fuesdztsvrkkgnbqhcxi.supabase.co https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+
+    <!-- Responsividade -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080808">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+
+    <!-- Título exibido na aba do navegador -->
+    <title>Ogritech | Gestão inteligente</title>
+    <meta name="description" content="Gestão inteligente.">
+    <link rel="icon" href="ogritech-favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="ogritech-brand-symbol.png">
+    <link rel="apple-touch-icon" href="ogritech-brand-symbol.png">
+    <link rel="manifest" href="manifest.webmanifest">
+
+    <!-- CSS principal do sistema -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="login-page">
+
+    <!-- =====================================================
+         TELA DE LOGIN
+
+         IMPORTANTE:
+         O usuário não precisa escolher visualmente o seu perfil.
+
+         O JavaScript identifica automaticamente se o acesso é de:
+         - Proprietário
+         - Funcionário
+         - Cliente
+
+         Isso acontece através do e-mail e senha informados.
+         ===================================================== -->
+    <main class="login-wrapper">
+
+        <section class="login-card">
+
+            <!-- Marca da plataforma -->
+            <a class="ogritech-lockup header-logo-link" href="./" aria-label="Ir para a página principal da Ogritech">
+                <img src="ogritech-brand-symbol.png" alt="" class="ogritech-lockup-symbol">
+                <img src="ogritech-logo.png" alt="Ogritech" class="ogritech-lockup-name">
+            </a>
+
+            <!-- Identidade da tela -->
+            <p class="eyebrow platform-eyebrow">GESTÃO INTELIGENTE</p>
+            <h1 class="login-title">Acessar sistema</h1>
+
+            <p class="login-subtitle">
+                Entre com seu e-mail e senha.
+            </p>
+
+            <p class="login-subtitle"><a href="demonstracoes.html">Ver demonstrações por segmento</a></p>
+
+            <!-- =================================================
+                 FORMULÁRIO DE LOGIN
+                 ================================================= -->
+            <form id="loginForm" class="login-form">
+
+                <!-- Campo de e-mail -->
+                <label>
+                    E-mail
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="Digite seu e-mail"
+                        autocomplete="email"
+                        required
+                    >
+                </label>
+
+                <!-- Campo de senha -->
+                <label>
+                    Senha
+
+                    <span class="password-field">
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required
+                        >
+                        <button
+                            type="button"
+                            id="togglePasswordButton"
+                            class="password-toggle"
+                            aria-label="Mostrar senha"
+                            aria-pressed="false"
+                            title="Mostrar senha"
+                        >
+                            <span class="password-eye" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+                                    <circle cx="12" cy="12" r="2.8"></circle>
+                                    <path class="password-eye-slash" d="M4 4 20 20"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </span>
+                </label>
+
+                <!-- Mensagem de erro ou sucesso -->
+                <p id="loginMessage" class="login-message"></p>
+
+                <!-- Botão de entrada -->
+                <button
+                    type="submit"
+                    class="gold-button full"
+                >
+                    Entrar
+                </button>
+
+                <button
+                    type="button"
+                    id="forgotPasswordButton"
+                    class="text-button full"
+                >
+                    Esqueci minha senha
+                </button>
+
+            </form>
+
+            <p class="privacy-links">Ao acessar, você declara ciência dos <a href="termos.html">Termos de Uso</a> e da <a href="privacidade.html">Política de Privacidade</a>.<br>Precisa de ajuda? <a href="mailto:suporte@ogritech.com.br">suporte@ogritech.com.br</a></p>
+
+        </section>
+
+    </main>
+
+    <!-- Cliente oficial do Supabase e configuração pública do projeto -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+    <script src="supabase-config.js"></script>
+
+    <!-- Lógica do login -->
+    <script src="login.js"></script>
+    <script src="pwa.js"></script>
+
+</body>
+</html>

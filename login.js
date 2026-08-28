@@ -40,13 +40,13 @@ function saveLocalSession(user, profile) {
 async function destinationFor(role) {
     const { data: isPlatformAdmin } = await supabaseClient.rpc("is_platform_admin");
     if (isPlatformAdmin) return window.ogritechEnvironmentUrl("admin.html");
-    return window.ogritechEnvironmentUrl(role === "client" ? "cliente.html" : "index.html");
+    return window.ogritechEnvironmentUrl(role === "client" ? "cliente.html" : "painel/");
 }
 
 async function restoreExistingSession() {
     if (sessionStorage.getItem("japaDemo") === "true") {
         const role = sessionStorage.getItem("japaRole");
-        window.location.replace(window.ogritechEnvironmentUrl(role === "client" ? "cliente.html" : "index.html"));
+        window.location.replace(window.ogritechEnvironmentUrl(role === "client" ? "cliente.html" : "painel/"));
         return;
     }
     const { data: { session } } = await supabaseClient.auth.getSession();

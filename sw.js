@@ -1,11 +1,10 @@
-const CACHE_NAME = "ogritech-shell-v5";
+const CACHE_NAME = "ogritech-shell-v6";
 const APP_SHELL = [
-  "./", "./index.html", "./login.html", "./cliente.html", "./style.css",
+  "./", "./login/", "./painel/", "./login.html", "./cliente.html", "./style.css",
   "./auth.js", "./script.js", "./cliente.js", "./login.js", "./business-config.js",
   "./supabase-config.js", "./pwa.js", "./manifest.webmanifest",
   "./ogritech-brand-symbol.png", "./ogritech-favicon.ico",
-  "./apresentacao/", "./apresentacao/home.css", "./apresentacao/home.js",
-  "./apresentacao/ogritech-header-logo.png", "./apresentacao/instagram.png", "./apresentacao/linkedin.png"
+  "./home.css", "./home.js", "./ogritech-header-logo.png", "./instagram.png", "./linkedin.png"
 ];
 
 self.addEventListener("install", (event) => {

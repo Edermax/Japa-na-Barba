@@ -33,7 +33,7 @@ async function validatePlatformAdmin() {
         $("adminLoading").textContent = "Não foi possível validar sua sessão. Atualize a página para tentar novamente.";
         return false;
     }
-    if (!session) { window.location.replace(environmentUrl("login.html")); return false; }
+    if (!session) { window.location.replace(environmentUrl("login/")); return false; }
     const { data: isAdmin, error } = await checkPlatformAdminWithRetry();
     if (error) {
         console.error("Falha ao validar privilégio administrativo:", error);
@@ -43,11 +43,11 @@ async function validatePlatformAdmin() {
     if (!isAdmin) {
         await supabaseClient.auth.signOut();
         sessionStorage.clear();
-        window.location.replace(environmentUrl("login.html"));
+        window.location.replace(environmentUrl("login/"));
         return false;
     }
     const { data: profile } = await supabaseClient.from("profiles").select("full_name, active").eq("id", session.user.id).single();
-    if (!profile?.active) { await supabaseClient.auth.signOut(); window.location.replace(environmentUrl("login.html")); return false; }
+    if (!profile?.active) { await supabaseClient.auth.signOut(); window.location.replace(environmentUrl("login/")); return false; }
     $("platformOwnerName").textContent = profile.full_name;
     return true;
 }
@@ -293,7 +293,7 @@ function operateBusiness(business) {
     sessionStorage.setItem("japaBarbershopId", business.barbershop_id);
     sessionStorage.setItem("japaRole", "owner");
     sessionStorage.setItem("japaUserRole", "Master Ogritech");
-    window.location.assign(environmentUrl("index.html"));
+    window.location.assign(environmentUrl("painel/"));
 }
 
 function updateEmployeeFields() { document.querySelectorAll(".employee-field").forEach((field) => field.classList.toggle("hidden", $("userRole").value !== "employee")); }
@@ -329,7 +329,7 @@ function bindEvents() {
     $("billingTableBody")?.addEventListener("click", (event) => { const button = event.target.closest("[data-billing-action]"); if (!button) return; if (button.dataset.billingAction === "pay") { const invoice = invoices.find((item) => item.id === button.dataset.id); if (invoice) openPaymentForm(invoice); } else { const payment = payments.find((item) => item.id === button.dataset.id); if (payment) openRefundForm(payment); } });
     $("newUserButton")?.addEventListener("click", () => openUserForm()); $("userRole")?.addEventListener("change", updateEmployeeFields); $("userForm")?.addEventListener("submit", saveUser); $("userBusinessFilter")?.addEventListener("change", renderUsers);
     $("usersTableBody")?.addEventListener("click", async (event) => { const button = event.target.closest("[data-user-action]"); if (!button) return; const user = users.find((item) => item.id === button.dataset.id); if (!user) return; if (button.dataset.userAction === "edit") return openUserForm(user.barbershop_id, user); if (button.dataset.userAction === "toggle") { const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "set_active", user_id: user.id, active: !user.active } }); if (result.error || result.data?.error) return alert("Não foi possível alterar o usuário."); } else if (button.dataset.userAction === "delete") { if (!confirm(`Arquivar o acesso de ${user.full_name}? O histórico será preservado.`)) return; const result = await supabaseClient.functions.invoke("platform-users", { body: { action: "delete", user_id: user.id } }); if (result.error || result.data?.error) return alert("Não foi possível arquivar o usuário."); } await loadData(); refreshViews(); });
-    $("platformLogout").addEventListener("click", async () => { const loginUrl = environmentUrl("login.html"); await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace(loginUrl); });
+    $("platformLogout").addEventListener("click", async () => { const loginUrl = environmentUrl("login/"); await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace(loginUrl); });
 }
 
 async function initializeDashboard() {

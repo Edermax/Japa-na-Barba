@@ -3,7 +3,7 @@
   "short_name": "Ogritech",
   "description": "Gestão, agenda, clientes e financeiro para negócios de serviços.",
   "lang": "pt-BR",
-  "start_url": "./",
+  "start_url": "./painel/",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",

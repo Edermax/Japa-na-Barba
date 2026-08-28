@@ -525,7 +525,7 @@ clientLogout.addEventListener(
         await supabaseClient.auth.signOut();
         ["japaAuth", "japaRole", "japaUserName", "japaUserRole", "japaUserEmail", "japaUserId", "japaBarbershopId", "japaDemo", "japaDemoSegment"]
             .forEach((key) => sessionStorage.removeItem(key));
-        window.location.replace("login.html");
+        window.location.replace("/login/");
     }
 );
 
@@ -595,7 +595,7 @@ async function initializeClientPage() {
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-        window.location.replace("login.html");
+        window.location.replace("/login/");
         return;
     }
 
@@ -607,11 +607,11 @@ async function initializeClientPage() {
 
     if (error || !profile?.active || profile.role !== "client" || !profile.barbershop_id) {
         if (profile?.role && profile.role !== "client") {
-            window.location.replace("index.html");
+            window.location.replace("/painel/");
             return;
         }
         await supabaseClient.auth.signOut();
-        window.location.replace("login.html");
+        window.location.replace("/login/");
         return;
     }
 
@@ -640,4 +640,4 @@ async function initializeClientPage() {
     renderClientAppointments();
 }
 
-initializeClientPage().catch(() => window.location.replace("login.html"));
+initializeClientPage().catch(() => window.location.replace("/login/"));

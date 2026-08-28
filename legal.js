@@ -7,10 +7,10 @@ if (legalBackLink) {
     const destination = role === "client"
         ? "cliente.html"
         : ["owner", "admin", "employee"].includes(role)
-            ? "index.html"
+            ? "/painel/"
             : isDemo
                 ? "demonstracoes.html"
-                : "login.html";
+                : "/login/";
 
     legalBackLink.href = destination;
     legalBackLink.textContent = role ? "← Voltar ao painel" : "← Voltar ao login";

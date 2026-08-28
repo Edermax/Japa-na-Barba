@@ -99,7 +99,7 @@ async function initializeAuthenticatedPage() {
 
         if (!profile.barbershop_id || !["owner", "employee"].includes(role)) {
             clearLocalSession();
-            window.location.replace(environmentUrl("login.html"));
+            window.location.replace(environmentUrl("login/"));
             return;
         }
 
@@ -108,7 +108,7 @@ async function initializeAuthenticatedPage() {
         document.documentElement.style.visibility = "visible";
         document.getElementById("logoutButton")?.addEventListener("click", () => {
             clearLocalSession();
-            window.location.replace(environmentUrl("login.html"));
+            window.location.replace(environmentUrl("login/"));
         });
         return;
     }
@@ -122,7 +122,7 @@ async function initializeAuthenticatedPage() {
 
     if (!session) {
         clearLocalSession();
-        window.location.replace(environmentUrl("login.html"));
+        window.location.replace(environmentUrl("login/"));
         return;
     }
 
@@ -138,7 +138,7 @@ async function initializeAuthenticatedPage() {
             renderUser({ role: "owner", full_name: "Master Ogritech", barbershop_id: sessionStorage.getItem("ogritechMasterBusinessId") });
             document.documentElement.style.visibility = "visible";
             document.getElementById("logoutButton")?.addEventListener("click", async () => {
-                const loginUrl = environmentUrl("login.html");
+                const loginUrl = environmentUrl("login/");
                 await supabaseClient.auth.signOut();
                 sessionStorage.clear();
                 window.location.replace(loginUrl);
@@ -157,14 +157,14 @@ async function initializeAuthenticatedPage() {
     if (error || !profile?.active) {
         await supabaseClient.auth.signOut();
         clearLocalSession();
-        window.location.replace(environmentUrl("login.html"));
+        window.location.replace(environmentUrl("login/"));
         return;
     }
 
     if (!profile.barbershop_id || !["owner", "admin", "employee", "client"].includes(profile.role)) {
         await supabaseClient.auth.signOut();
         clearLocalSession();
-        window.location.replace(environmentUrl("login.html"));
+        window.location.replace(environmentUrl("login/"));
         return;
     }
 
@@ -193,7 +193,7 @@ async function initializeAuthenticatedPage() {
         logoutButton.addEventListener("click", async () => {
             await supabaseClient.auth.signOut();
             clearLocalSession();
-            window.location.replace(environmentUrl("login.html"));
+            window.location.replace(environmentUrl("login/"));
         });
     }
 }

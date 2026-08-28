@@ -41,7 +41,8 @@ window.OGRITECH_ENV = OGRITECH_ENV;
 window.OGRITECH_SUPABASE_URL = OGRITECH_SUPABASE.url;
 window.OGRITECH_SUPABASE_PUBLISHABLE_KEY = OGRITECH_SUPABASE.publishableKey;
 window.ogritechEnvironmentUrl = (path) => {
-    const target = new URL(path, window.location.href);
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const target = new URL(normalizedPath, new URL("/", window.location.href));
     if (OGRITECH_ENV !== "production") target.searchParams.set("env", OGRITECH_ENV);
     return target.href;
 };

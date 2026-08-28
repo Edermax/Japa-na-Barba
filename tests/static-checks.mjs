@@ -12,11 +12,12 @@ for (const name of jsFiles) {
 }
 for (const name of names.filter((name) => extname(name) === ".html")) {
   const html = await readFile(new URL(name, root), "utf8");
-  if (!html.includes("<!DOCTYPE html>")) throw new Error(`${name}: DOCTYPE ausente`);
+  if (!/^<!doctype html>/i.test(html.trimStart())) throw new Error(`${name}: DOCTYPE ausente`);
   for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
     const target = match[1];
     if (/^(https?:|#|mailto:)/.test(target) || target.includes("?") || target.startsWith("data:")) continue;
-    try { await stat(new URL(target, root)); } catch { throw new Error(`${name}: referência ausente: ${target}`); }
+    const localTarget = target.startsWith("/") ? target.slice(1) : target;
+    try { await stat(new URL(localTarget, root)); } catch { throw new Error(`${name}: referência ausente: ${target}`); }
   }
 }
 
