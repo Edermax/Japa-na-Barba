@@ -69,6 +69,8 @@ footer{min-height:150px;padding:40px max(5vw,28px);display:flex;align-items:cent
 .channel-site-brand{overflow:hidden;padding:6px;background:#0c2227}.channel-site-brand img{display:block;width:100%;height:100%;object-fit:contain}
 @media (max-width:699px){.site-header{padding-inline:20px}.footer-shell{padding:48px 20px 24px}.footer-main{gap:40px}.footer-logo-frame{width:160px}.footer-channel-list a{min-height:68px}.solution-sticky{gap:24px}}
 @media (min-width:901px){.solution-icon{width:240px;height:240px}.footer-main{grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr)}}
+.footer-main{grid-template-columns:1fr}.footer-directory{width:100%}
+@media (min-width:901px){.footer-main{grid-template-columns:1fr}.footer-channel-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* Refinamento mobile-first sem índices decorativos. */
 .section-label{padding-left:38px;position:relative}.section-label::before{content:"";position:absolute;left:0;top:50%;width:24px;height:1px;background:var(--gold)}
