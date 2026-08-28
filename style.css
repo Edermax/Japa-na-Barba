@@ -605,12 +605,20 @@ input:focus,select:focus { border-color:var(--gold); }
     margin: 0 auto 22px;
     padding: 14px 18px 16px;
     border-radius: 12px;
-    background: #fff;
+    background: #0d1113;
+    border: 1px solid rgba(8, 185, 211, 0.22);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
+}
+
+.ogritech-lockup-full {
+    display: block;
+    width: min(184px, 78%);
+    height: auto;
+    object-fit: contain;
 }
 
 .ogritech-lockup-symbol {
