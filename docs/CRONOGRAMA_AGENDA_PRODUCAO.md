@@ -23,7 +23,7 @@ Status em 29/08/2026: **concluída**. O CI executou validação estática e banc
 
 Critério de aceite: cliente só visualiza horários realmente reserváveis; duas tentativas simultâneas nunca ocupam o mesmo intervalo.
 
-Status em 29/08/2026: **concluída em desenvolvimento; aguardando promoção no staging**. O painel passou a configurar serviços por profissional, jornada semanal com até dois períodos diários e folgas/bloqueios. O salvamento é transacional, rejeita períodos sobrepostos e alimenta a consulta real de horários. Uma reconstrução limpa aplicou 25 migrations; 98 testes de banco passaram e os advisors não encontraram alertas de segurança ou desempenho.
+Status em 29/08/2026: **concluída e validada no staging**. O painel passou a configurar serviços por profissional, jornada semanal com até dois períodos diários e folgas/bloqueios. O salvamento é transacional, rejeita períodos sobrepostos e alimenta a consulta real de horários. A migration foi promovida e o teste operacional remoto foi aprovado.
 
 ## Fase C — Agendamento público (04 a 07/09)
 
@@ -35,7 +35,7 @@ Status em 29/08/2026: **concluída em desenvolvimento; aguardando promoção no 
 
 Critério de aceite: uma pessoa sem conta consegue agendar pelo celular e recebe uma referência segura sem acessar dados de terceiros.
 
-Status em 29/08/2026: **concluída em desenvolvimento; aguardando promoção no staging**. Foi criada a rota mobile-first `/agendar/?empresa=...`, configurável pelo gestor, com catálogo público limitado, disponibilidade real, nome, WhatsApp, e-mail, consentimento, honeypot, limite por contato, referência e token secreto para consulta/cancelamento. O token é armazenado somente como hash no banco e nenhuma tabela operacional foi liberada ao visitante. Uma reconstrução limpa aplicou 26 migrations; 118 testes de banco passaram e os advisors não encontraram alertas.
+Status em 29/08/2026: **concluída e validada no staging**. Foi criada a rota mobile-first `/agendar/?empresa=...`, configurável pelo gestor, com catálogo público limitado, disponibilidade real, nome, WhatsApp, e-mail, consentimento, honeypot, limite por contato, referência e token secreto para consulta/cancelamento. O token é armazenado somente como hash no banco e nenhuma tabela operacional foi liberada ao visitante. Uma reconstrução limpa aplicou 26 migrations; 118 testes locais e 32 testes operacionais remotos foram aprovados. O advisor não apontou falhas no schema; permanece para a Fase E ativar a proteção de senhas vazadas no Supabase Auth.
 
 ## Fase D — Operação confiável (08 a 10/09)
 
