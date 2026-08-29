@@ -1,4 +1,6 @@
 supabase/.temp/
+supabase/.branches/
+nova-home/
 .DS_Store
 Thumbs.db
 node_modules/
