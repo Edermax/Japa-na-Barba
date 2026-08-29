@@ -34,7 +34,7 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - [x] Autorizar somente redirects HTTPS utilizados pela aplicação. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Configurar SMTP próprio e testar entrega, SPF, DKIM e DMARC. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Habilitar confirmação de e-mail e revisar validade de OTP. Evidência: `docs/evidencias/producao-2026-08-29.md`.
-- [ ] Exigir MFA para administradores da organização e da plataforma.
+- [x] Exigir MFA para administradores da organização e da plataforma. Conta proprietária protegida com dois fatores TOTP independentes; enforcement organizacional indisponível no plano Free. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Habilitar SSL Enforcement e revisar Network Restrictions. SSL habilitado; restrição de rede mantida aberta para o piloto por ausência de IP administrativo fixo. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Publicar a Edge Function usando segredos do ambiente Supabase. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [ ] Confirmar CSP, HSTS e demais cabeçalhos no host/CDN real.
