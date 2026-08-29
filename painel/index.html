@@ -4,7 +4,7 @@
     <base href="../">
     <!-- Define acentos e caracteres especiais -->
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:54321 http://localhost:54321 https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' http://127.0.0.1:54321 http://localhost:54321 https://fuesdztsvrkkgnbqhcxi.supabase.co wss://fuesdztsvrkkgnbqhcxi.supabase.co https://mvzcoaiiwytycdqcvydf.supabase.co wss://mvzcoaiiwytycdqcvydf.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
     <!-- Torna a interface responsiva -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080808">
@@ -51,6 +51,9 @@
                 <a href="#" class="menu-item" data-section="agenda"><span>◷</span>Agenda</a>
                 <a href="#" class="menu-item" data-section="servicos"><span>✂</span>Serviços</a>
                 <a href="#" class="menu-item" data-section="profissionais"><span>♟</span>Profissionais</a>
+                <a href="#" class="menu-item" data-section="landing"><span>◇</span>Landing Page</a>
+                <a href="#" class="menu-item" data-section="orcamentos"><span>▤</span>Orçamentos</a>
+                <a href="#" class="menu-item" data-section="cardapio"><span>☷</span>Cardápio</a>
                 <a href="#" class="menu-item" data-section="financeiro"><span>R$</span>Financeiro</a>
                 <a href="#" class="menu-item" data-section="configuracoes"><span>⚙</span>Configurações</a>
             </nav>
@@ -303,6 +306,34 @@
                     </article>
                 </div>
 
+                <div id="landingView" class="view-section hidden">
+                    <article class="panel module-panel commercial-panel">
+                        <div class="clients-toolbar"><div><p class="eyebrow">PRESENÇA DIGITAL</p><h2>Landing Page</h2><p class="section-description">Publique sua página comercial e acompanhe os contatos recebidos.</p></div><a class="table-button edit hidden" id="landingPublicLink" target="_blank" rel="noopener">Abrir página</a></div>
+                        <form id="landingSettingsForm" class="commercial-form" data-manager-only>
+                            <div class="form-row"><label>Título<input id="landingTitle" required maxlength="120"></label><label>Endereço público<input id="landingSlug" required pattern="[a-z0-9][a-z0-9-]{2,62}" maxlength="63"></label></div>
+                            <label>Subtítulo<textarea id="landingSubtitle" maxlength="500"></textarea></label>
+                            <div class="form-row"><label>WhatsApp<input id="landingWhatsapp" maxlength="20"></label><label>E-mail<input id="landingEmail" type="email" maxlength="320"></label></div>
+                            <label class="settings-toggle"><input type="checkbox" id="landingPublished"><span>Publicar página e formulários</span></label>
+                            <p class="form-message" id="landingMessage" role="status"></p><button class="gold-button" type="submit">Salvar Landing Page</button>
+                        </form>
+                    </article>
+                    <article class="panel module-panel"><div class="panel-header"><div><p class="eyebrow">CAPTAÇÃO</p><h2>Leads recebidos</h2></div></div><div id="landingLeadsList" class="commercial-list"></div></article>
+                </div>
+
+                <div id="quotesView" class="view-section hidden">
+                    <article class="panel module-panel"><div class="clients-toolbar"><div><p class="eyebrow">NEGOCIAÇÃO</p><h2>Solicitações de orçamento</h2><p class="section-description">Transforme briefings em propostas comerciais rastreáveis.</p></div></div><div id="quoteRequestsList" class="commercial-list"></div></article>
+                    <article class="panel module-panel hidden" id="quoteComposer"><div class="panel-header"><div><p class="eyebrow">PROPOSTA</p><h2 id="quoteComposerTitle">Nova proposta</h2></div></div>
+                        <form id="quoteProposalForm" class="commercial-form"><input type="hidden" id="quoteRequestId"><label>Título<input id="proposalTitle" required maxlength="160"></label><label>Escopo<textarea id="proposalScope" maxlength="6000"></textarea></label><div class="form-row"><label>Descrição do item<input id="proposalItemDescription" required maxlength="300"></label><label>Valor (R$)<input id="proposalItemPrice" type="number" min="0.01" step="0.01" required></label></div><label>Validade<input id="proposalValidUntil" type="date"></label><p class="form-message" id="proposalMessage"></p><button class="gold-button" type="submit">Criar e gerar link</button></form>
+                    </article>
+                </div>
+
+                <div id="menuView" class="view-section hidden">
+                    <article class="panel module-panel commercial-panel"><div class="clients-toolbar"><div><p class="eyebrow">VENDAS</p><h2>Cardápio Online</h2><p class="section-description">Configure o canal público, produtos e preços.</p></div><a class="table-button edit hidden" id="menuPublicLink" target="_blank" rel="noopener">Abrir cardápio</a></div>
+                        <form id="menuSettingsForm" class="commercial-form" data-manager-only><div class="form-row"><label>Título<input id="menuTitle" required maxlength="120"></label><label>Endereço público<input id="menuSlug" required pattern="[a-z0-9][a-z0-9-]{2,62}" maxlength="63"></label></div><label>Descrição<textarea id="menuDescription" maxlength="1000"></textarea></label><div class="form-row"><label>Pedido mínimo<input id="menuMinimum" type="number" min="0" step="0.01" value="0"></label><label>Taxa de entrega<input id="menuDeliveryFee" type="number" min="0" step="0.01" value="0"></label></div><label class="settings-toggle"><input id="menuAcceptsDelivery" type="checkbox"><span>Aceitar entrega</span></label><label class="settings-toggle"><input id="menuPublished" type="checkbox"><span>Publicar cardápio</span></label><p class="form-message" id="menuMessage"></p><button class="gold-button" type="submit">Salvar cardápio</button></form>
+                    </article>
+                    <div class="commercial-grid"><article class="panel module-panel"><div class="panel-header"><div><p class="eyebrow">CATÁLOGO</p><h2>Novo item</h2></div></div><form id="menuItemForm" class="commercial-form"><label>Categoria<input id="menuCategoryName" required maxlength="100" placeholder="Ex.: Lanches"></label><label>Produto<input id="menuItemName" required maxlength="160"></label><div class="form-row"><label>Variação<input id="menuPriceLabel" value="Padrão" maxlength="80"></label><label>Preço<input id="menuItemPrice" type="number" min="0" step="0.01" required></label></div><button class="gold-button" type="submit">Adicionar item</button></form><div id="menuCatalogList" class="commercial-list"></div></article><article class="panel module-panel"><div class="panel-header"><div><p class="eyebrow">OPERAÇÃO</p><h2>Pedidos recentes</h2></div></div><div id="menuOrdersList" class="commercial-list"></div></article></div>
+                </div>
+
                 <div id="financialView" class="view-section hidden" data-owner-only>
                     <div class="stats-grid finance-summary"><article class="stat-card"><span>Entradas</span><strong id="financeIncome">R$ 0</strong><small>No período</small></article><article class="stat-card"><span>Saídas</span><strong id="financeExpense">R$ 0</strong><small>No período</small></article><article class="stat-card"><span>Saldo</span><strong id="financeBalance">R$ 0</strong><small>No período</small></article></div>
                     <article class="panel module-panel"><div class="clients-toolbar"><div><p class="eyebrow">FLUXO DE CAIXA</p><h2>Lançamentos</h2><p class="section-description">Registre receitas e despesas do negócio.</p></div><button class="gold-button" id="newFinancialButton">+ Novo lançamento</button></div><div class="agenda-filters compact-filters"><label>De<input type="date" id="financeStart"></label><label>Até<input type="date" id="financeEnd"></label><label>Tipo<select id="financeTypeFilter"><option value="all">Todos</option><option value="income">Entradas</option><option value="expense">Saídas</option></select></label></div><div class="table-wrapper"><table class="clients-table"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead><tbody id="financialTableBody"></tbody></table></div><div class="empty-state hidden" id="financialEmpty"><strong>Nenhum lançamento encontrado.</strong><span>Registre uma entrada ou saída para começar.</span></div></article>
@@ -489,6 +520,7 @@
 
     <!-- JavaScript principal do dashboard -->
     <script src="script.js"></script>
+    <script src="commercial-admin.js"></script>
     <script src="pwa.js"></script>
 </body>
 </html>

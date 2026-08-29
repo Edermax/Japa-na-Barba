@@ -1730,3 +1730,4 @@ textarea:focus {
 .platform-brand-link {
     display: block;
 }
+.commercial-form{display:grid;gap:16px;margin-top:22px}.commercial-form textarea{min-height:96px;resize:vertical}.commercial-list{display:grid;gap:12px;margin-top:18px}.commercial-list article{border:1px solid #ffffff18;border-radius:14px;padding:16px;background:#ffffff05;display:grid;gap:8px}.commercial-list article header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.commercial-list article p{margin:0;color:#aaa}.commercial-list article small{color:#777}.commercial-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.commercial-actions{display:flex;gap:8px;flex-wrap:wrap}.commercial-badge{display:inline-flex;width:max-content;padding:4px 9px;border-radius:999px;background:#c9a22722;color:#d9b84d;font-size:12px;font-weight:700}@media(max-width:900px){.commercial-grid{grid-template-columns:1fr}}

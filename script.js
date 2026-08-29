@@ -74,6 +74,9 @@ const servicesView = document.getElementById("servicesView");
 const professionalsView = document.getElementById("professionalsView");
 const financialView = document.getElementById("financialView");
 const settingsView = document.getElementById("settingsView");
+const landingView = document.getElementById("landingView");
+const quotesView = document.getElementById("quotesView");
+const menuView = document.getElementById("menuView");
 
 const openAppointmentButton = document.getElementById("newAppointment");
 const agendaNewAppointment = document.getElementById("agendaNewAppointment");
@@ -448,6 +451,9 @@ function hideAllViews() {
     professionalsView.classList.add("hidden");
     financialView.classList.add("hidden");
     settingsView.classList.add("hidden");
+    landingView.classList.add("hidden");
+    quotesView.classList.add("hidden");
+    menuView.classList.add("hidden");
 }
 
 function showSection(section) {
@@ -477,6 +483,15 @@ function showSection(section) {
         settingsView.classList.remove("hidden");
         openAppointmentButton.classList.add("hidden");
         renderSettings();
+    } else if (section === "landing") {
+        landingView.classList.remove("hidden"); openAppointmentButton.classList.add("hidden");
+        window.loadLandingAdmin?.();
+    } else if (section === "orcamentos") {
+        quotesView.classList.remove("hidden"); openAppointmentButton.classList.add("hidden");
+        window.loadQuotesAdmin?.();
+    } else if (section === "cardapio") {
+        menuView.classList.remove("hidden"); openAppointmentButton.classList.add("hidden");
+        window.loadMenuAdmin?.();
     } else {
         dashboardView.classList.remove("hidden");
         openAppointmentButton.classList.remove("hidden");

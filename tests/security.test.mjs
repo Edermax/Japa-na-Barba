@@ -137,3 +137,26 @@ test("agendamento público expõe somente RPCs limitadas e tokens protegidos", a
   assert.match(migration, /grant execute on function public\.public_booking_page[\s\S]+to anon,authenticated/i);
   assert.doesNotMatch(migration, /grant\s+(?:select|insert|update|delete)[\s\S]{0,100}to\s+anon/i);
 });
+
+test("soluções comerciais possuem telas funcionais e RPCs públicas limitadas", async () => {
+  const [migration, admin, landing, menu, proposal, order, panel] = await Promise.all([
+    readFile(new URL("supabase/migrations/20260829145553_public_commercial_flows.sql", root), "utf8"),
+    readFile(new URL("commercial-admin.js", root), "utf8"),
+    readFile(new URL("pagina/pagina.js", root), "utf8"),
+    readFile(new URL("cardapio/cardapio.js", root), "utf8"),
+    readFile(new URL("proposta/proposta.js", root), "utf8"),
+    readFile(new URL("pedido/pedido.js", root), "utf8"),
+    readFile(new URL("painel/index.html", root), "utf8")
+  ]);
+  for (const marker of ["private.public_submit_landing_lead", "private.public_submit_quote_request", "private.public_create_menu_order", "private.public_commercial_attempts", "digest(secret_token,'sha256')", "accepted_privacy"]) assert.ok(migration.includes(marker), marker);
+  for (const marker of ["loadLandingAdmin", "loadQuotesAdmin", "loadMenuAdmin", "send_quote_proposal"]) assert.ok(admin.includes(marker), marker);
+  assert.match(landing, /public_submit_landing_lead/);
+  assert.match(landing, /public_submit_quote_request/);
+  assert.match(menu, /public_create_menu_order/);
+  assert.match(proposal, /public_respond_quote_proposal/);
+  assert.match(order, /public_get_menu_order/);
+  assert.match(panel, /data-section="landing"/);
+  assert.match(panel, /data-section="orcamentos"/);
+  assert.match(panel, /data-section="cardapio"/);
+  assert.doesNotMatch([admin, landing, menu, proposal, order].join("\n"), /service_role/i);
+});
