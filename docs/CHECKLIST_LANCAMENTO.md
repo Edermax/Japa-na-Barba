@@ -16,7 +16,7 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 
 ## Staging — bloqueia produção
 
-- [ ] Criar projeto Supabase de staging sem dados reais.
+- [x] Criar projeto Supabase de staging sem dados reais. Evidência: `docs/evidencias/staging-2026-08-26.md`.
 - [x] Configurar Site URL e redirects de staging. Evidência: `docs/evidencias/staging-2026-08-26.md`, complemento de 2026-08-27.
 - [x] Aplicar todas as migrations em banco vazio. Evidência: `docs/evidencias/staging-2026-08-26.md`.
 - [x] Executar `supabase test db` e salvar o log da execução. Evidência: `docs/evidencias/staging-2026-08-26.md`.
@@ -30,13 +30,13 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 
 ## Produção — infraestrutura
 
-- [ ] Configurar `https://ogritech.com.br` como Site URL do Auth.
-- [ ] Autorizar somente redirects HTTPS utilizados pela aplicação.
-- [ ] Configurar SMTP próprio e testar entrega, SPF, DKIM e DMARC.
-- [ ] Habilitar confirmação de e-mail e revisar validade de OTP.
+- [x] Configurar `https://ogritech.com.br` como Site URL do Auth. Evidência: `docs/evidencias/producao-2026-08-29.md`.
+- [x] Autorizar somente redirects HTTPS utilizados pela aplicação. Evidência: `docs/evidencias/producao-2026-08-29.md`.
+- [x] Configurar SMTP próprio e testar entrega, SPF, DKIM e DMARC. Evidência: `docs/evidencias/producao-2026-08-29.md`.
+- [x] Habilitar confirmação de e-mail e revisar validade de OTP. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [ ] Exigir MFA para administradores da organização e da plataforma.
-- [ ] Habilitar SSL Enforcement e revisar Network Restrictions.
-- [ ] Publicar a Edge Function usando segredos do ambiente Supabase.
+- [x] Habilitar SSL Enforcement e revisar Network Restrictions. SSL habilitado; restrição de rede mantida aberta para o piloto por ausência de IP administrativo fixo. Evidência: `docs/evidencias/producao-2026-08-29.md`.
+- [x] Publicar a Edge Function usando segredos do ambiente Supabase. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [ ] Confirmar CSP, HSTS e demais cabeçalhos no host/CDN real.
 - [ ] Configurar alertas para 5xx, 429, falhas de Auth e latência p95.
 - [ ] Definir backup, retenção, RPO e RTO.
