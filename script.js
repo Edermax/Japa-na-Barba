@@ -34,6 +34,7 @@ let professionalsCache = [];
 let employeeServicesCache = [];
 let workingHoursCache = [];
 let timeOffCache = [];
+let appointmentNotificationsCache = [];
 let availabilityDraftTimeOff = [];
 let financialCache = [];
 let businessSettingsCache = {};
@@ -203,6 +204,65 @@ const STATUS_INFO = {
 function statusInfo(status) {
     return STATUS_INFO[status] || STATUS_INFO.requested;
 }
+
+const STATUS_ACTION_LABELS = {
+    confirmed: "Confirmar agendamento",
+    completed: "Concluir atendimento",
+    cancelled: "Cancelar agendamento",
+    no_show: "Registrar ausência"
+};
+
+function formatDateTime(value) {
+    return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+}
+
+function renderNotifications() {
+    const list = document.getElementById("notificationList");
+    const empty = document.getElementById("notificationEmpty");
+    const badge = document.getElementById("notificationBadge");
+    if (!list || !empty || !badge) return;
+    const unread = appointmentNotificationsCache.filter((item) => item.status === "unread").length;
+    badge.textContent = unread > 99 ? "99+" : String(unread);
+    badge.classList.toggle("hidden", unread === 0);
+    list.innerHTML = appointmentNotificationsCache.map((item) => `
+        <button class="notification-item ${item.status === "unread" ? "is-unread" : ""}" type="button" data-notification-id="${item.id}">
+            <strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.body)}</span><small>${formatDateTime(item.created_at)}</small>
+        </button>`).join("");
+    empty.classList.toggle("hidden", appointmentNotificationsCache.length > 0);
+}
+
+async function refreshNotifications() {
+    if (IS_DEMO) { appointmentNotificationsCache = []; renderNotifications(); return; }
+    const { data, error } = await supabaseClient.from("appointment_notifications")
+        .select("id,title,body,status,created_at,appointment_id")
+        .eq("barbershop_id", BARBERSHOP_ID).eq("audience", "business").eq("channel", "in_app")
+        .order("created_at", { ascending: false }).limit(30);
+    if (error) return reportDataError("carregar as notificações", error);
+    appointmentNotificationsCache = data || [];
+    renderNotifications();
+}
+
+const notificationButton = document.getElementById("notificationButton");
+const notificationPopover = document.getElementById("notificationPopover");
+notificationButton?.addEventListener("click", () => {
+    const opening = notificationPopover.classList.contains("hidden");
+    notificationPopover.classList.toggle("hidden", !opening);
+    notificationButton.setAttribute("aria-expanded", String(opening));
+});
+document.getElementById("closeNotifications")?.addEventListener("click", () => {
+    notificationPopover.classList.add("hidden");
+    notificationButton.setAttribute("aria-expanded", "false");
+});
+document.getElementById("notificationList")?.addEventListener("click", async (event) => {
+    const item = event.target.closest("[data-notification-id]");
+    if (!item || IS_DEMO) return;
+    const notification = appointmentNotificationsCache.find((entry) => entry.id === item.dataset.notificationId);
+    if (!notification || notification.status !== "unread") return;
+    const { error } = await supabaseClient.rpc("mark_appointment_notification_read", { target_notification_id: notification.id });
+    if (error) return reportDataError("marcar a notificação como lida", error);
+    notification.status = "read";
+    renderNotifications();
+});
 
 // =========================================================
 // 5. DADOS DA AGENDA (SUPABASE; LOCALSTORAGE SOMENTE NO DEMO)
@@ -409,11 +469,17 @@ appointmentForm.addEventListener("submit", async (event) => {
         });
         if (error) return reportDataError("criar o agendamento", error);
         const created = appointmentFromDatabase(data);
-        const { error: confirmError } = await supabaseClient.from("business_appointments").update({ status: "confirmed" }).eq("id", created.id);
+        const { data: confirmedData, error: confirmError } = await supabaseClient.rpc("transition_appointment_status", {
+            target_appointment_id: created.id,
+            target_status: "confirmed",
+            expected_updated_at: created.updatedAt,
+            operation_note: "Agendamento criado pela equipe"
+        });
         if (confirmError) return reportDataError("confirmar o agendamento", confirmError);
-        created.status = "confirmed";
-        appointmentsCache.push(created); remoteAppointmentIds.add(created.id);
+        const confirmed = appointmentFromDatabase(confirmedData);
+        appointmentsCache.push(confirmed); remoteAppointmentIds.add(confirmed.id);
         renderAgenda(); renderDashboardAgenda(); renderBusinessIndicators();
+        await refreshNotifications();
     }
 
     closeAppointmentModal();
@@ -772,12 +838,12 @@ function renderAgenda() {
             actions.push(
                 `<button class="table-button edit" data-agenda-status="${appointment.id}" data-new-status="confirmed">Confirmar</button>`
             );
+            actions.push(
+                `<button class="table-button delete" data-agenda-status="${appointment.id}" data-new-status="cancelled">Cancelar</button>`
+            );
         }
 
-        if (
-            appointment.status === "confirmed" ||
-            appointment.status === "requested"
-        ) {
+        if (appointment.status === "confirmed") {
             actions.push(
                 `<button class="table-button success" data-agenda-status="${appointment.id}" data-new-status="completed">Concluir</button>`
             );
@@ -790,6 +856,8 @@ function renderAgenda() {
                 `<button class="table-button delete" data-agenda-status="${appointment.id}" data-new-status="cancelled">Cancelar</button>`
             );
         }
+
+        actions.push(`<button class="table-button" data-appointment-history="${appointment.id}">Histórico</button>`);
 
         card.innerHTML = `
             <div class="agenda-time-block">
@@ -836,6 +904,11 @@ agendaProfessionalFilter.addEventListener("change", renderAgenda);
 agendaStatusFilter.addEventListener("change", renderAgenda);
 
 agendaList.addEventListener("click", async (event) => {
+    const historyButton = event.target.closest("[data-appointment-history]");
+    if (historyButton) {
+        await openAppointmentHistory(historyButton.dataset.appointmentHistory);
+        return;
+    }
     const button =
         event.target.closest("[data-agenda-status]");
 
@@ -863,12 +936,87 @@ agendaList.addEventListener("click", async (event) => {
         appointments[index].professional !== employeeProfessional
     ) return;
 
-    appointments[index].status = newStatus;
-    appointments[index].updatedAt =
-        new Date().toISOString();
-
-    await saveAppointments(appointments);
+    openStatusTransition(appointments[index], newStatus);
 });
+
+const statusTransitionModal = document.getElementById("statusTransitionModal");
+const statusTransitionForm = document.getElementById("statusTransitionForm");
+
+function openStatusTransition(appointment, newStatus) {
+    document.getElementById("statusAppointmentId").value = appointment.id;
+    document.getElementById("statusTargetValue").value = newStatus;
+    document.getElementById("statusTransitionTitle").textContent = STATUS_ACTION_LABELS[newStatus] || "Atualizar atendimento";
+    document.getElementById("statusTransitionDescription").textContent = `${appointment.clientName} • ${appointment.service} • ${formatDate(appointment.date)} às ${appointment.time}`;
+    document.getElementById("statusTransitionNote").value = "";
+    document.getElementById("statusTransitionMessage").textContent = "";
+    statusTransitionModal.classList.remove("hidden");
+}
+
+function closeStatusTransition() { statusTransitionModal.classList.add("hidden"); }
+document.getElementById("closeStatusTransition").addEventListener("click", closeStatusTransition);
+
+statusTransitionForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const appointmentId = document.getElementById("statusAppointmentId").value;
+    const targetStatus = document.getElementById("statusTargetValue").value;
+    const note = document.getElementById("statusTransitionNote").value.trim();
+    const message = document.getElementById("statusTransitionMessage");
+    const submit = document.getElementById("confirmStatusTransition");
+    const appointment = getAppointments().find((item) => item.id === appointmentId);
+    if (!appointment) return;
+
+    submit.disabled = true;
+    submit.textContent = "Processando...";
+    if (IS_DEMO) {
+        appointment.status = targetStatus;
+        appointment.updatedAt = new Date().toISOString();
+        await saveAppointments(getAppointments());
+        closeStatusTransition();
+    } else {
+        const { data, error } = await supabaseClient.rpc("transition_appointment_status", {
+            target_appointment_id: appointmentId,
+            target_status: targetStatus,
+            expected_updated_at: appointment.updatedAt,
+            operation_note: note
+        });
+        if (error) {
+            message.textContent = error.message || "Não foi possível atualizar o atendimento.";
+            message.className = "form-message error";
+            if (error.code === "40001") {
+                await loadOperationalData();
+                renderAgenda(); renderDashboardAgenda(); renderBusinessIndicators();
+            }
+        } else {
+            const index = appointmentsCache.findIndex((item) => item.id === appointmentId);
+            appointmentsCache[index] = appointmentFromDatabase(data);
+            renderAgenda(); renderDashboardAgenda(); renderBusinessIndicators();
+            await refreshNotifications();
+            closeStatusTransition();
+        }
+    }
+    submit.disabled = false;
+    submit.textContent = "Confirmar alteração";
+});
+
+async function openAppointmentHistory(appointmentId) {
+    const modal = document.getElementById("appointmentHistoryModal");
+    const list = document.getElementById("appointmentHistoryList");
+    list.innerHTML = '<p class="section-description">Carregando histórico...</p>';
+    modal.classList.remove("hidden");
+    if (IS_DEMO) { list.innerHTML = '<div class="empty-state"><strong>Histórico disponível em contas reais.</strong></div>'; return; }
+    const { data, error } = await supabaseClient.from("appointment_status_events")
+        .select("id,from_status,to_status,actor_role,source,note,created_at")
+        .eq("appointment_id", appointmentId).order("created_at", { ascending: false });
+    if (error) { list.innerHTML = `<p class="form-message error">${escapeHtml(error.message)}</p>`; return; }
+    list.innerHTML = (data || []).map((item) => `
+        <article class="history-item"><span class="history-marker"></span><div>
+            <strong>${escapeHtml(statusInfo(item.to_status).label)}</strong>
+            <span>${formatDateTime(item.created_at)} • ${escapeHtml(item.actor_role || (item.source === "public_booking" ? "Cliente" : "Sistema"))}</span>
+            ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}
+        </div></article>`).join("") || '<div class="empty-state"><strong>Nenhum evento registrado.</strong></div>';
+}
+
+document.getElementById("closeAppointmentHistory").addEventListener("click", () => document.getElementById("appointmentHistoryModal").classList.add("hidden"));
 
 // =========================================================
 // 10. MÓDULO DE CLIENTES
@@ -1597,6 +1745,7 @@ async function initializeOperationalDashboard() {
     if (savedSettings.segment) businessConfig.segment = savedSettings.segment;
     if (!BARBERSHOP_ID) return;
     await loadOperationalData();
+    await refreshNotifications();
     updateClientCount();
     renderClients();
     renderDashboardAgenda();

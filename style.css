@@ -199,6 +199,21 @@ button, a, input, select, textarea { touch-action:manipulation; }
 
 .topbar-actions { display:flex; align-items:center; gap:14px; }
 .topbar-actions .text-button { display:inline-flex; align-items:center; min-height:38px; }
+.notification-center { position:relative; }
+.notification-button { position:relative; width:42px; height:42px; border:1px solid var(--border); border-radius:50%; background:var(--black2); color:var(--gold-light); cursor:pointer; transition:.2s ease; }
+.notification-button:hover,.notification-button[aria-expanded="true"] { border-color:var(--gold); background:rgba(207,165,74,.1); }
+.notification-badge { position:absolute; top:-5px; right:-5px; min-width:19px; height:19px; padding:0 5px; display:grid; place-items:center; border-radius:10px; background:#e06f6f; color:#fff; font-size:9px; font-weight:800; }
+.notification-popover { position:absolute; z-index:40; top:52px; right:0; width:min(390px,calc(100vw - 32px)); max-height:520px; overflow:auto; padding:18px; border:1px solid var(--border); border-radius:12px; background:#0b1012; box-shadow:0 24px 70px rgba(0,0,0,.5); }
+.notification-heading { display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--border); }
+.notification-heading h2 { font-size:18px; }
+.close-button.compact { position:static; width:30px; height:30px; }
+.notification-list { display:flex; flex-direction:column; }
+.notification-item { padding:14px 10px; border:0; border-bottom:1px solid var(--border); background:transparent; color:var(--white); text-align:left; cursor:pointer; }
+.notification-item strong,.notification-item span,.notification-item small { display:block; }
+.notification-item strong { font-size:12px; }
+.notification-item span { margin-top:5px; color:var(--gray); font-size:10px; line-height:1.5; }
+.notification-item small { margin-top:7px; color:var(--gray-dark); font-size:9px; }
+.notification-item.is-unread { border-left:2px solid var(--gold); background:rgba(207,165,74,.06); }
 
 .eyebrow {
     color:var(--gold);
@@ -1563,6 +1578,17 @@ textarea:focus {
     margin-top: 9px;
 }
 
+.status-transition-box { max-width:520px; }
+.appointment-history-box { max-width:620px; }
+.appointment-history-list { display:flex; flex-direction:column; margin-top:22px; }
+.history-item { position:relative; display:grid; grid-template-columns:18px 1fr; gap:12px; padding-bottom:20px; }
+.history-item:not(:last-child)::before { content:""; position:absolute; left:6px; top:14px; bottom:0; width:1px; background:var(--border); }
+.history-marker { position:relative; z-index:1; width:13px; height:13px; margin-top:2px; border:3px solid #0b1012; border-radius:50%; background:var(--gold); box-shadow:0 0 0 1px var(--gold); }
+.history-item strong,.history-item span { display:block; }
+.history-item strong { font-size:13px; }
+.history-item span { margin-top:4px; color:var(--gray); font-size:10px; }
+.history-item p { margin-top:8px; padding:9px 11px; border-radius:7px; background:var(--black2); color:var(--gray); font-size:10px; line-height:1.5; }
+
 /* Novos estados */
 .status.completed {
     color: #6fd6b0;
@@ -1642,6 +1668,9 @@ textarea:focus {
         grid-column: auto;
         padding-left: 0;
     }
+
+    .notification-center { align-self:flex-end; }
+    .notification-popover { position:fixed; top:16px; right:16px; left:16px; width:auto; max-height:calc(100vh - 32px); }
 }
 
 /* =========================================================

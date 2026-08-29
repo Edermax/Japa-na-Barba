@@ -81,7 +81,20 @@
                     <h1 id="page-title">Dashboard</h1>
                 </div>
                 <!-- Abre o modal de agendamento -->
-                <div class="topbar-actions"><a class="text-button hidden" id="backToShowcase" href="demonstracoes.html">← Voltar às demonstrações</a><button class="gold-button" id="newAppointment">+ Novo agendamento</button></div>
+                <div class="topbar-actions">
+                    <a class="text-button hidden" id="backToShowcase" href="demonstracoes.html">← Voltar às demonstrações</a>
+                    <div class="notification-center">
+                        <button class="notification-button" id="notificationButton" type="button" aria-label="Abrir notificações" aria-expanded="false">
+                            <span aria-hidden="true">◉</span><span class="notification-badge hidden" id="notificationBadge">0</span>
+                        </button>
+                        <aside class="notification-popover hidden" id="notificationPopover" aria-label="Notificações">
+                            <div class="notification-heading"><div><p class="eyebrow">ATUALIZAÇÕES</p><h2>Notificações</h2></div><button class="close-button compact" id="closeNotifications" type="button" aria-label="Fechar">×</button></div>
+                            <div class="notification-list" id="notificationList"></div>
+                            <div class="empty-state hidden" id="notificationEmpty"><strong>Tudo em dia.</strong><span>Novas movimentações da agenda aparecerão aqui.</span></div>
+                        </aside>
+                    </div>
+                    <button class="gold-button" id="newAppointment">+ Novo agendamento</button>
+                </div>
             </header>
 
             <section id="content">
@@ -507,6 +520,29 @@
     </div>
 
     <div class="modal hidden" id="financialModal"><div class="modal-box"><button class="close-button" data-close-modal="financialModal" type="button">×</button><p class="eyebrow">FINANCEIRO</p><h2>Novo lançamento</h2><form id="financialForm"><label>Tipo<select id="financialType" required><option value="income">Entrada</option><option value="expense">Saída</option></select></label><label>Descrição<input id="financialDescription" required maxlength="120"></label><div class="form-row"><label>Categoria<input id="financialCategory" required maxlength="60"></label><label>Valor (R$)<input id="financialAmount" type="number" min="0.01" step="0.01" required></label></div><div class="form-row"><label>Data<input id="financialDate" type="date" required></label><label>Pagamento<select id="financialPayment"><option value="pix">Pix</option><option value="cash">Dinheiro</option><option value="card">Cartão</option><option value="other">Outro</option></select></label></div><button class="gold-button full" type="submit">Salvar lançamento</button></form></div></div>
+
+    <div class="modal hidden" id="statusTransitionModal">
+        <div class="modal-box status-transition-box">
+            <button class="close-button" id="closeStatusTransition" type="button" aria-label="Fechar">×</button>
+            <p class="eyebrow">ALTERAÇÃO SEGURA</p>
+            <h2 id="statusTransitionTitle">Atualizar atendimento</h2>
+            <p class="section-description" id="statusTransitionDescription"></p>
+            <form id="statusTransitionForm">
+                <input type="hidden" id="statusAppointmentId"><input type="hidden" id="statusTargetValue">
+                <label>Observação (opcional)<textarea id="statusTransitionNote" rows="3" maxlength="500" placeholder="Ex.: confirmado por telefone às 14h"></textarea></label>
+                <p class="form-message" id="statusTransitionMessage" role="status"></p>
+                <button class="gold-button full" id="confirmStatusTransition" type="submit">Confirmar alteração</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="appointmentHistoryModal">
+        <div class="modal-box appointment-history-box">
+            <button class="close-button" id="closeAppointmentHistory" type="button" aria-label="Fechar">×</button>
+            <p class="eyebrow">AUDITORIA</p><h2>Histórico do atendimento</h2>
+            <div class="appointment-history-list" id="appointmentHistoryList"></div>
+        </div>
+    </div>
 
     <footer class="app-legal-links"><a href="mailto:suporte@ogritech.com.br">Suporte</a><a href="privacidade.html">Privacidade</a><a href="termos.html">Termos de Uso</a><a href="mailto:privacidade@ogritech.com.br">Canal do titular</a></footer>
 

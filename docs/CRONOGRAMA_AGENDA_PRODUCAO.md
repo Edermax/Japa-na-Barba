@@ -46,6 +46,8 @@ Status em 29/08/2026: **concluída e validada no staging**. Foi criada a rota mo
 
 Critério de aceite: todas as mudanças de estado são atômicas, auditáveis e notificadas.
 
+Status em 29/08/2026: **núcleo operacional concluído e validado no staging**. Confirmação, conclusão, ausência e cancelamento agora usam uma RPC com bloqueio de linha, versão esperada, autorização por vínculo profissional e máquina de estados. Atualizações diretas de status foram bloqueadas. Cada criação ou transição grava um evento imutável e gera, na mesma transação, uma notificação interna e uma mensagem de e-mail na fila durável. O painel recebeu central de notificações, contagem de não lidas, registro de leitura, confirmação com observação e histórico por atendimento. A reconstrução limpa aprovou 180 testes de banco e 12 testes do frontend. O transporte SMTP/e-mail e a telemetria externa permanecem para a Fase E, pois exigem credenciais e domínio do provedor.
+
 ## Fase E — Produção e piloto (11 a 15/09)
 
 - Aplicar migrations no projeto de produção com backup e plano de rollback.
