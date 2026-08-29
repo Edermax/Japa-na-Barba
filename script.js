@@ -20,6 +20,7 @@ const CLIENTS_STORAGE_KEY = `japaNaBarbaClients:${BARBERSHOP_ID}`;
 const APPOINTMENTS_STORAGE_KEY = `japaNaBarbaAppointments:${BARBERSHOP_ID}`;
 const SERVICES_STORAGE_KEY = `ogritechServices:${BARBERSHOP_ID}`;
 const PROFESSIONALS_STORAGE_KEY = `ogritechProfessionals:${BARBERSHOP_ID}`;
+const AVAILABILITY_STORAGE_KEY = `ogritechAvailability:${BARBERSHOP_ID}`;
 const FINANCIAL_STORAGE_KEY = `ogritechFinancial:${BARBERSHOP_ID}`;
 const SETTINGS_STORAGE_KEY = `ogritechSettings:${BARBERSHOP_ID}`;
 const IS_DEMO = sessionStorage.getItem("japaDemo") === "true";
@@ -30,6 +31,10 @@ let remoteClientIds = new Set();
 let privacyRequestsCache = [];
 let servicesCache = [];
 let professionalsCache = [];
+let employeeServicesCache = [];
+let workingHoursCache = [];
+let timeOffCache = [];
+let availabilityDraftTimeOff = [];
 let financialCache = [];
 let businessSettingsCache = {};
 
@@ -1226,7 +1231,7 @@ function renderServices() {
 function renderProfessionals() {
     document.getElementById("professionalsTableBody").innerHTML = getProfessionals().map((professional) => {
         const future = getAppointments().filter((item) => item.professional === professional.name && item.date >= todayISO() && !["cancelled", "completed"].includes(item.status)).length;
-        return `<tr><td><strong>${escapeHtml(professional.name)}</strong></td><td>${escapeHtml(professional.specialty || "Atendimento geral")}</td><td>${Number(professional.commission_percentage || 0).toLocaleString("pt-BR")}%</td><td><button class="table-button edit" data-professional-agenda="${escapeHtml(professional.name)}">${future} próximos</button></td><td><div class="table-actions"><button class="table-button edit" data-edit-professional="${professional.id}">Editar</button><button class="table-button delete" data-delete-professional="${professional.id}">Excluir</button></div></td></tr>`;
+        return `<tr><td><strong>${escapeHtml(professional.name)}</strong></td><td>${escapeHtml(professional.specialty || "Atendimento geral")}</td><td>${Number(professional.commission_percentage || 0).toLocaleString("pt-BR")}%</td><td><button class="table-button edit" data-professional-agenda="${escapeHtml(professional.name)}">${future} próximos</button></td><td><div class="table-actions"><button class="table-button edit" data-professional-availability="${professional.id}">Disponibilidade</button><button class="table-button edit" data-edit-professional="${professional.id}">Editar</button><button class="table-button delete" data-delete-professional="${professional.id}">Excluir</button></div></td></tr>`;
     }).join("");
 }
 
@@ -1251,6 +1256,75 @@ function openProfessionalModal(professional = {}) {
     document.getElementById("professionalCommission").value = professional.commission_percentage || 0;
     document.getElementById("professionalModalTitle").textContent = professional.id ? "Editar profissional" : "Novo profissional";
     document.getElementById("professionalModal").classList.remove("hidden");
+}
+
+const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+function getDemoAvailability(employeeId) {
+    try { return JSON.parse(localStorage.getItem(AVAILABILITY_STORAGE_KEY) || "{}")[employeeId] || null; }
+    catch { return null; }
+}
+
+function availabilityFor(employeeId) {
+    if (IS_DEMO) {
+        const stored = getDemoAvailability(employeeId);
+        if (stored) return stored;
+    }
+    const assignedIds = employeeServicesCache.filter((item) => item.employee_id === employeeId).map((item) => item.service_id);
+    const hours = workingHoursCache.filter((item) => item.employee_id === employeeId);
+    const timeOff = timeOffCache.filter((item) => item.employee_id === employeeId);
+    return {
+        serviceIds: assignedIds.length ? assignedIds : getServices().map((item) => item.id),
+        hours,
+        timeOff
+    };
+}
+
+function renderTimeOffDraft() {
+    const list = document.getElementById("timeOffList");
+    if (!availabilityDraftTimeOff.length) {
+        list.innerHTML = '<p class="time-off-empty">Nenhuma folga ou bloqueio cadastrado.</p>';
+        return;
+    }
+    list.innerHTML = availabilityDraftTimeOff.map((item, index) => {
+        const start = new Date(item.starts_at).toLocaleString("pt-BR", { dateStyle:"short", timeStyle:"short" });
+        const end = new Date(item.ends_at).toLocaleString("pt-BR", { dateStyle:"short", timeStyle:"short" });
+        return `<div class="time-off-item"><div><strong>${start} até ${end}</strong><small>${escapeHtml(item.reason || "Sem motivo informado")}</small></div><button class="table-button delete" type="button" data-remove-time-off="${index}">Remover</button></div>`;
+    }).join("");
+}
+
+function openAvailabilityModal(professional) {
+    const availability = availabilityFor(professional.id);
+    document.getElementById("availabilityEmployeeId").value = professional.id;
+    document.getElementById("availabilityModalTitle").textContent = professional.name;
+    document.getElementById("availabilityMessage").textContent = "";
+    document.getElementById("availabilityServices").innerHTML = getServices().map((service) => `<label class="service-check"><input type="checkbox" value="${service.id}" ${availability.serviceIds.includes(service.id) ? "checked" : ""}><span>${escapeHtml(service.name)}</span></label>`).join("");
+    document.getElementById("workingHoursList").innerHTML = WEEKDAYS.map((day, weekday) => {
+        const ranges = availability.hours.filter((item) => Number(item.weekday) === weekday).sort((a,b) => String(a.start_time).localeCompare(String(b.start_time)));
+        const active = ranges.length > 0 || (!availability.hours.length && weekday >= 1 && weekday <= 6);
+        const first = ranges[0] || { start_time: businessSettingsCache.openTime || "09:00", end_time: businessSettingsCache.closeTime || "18:00" };
+        const second = ranges[1] || { start_time:"", end_time:"" };
+        return `<div class="working-hours-row ${active ? "is-active" : ""}" data-weekday="${weekday}"><label class="weekday-toggle"><input type="checkbox" ${active ? "checked" : ""}>${day}</label><input type="time" data-period="1-start" value="${String(first.start_time || "").slice(0,5)}" aria-label="Início do primeiro período de ${day}"><input type="time" data-period="1-end" value="${String(first.end_time || "").slice(0,5)}" aria-label="Fim do primeiro período de ${day}"><input type="time" data-period="2-start" value="${String(second.start_time || "").slice(0,5)}" aria-label="Início do segundo período de ${day}"><input type="time" data-period="2-end" value="${String(second.end_time || "").slice(0,5)}" aria-label="Fim do segundo período de ${day}"></div>`;
+    }).join("");
+    availabilityDraftTimeOff = availability.timeOff.map((item) => ({ starts_at:item.starts_at, ends_at:item.ends_at, reason:item.reason || "" }));
+    renderTimeOffDraft();
+    document.getElementById("availabilityModal").classList.remove("hidden");
+}
+
+function collectWorkingHours() {
+    const result = [];
+    document.querySelectorAll(".working-hours-row").forEach((row) => {
+        if (!row.querySelector('.weekday-toggle input').checked) return;
+        for (const period of ["1", "2"]) {
+            const start = row.querySelector(`[data-period="${period}-start"]`).value;
+            const end = row.querySelector(`[data-period="${period}-end"]`).value;
+            if (!start && !end) continue;
+            if (!start || !end || end <= start) throw new Error(`${WEEKDAYS[Number(row.dataset.weekday)]}: informe um período válido.`);
+            result.push({ weekday:Number(row.dataset.weekday), start_time:start, end_time:end });
+        }
+    });
+    if (!result.length) throw new Error("Defina ao menos um período de trabalho.");
+    return result;
 }
 
 document.getElementById("newServiceButton").addEventListener("click", () => openServiceModal());
@@ -1280,14 +1354,84 @@ document.getElementById("servicesTableBody").addEventListener("click", async (ev
     }
 });
 document.getElementById("professionalsTableBody").addEventListener("click", async (event) => {
-    const edit = event.target.closest("[data-edit-professional]"); const remove = event.target.closest("[data-delete-professional]"); const agenda = event.target.closest("[data-professional-agenda]");
+    const edit = event.target.closest("[data-edit-professional]"); const remove = event.target.closest("[data-delete-professional]"); const agenda = event.target.closest("[data-professional-agenda]"); const availability = event.target.closest("[data-professional-availability]");
     if (edit) openProfessionalModal(getProfessionals().find((item) => item.id === edit.dataset.editProfessional));
+    if (availability) openAvailabilityModal(getProfessionals().find((item) => item.id === availability.dataset.professionalAvailability));
     if (agenda) { navigateTo("agenda"); agendaDateFilter.value = ""; agendaProfessionalFilter.value = agenda.dataset.professionalAgenda; renderAgenda(); }
     if (remove && confirm("Remover este profissional dos novos agendamentos?")) {
         const id = remove.dataset.deleteProfessional;
         if (IS_DEMO) localStorage.setItem(PROFESSIONALS_STORAGE_KEY, JSON.stringify(getProfessionals().filter((item) => item.id !== id)));
         else { const { error } = await supabaseClient.from("employees").update({ active: false }).eq("id", id); if (error) return reportDataError("remover o profissional", error); professionalsCache = professionalsCache.filter((item) => item.id !== id); }
         syncOperationalOptions(); renderProfessionals();
+    }
+});
+
+document.getElementById("workingHoursList").addEventListener("change", (event) => {
+    if (!event.target.matches('.weekday-toggle input')) return;
+    event.target.closest('.working-hours-row').classList.toggle('is-active', event.target.checked);
+});
+
+document.getElementById("addTimeOffButton").addEventListener("click", () => {
+    const start = document.getElementById("timeOffStart").value;
+    const end = document.getElementById("timeOffEnd").value;
+    const reason = document.getElementById("timeOffReason").value.trim();
+    const message = document.getElementById("availabilityMessage");
+    if (!start || !end || end <= start) {
+        message.textContent = "Informe início e fim válidos para o bloqueio.";
+        message.className = "form-message error";
+        return;
+    }
+    availabilityDraftTimeOff.push({ starts_at:start, ends_at:end, reason });
+    document.getElementById("timeOffStart").value = "";
+    document.getElementById("timeOffEnd").value = "";
+    document.getElementById("timeOffReason").value = "";
+    message.textContent = "";
+    renderTimeOffDraft();
+});
+
+document.getElementById("timeOffList").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-remove-time-off]");
+    if (!button) return;
+    availabilityDraftTimeOff.splice(Number(button.dataset.removeTimeOff), 1);
+    renderTimeOffDraft();
+});
+
+document.getElementById("availabilityForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const employeeId = document.getElementById("availabilityEmployeeId").value;
+    const serviceIds = [...document.querySelectorAll('#availabilityServices input:checked')].map((input) => input.value);
+    const message = document.getElementById("availabilityMessage");
+    const saveButton = document.getElementById("saveAvailabilityButton");
+    try {
+        if (!serviceIds.length) throw new Error("Selecione ao menos um serviço atendido.");
+        const hours = collectWorkingHours();
+        saveButton.disabled = true;
+        saveButton.textContent = "Salvando...";
+        if (IS_DEMO) {
+            let stored = {};
+            try { stored = JSON.parse(localStorage.getItem(AVAILABILITY_STORAGE_KEY) || "{}"); } catch { stored = {}; }
+            stored[employeeId] = { serviceIds, hours:hours.map((item) => ({ ...item, employee_id:employeeId })), timeOff:availabilityDraftTimeOff.map((item) => ({ ...item, employee_id:employeeId })) };
+            localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(stored));
+        } else {
+            const { error } = await supabaseClient.rpc("save_staff_availability", {
+                target_barbershop_id: BARBERSHOP_ID,
+                target_employee_id: employeeId,
+                target_service_ids: serviceIds,
+                target_working_hours: hours,
+                target_time_off: availabilityDraftTimeOff
+            });
+            if (error) throw error;
+            employeeServicesCache = employeeServicesCache.filter((item) => item.employee_id !== employeeId).concat(serviceIds.map((service_id) => ({ barbershop_id:BARBERSHOP_ID, employee_id:employeeId, service_id })));
+            workingHoursCache = workingHoursCache.filter((item) => item.employee_id !== employeeId).concat(hours.map((item) => ({ ...item, employee_id:employeeId })));
+            timeOffCache = timeOffCache.filter((item) => item.employee_id !== employeeId).concat(availabilityDraftTimeOff.map((item) => ({ ...item, employee_id:employeeId })));
+        }
+        closeGenericModal("availabilityModal");
+    } catch (error) {
+        message.textContent = error.message || "Não foi possível salvar a disponibilidade.";
+        message.className = "form-message error";
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = "Salvar disponibilidade";
     }
 });
 
@@ -1350,14 +1494,17 @@ async function importLocalDataOnce() {
 async function loadOperationalData() {
     if (IS_DEMO) return;
     const historyStart = new Date(); historyStart.setFullYear(historyStart.getFullYear() - 1);
-    const [appointmentsResult, clientsResult, privacyResult, servicesResult, employeesResult, financialResult, settingsResult] = await Promise.all([
+    const [appointmentsResult, clientsResult, privacyResult, servicesResult, employeesResult, financialResult, settingsResult, employeeServicesResult, workingHoursResult, timeOffResult] = await Promise.all([
         supabaseClient.from("business_appointments").select("id,client_name,client_email,service,professional,appointment_date,appointment_time,status,created_by,created_at,updated_at").eq("barbershop_id", BARBERSHOP_ID).gte("appointment_date", historyStart.toISOString().slice(0, 10)).order("appointment_date").limit(1000),
         supabaseClient.from("business_clients").select("id,name,phone,email,birthday,notes").eq("barbershop_id", BARBERSHOP_ID).order("name").limit(500),
         supabaseClient.from("privacy_requests").select("id,requester_name,request_type,status,created_at").eq("barbershop_id", BARBERSHOP_ID).order("created_at", { ascending: false }).limit(100),
         supabaseClient.rpc("list_services_catalog", { target_barbershop_id: BARBERSHOP_ID }),
         supabaseClient.from("employees").select("id,name,specialty,commission_percentage,active").eq("barbershop_id", BARBERSHOP_ID).eq("active", true).order("name"),
         supabaseClient.from("financial_entries").select("id,description,category,entry_type,amount,occurred_on").eq("barbershop_id", BARBERSHOP_ID).gte("occurred_on", historyStart.toISOString().slice(0, 10)).order("occurred_on", { ascending: false }).limit(1000),
-        supabaseClient.from("business_settings").select("display_name,segment,open_time,close_time,slot_duration_minutes").eq("barbershop_id", BARBERSHOP_ID).maybeSingle()
+        supabaseClient.from("business_settings").select("display_name,segment,open_time,close_time,slot_duration_minutes").eq("barbershop_id", BARBERSHOP_ID).maybeSingle(),
+        supabaseClient.from("employee_services").select("employee_id,service_id").eq("barbershop_id", BARBERSHOP_ID),
+        supabaseClient.from("employee_working_hours").select("id,employee_id,weekday,start_time,end_time").eq("barbershop_id", BARBERSHOP_ID).order("weekday").order("start_time"),
+        supabaseClient.from("employee_time_off").select("id,employee_id,starts_at,ends_at,reason").eq("barbershop_id", BARBERSHOP_ID).gte("ends_at", new Date().toISOString().slice(0,16)).order("starts_at").limit(500)
     ]);
     if (appointmentsResult.error) throw appointmentsResult.error;
     if (clientsResult.error) throw clientsResult.error;
@@ -1366,6 +1513,9 @@ async function loadOperationalData() {
     if (employeesResult.error) throw employeesResult.error;
     if (financialResult.error) throw financialResult.error;
     if (settingsResult.error) throw settingsResult.error;
+    if (employeeServicesResult.error) throw employeeServicesResult.error;
+    if (workingHoursResult.error) throw workingHoursResult.error;
+    if (timeOffResult.error) throw timeOffResult.error;
     appointmentsCache = (appointmentsResult.data || []).map(appointmentFromDatabase);
     clientsCache = (clientsResult.data || []).map((row) => ({ id: row.id, name: row.name, phone: row.phone,
         email: row.email, birthday: row.birthday || "", notes: row.notes || "" }));
@@ -1374,6 +1524,9 @@ async function loadOperationalData() {
     privacyRequestsCache = privacyResult.data || [];
     servicesCache = servicesResult.data || [];
     professionalsCache = employeesResult.data || [];
+    employeeServicesCache = employeeServicesResult.data || [];
+    workingHoursCache = workingHoursResult.data || [];
+    timeOffCache = timeOffResult.data || [];
     financialCache = financialResult.data || [];
     if (settingsResult.data) { businessSettingsCache = { name: settingsResult.data.display_name, segment: settingsResult.data.segment, openTime: String(settingsResult.data.open_time).slice(0,5), closeTime: String(settingsResult.data.close_time).slice(0,5), slotDuration: String(settingsResult.data.slot_duration_minutes) }; businessConfig.name = businessSettingsCache.name; businessConfig.segment = businessSettingsCache.segment; }
     if (servicesCache.length) businessConfig.services = servicesCache.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);

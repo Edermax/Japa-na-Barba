@@ -414,6 +414,27 @@ h2 { font-size:18px; }
     background:#151515;
 }
 
+.availability-modal-box { max-width:860px; max-height:92dvh; overflow-y:auto; }
+.availability-fieldset { margin:22px 0 0; padding:18px; border:1px solid var(--border); border-radius:10px; }
+.availability-fieldset legend { padding:0 8px; color:var(--white); font-size:14px; font-weight:700; }
+.availability-help { margin:0 0 12px; color:var(--gray); font-size:11px; }
+.service-check-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.service-check { display:flex; align-items:center; gap:9px; min-height:42px; margin:0; padding:9px 11px; border:1px solid var(--border); border-radius:8px; color:var(--white); cursor:pointer; }
+.service-check:has(input:checked) { border-color:var(--gold); background:rgba(210,170,49,.08); }
+.service-check input,.weekday-toggle input { width:18px; min-height:18px; margin:0; accent-color:var(--gold); }
+.working-hours-list { display:grid; gap:8px; }
+.working-hours-row { display:grid; grid-template-columns:132px repeat(4,minmax(90px,1fr)); gap:8px; align-items:center; }
+.weekday-toggle { display:flex; align-items:center; gap:8px; margin:0; color:var(--white); font-weight:700; }
+.working-hours-row input { margin:0; }
+.working-hours-row:not(.is-active) input[type="time"] { opacity:.35; pointer-events:none; }
+.time-off-editor { display:grid; grid-template-columns:1fr 1fr 1.2fr auto; gap:10px; align-items:end; }
+.time-off-editor label { margin:0; }
+.time-off-list { display:grid; gap:8px; margin-top:14px; }
+.time-off-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 12px; border:1px solid var(--border); border-radius:8px; }
+.time-off-item strong { display:block; color:var(--white); font-size:12px; }
+.time-off-item small { display:block; margin-top:3px; color:var(--gray); }
+.time-off-empty { color:var(--gray); font-size:12px; }
+
 .close-button {
     position:absolute;
     top:12px;
@@ -523,6 +544,13 @@ input:focus,select:focus { border-color:var(--gold); }
     .agenda-filters { grid-template-columns:1fr; }
     .modal { align-items:flex-end; padding:0; }
     .modal-box { width:100%; max-height:92dvh; overflow-y:auto; border-radius:18px 18px 0 0; padding:24px 18px calc(24px + env(safe-area-inset-bottom)); }
+    .availability-modal-box { max-width:none; }
+    .availability-fieldset { padding:14px 12px; }
+    .service-check-grid { grid-template-columns:1fr; }
+    .working-hours-row { grid-template-columns:1fr 1fr; padding:10px 0; border-bottom:1px solid var(--border); }
+    .working-hours-row .weekday-toggle { grid-column:1/-1; }
+    .time-off-editor { grid-template-columns:1fr; }
+    .time-off-item { align-items:flex-start; }
     input,select,textarea { min-height:46px; font-size:16px; }
     .pwa-install-button { right:12px; bottom:82px; }
 }

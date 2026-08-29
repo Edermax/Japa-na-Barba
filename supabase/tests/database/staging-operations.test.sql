@@ -1,7 +1,7 @@
 begin;
 set local search_path = public, extensions;
 
-select extensions.plan(17);
+select extensions.plan(22);
 
 insert into public.barbershops (id, name, segment)
 values ('30000000-0000-4000-8000-000000000003', 'STAGING Operações', 'Teste');
@@ -39,6 +39,33 @@ insert into public.saas_clients (
 set local role authenticated;
 
 select set_config('request.jwt.claims', '{"sub":"c0000000-0000-4000-8000-000000000001","role":"authenticated","email":"operations-owner@example.invalid"}', true);
+select extensions.lives_ok(
+  $$select public.save_staff_availability(
+    '30000000-0000-4000-8000-000000000003',
+    '32000000-0000-4000-8000-000000000003',
+    array['31000000-0000-4000-8000-000000000003'::uuid],
+    jsonb_build_array(
+      jsonb_build_object('weekday', extract(dow from current_date + 7)::integer, 'start_time', '09:00', 'end_time', '12:00'),
+      jsonb_build_object('weekday', extract(dow from current_date + 7)::integer, 'start_time', '13:00', 'end_time', '18:00')
+    ),
+    '[{"starts_at":"2099-01-02 09:00","ends_at":"2099-01-02 18:00","reason":"Folga de teste"}]'::jsonb
+  )$$,
+  'gestor salva serviços, jornada e folga em uma transação'
+);
+select extensions.is((select count(*)::integer from public.employee_services where employee_id='32000000-0000-4000-8000-000000000003'), 1, 'serviços do profissional são persistidos');
+select extensions.is((select count(*)::integer from public.employee_working_hours where employee_id='32000000-0000-4000-8000-000000000003'), 2, 'dois períodos preservam o intervalo da jornada');
+select extensions.is((select count(*)::integer from public.employee_time_off where employee_id='32000000-0000-4000-8000-000000000003'), 1, 'folga do profissional é persistida');
+select extensions.throws_ok(
+  $$select public.save_staff_availability(
+    '30000000-0000-4000-8000-000000000003',
+    '32000000-0000-4000-8000-000000000003',
+    array['31000000-0000-4000-8000-000000000003'::uuid],
+    '[{"weekday":1,"start_time":"09:00","end_time":"14:00"},{"weekday":1,"start_time":"13:00","end_time":"18:00"}]'::jsonb,
+    '[]'::jsonb
+  )$$,
+  '22023', 'A jornada contém horários sobrepostos',
+  'jornadas sobrepostas são rejeitadas'
+);
 select extensions.lives_ok(
   $$select public.create_appointment(
     '30000000-0000-4000-8000-000000000003',

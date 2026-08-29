@@ -1,6 +1,6 @@
 begin;
 set local search_path = public, extensions;
-select extensions.plan(53);
+select extensions.plan(56);
 select extensions.has_table('public', 'barbershops', 'barbershops existe');
 select extensions.has_table('public', 'profiles', 'profiles existe');
 select extensions.has_table('public', 'business_appointments', 'agenda existe');
@@ -13,6 +13,7 @@ select extensions.has_function('public', 'create_appointment', array['uuid','uui
 select extensions.has_function('public', 'is_platform_admin', array[]::text[], 'helper master existe');
 select extensions.has_function('public', 'current_profile_employee_id', array[]::text[], 'helper de vínculo do funcionário existe');
 select extensions.has_function('public', 'list_available_slots', array['uuid','uuid','uuid','date'], 'consulta de disponibilidade existe');
+select extensions.has_function('public', 'save_staff_availability', array['uuid','uuid','uuid[]','jsonb','jsonb'], 'salvamento transacional de disponibilidade existe');
 select extensions.has_function('public', 'platform_archive_business', array['uuid'], 'arquivamento transacional de negócio existe');
 select extensions.has_schema('private', 'schema privado de funções privilegiadas existe');
 select extensions.ok(exists(select 1 from pg_constraint where conrelid='public.profiles'::regclass and conname='profiles_id_fkey' and contype='f'), 'perfil referencia auth.users');
@@ -37,6 +38,8 @@ select extensions.ok(has_function_privilege('authenticated', 'public.create_appo
 select extensions.ok(not has_function_privilege('anon', 'public.current_profile_employee_id()', 'EXECUTE'), 'anon não consulta vínculo de funcionário');
 select extensions.ok(has_function_privilege('authenticated', 'public.current_profile_employee_id()', 'EXECUTE'), 'authenticated consulta o próprio vínculo de funcionário');
 select extensions.ok(not has_function_privilege('anon', 'public.platform_archive_business(uuid)', 'EXECUTE'), 'anon não arquiva negócio');
+select extensions.ok(not has_function_privilege('anon', 'public.save_staff_availability(uuid,uuid,uuid[],jsonb,jsonb)', 'EXECUTE'), 'anon não altera disponibilidade');
+select extensions.ok(has_function_privilege('authenticated', 'public.save_staff_availability(uuid,uuid,uuid[],jsonb,jsonb)', 'EXECUTE'), 'gestor autenticado pode chamar configuração de disponibilidade');
 
 select extensions.ok(not has_function_privilege('authenticated', 'public.ogritech_set_updated_at()', 'EXECUTE'), 'cliente não executa trigger de updated_at');
 select extensions.ok(not has_function_privilege('authenticated', 'public.log_personal_data_change()', 'EXECUTE'), 'cliente não executa trigger de auditoria');

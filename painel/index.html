@@ -298,7 +298,7 @@
 
                 <div id="professionalsView" class="view-section hidden">
                     <article class="panel module-panel">
-                        <div class="clients-toolbar"><div><p class="eyebrow">EQUIPE</p><h2>Profissionais</h2><p class="section-description">Gerencie especialidades e comissões da equipe.</p></div><button class="gold-button" id="newProfessionalButton" data-manager-only>+ Novo profissional</button></div>
+                        <div class="clients-toolbar"><div><p class="eyebrow">EQUIPE</p><h2>Profissionais</h2><p class="section-description">Gerencie especialidades, comissões, serviços, jornada e folgas da equipe.</p></div><button class="gold-button" id="newProfessionalButton" data-manager-only>+ Novo profissional</button></div>
                         <div class="table-wrapper"><table class="clients-table"><thead><tr><th>Profissional</th><th>Especialidade</th><th>Comissão</th><th>Agenda</th><th>Ações</th></tr></thead><tbody id="professionalsTableBody"></tbody></table></div>
                     </article>
                 </div>
@@ -441,6 +441,39 @@
     <div class="modal hidden" id="serviceModal"><div class="modal-box"><button class="close-button" data-close-modal="serviceModal" type="button">×</button><p class="eyebrow">SERVIÇO</p><h2 id="serviceModalTitle">Novo serviço</h2><form id="serviceForm"><input type="hidden" id="serviceId"><label>Nome<input id="serviceName" required maxlength="100"></label><div class="form-row"><label>Categoria<input id="serviceCategory" value="Geral" required></label><label>Duração (min)<input id="serviceDuration" type="number" min="5" step="5" value="30" required></label></div><div class="form-row"><label>Preço (R$)<input id="servicePrice" type="number" min="0" step="0.01" required></label><label>Custo (R$)<input id="serviceCost" type="number" min="0" step="0.01" value="0" required></label></div><label>Descrição<textarea id="serviceDescription" rows="3" maxlength="300"></textarea></label><button class="gold-button full" type="submit">Salvar serviço</button></form></div></div>
 
     <div class="modal hidden" id="professionalModal"><div class="modal-box"><button class="close-button" data-close-modal="professionalModal" type="button">×</button><p class="eyebrow">EQUIPE</p><h2 id="professionalModalTitle">Novo profissional</h2><form id="professionalForm"><input type="hidden" id="professionalId"><label>Nome<input id="professionalName" required maxlength="100"></label><label>Especialidade<input id="professionalSpecialty" required maxlength="120"></label><label>Comissão (%)<input id="professionalCommission" type="number" min="0" max="100" step="0.01" value="0" required></label><button class="gold-button full" type="submit">Salvar profissional</button></form></div></div>
+
+    <div class="modal hidden" id="availabilityModal">
+        <div class="modal-box availability-modal-box">
+            <button class="close-button" data-close-modal="availabilityModal" type="button" aria-label="Fechar">×</button>
+            <p class="eyebrow">DISPONIBILIDADE</p>
+            <h2 id="availabilityModalTitle">Configurar profissional</h2>
+            <p class="section-description">Defina o que este profissional atende e quando pode receber agendamentos.</p>
+            <form id="availabilityForm">
+                <input type="hidden" id="availabilityEmployeeId">
+                <fieldset class="availability-fieldset">
+                    <legend>Serviços atendidos</legend>
+                    <div class="service-check-grid" id="availabilityServices"></div>
+                </fieldset>
+                <fieldset class="availability-fieldset">
+                    <legend>Jornada semanal</legend>
+                    <p class="availability-help">Use o segundo período quando houver intervalo para almoço.</p>
+                    <div class="working-hours-list" id="workingHoursList"></div>
+                </fieldset>
+                <fieldset class="availability-fieldset">
+                    <legend>Folgas e bloqueios</legend>
+                    <div class="time-off-editor">
+                        <label>Início<input type="datetime-local" id="timeOffStart"></label>
+                        <label>Fim<input type="datetime-local" id="timeOffEnd"></label>
+                        <label>Motivo (opcional)<input id="timeOffReason" maxlength="240" placeholder="Ex.: férias ou compromisso"></label>
+                        <button class="table-button edit" id="addTimeOffButton" type="button">Adicionar bloqueio</button>
+                    </div>
+                    <div class="time-off-list" id="timeOffList"></div>
+                </fieldset>
+                <p class="form-message" id="availabilityMessage" role="status"></p>
+                <button class="gold-button full" id="saveAvailabilityButton" type="submit">Salvar disponibilidade</button>
+            </form>
+        </div>
+    </div>
 
     <div class="modal hidden" id="financialModal"><div class="modal-box"><button class="close-button" data-close-modal="financialModal" type="button">×</button><p class="eyebrow">FINANCEIRO</p><h2>Novo lançamento</h2><form id="financialForm"><label>Tipo<select id="financialType" required><option value="income">Entrada</option><option value="expense">Saída</option></select></label><label>Descrição<input id="financialDescription" required maxlength="120"></label><div class="form-row"><label>Categoria<input id="financialCategory" required maxlength="60"></label><label>Valor (R$)<input id="financialAmount" type="number" min="0.01" step="0.01" required></label></div><div class="form-row"><label>Data<input id="financialDate" type="date" required></label><label>Pagamento<select id="financialPayment"><option value="pix">Pix</option><option value="cash">Dinheiro</option><option value="card">Cartão</option><option value="other">Outro</option></select></label></div><button class="gold-button full" type="submit">Salvar lançamento</button></form></div></div>
 

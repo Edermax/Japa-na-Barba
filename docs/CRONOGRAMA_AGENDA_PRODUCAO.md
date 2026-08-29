@@ -23,6 +23,8 @@ Status em 29/08/2026: **concluída**. O CI executou validação estática e banc
 
 Critério de aceite: cliente só visualiza horários realmente reserváveis; duas tentativas simultâneas nunca ocupam o mesmo intervalo.
 
+Status em 29/08/2026: **concluída em desenvolvimento; aguardando promoção no staging**. O painel passou a configurar serviços por profissional, jornada semanal com até dois períodos diários e folgas/bloqueios. O salvamento é transacional, rejeita períodos sobrepostos e alimenta a consulta real de horários. Uma reconstrução limpa aplicou 25 migrations; 98 testes de banco passaram e os advisors não encontraram alertas de segurança ou desempenho.
+
 ## Fase C — Agendamento público (04 a 07/09)
 
 - Criar endereço público por empresa, sem exigir senha do consumidor.
