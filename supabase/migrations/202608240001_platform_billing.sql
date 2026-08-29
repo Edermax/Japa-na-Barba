@@ -88,6 +88,7 @@ create table if not exists public.platform_invoices (
     check (discount_total + credit_total <= subtotal)
 );
 
+alter table public.platform_service_orders drop constraint if exists platform_service_orders_invoice_fk;
 alter table public.platform_service_orders
     add constraint platform_service_orders_invoice_fk foreign key (invoice_id) references public.platform_invoices(id) on delete set null;
 
@@ -187,6 +188,11 @@ do $$ declare table_name text; begin
 end $$;
 grant usage, select on sequence public.platform_invoice_number_seq to authenticated;
 
+drop trigger if exists billing_customers_set_updated_at on public.billing_customers;
+drop trigger if exists platform_subscriptions_set_updated_at on public.platform_subscriptions;
+drop trigger if exists platform_service_orders_set_updated_at on public.platform_service_orders;
+drop trigger if exists platform_invoices_set_updated_at on public.platform_invoices;
+drop trigger if exists platform_payments_set_updated_at on public.platform_payments;
 create trigger billing_customers_set_updated_at before update on public.billing_customers for each row execute function public.ogritech_set_updated_at();
 create trigger platform_subscriptions_set_updated_at before update on public.platform_subscriptions for each row execute function public.ogritech_set_updated_at();
 create trigger platform_service_orders_set_updated_at before update on public.platform_service_orders for each row execute function public.ogritech_set_updated_at();

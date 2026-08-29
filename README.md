@@ -48,6 +48,9 @@ Esses controles apoiam a adequação, mas não substituem revisão jurídica, co
 2. Publicar a Edge Function com `ALLOWED_ORIGINS=https://ogritech.com.br`.
 3. Executar o checklist de produção em `docs/OPERACAO_PRODUCAO.md`.
 
+O acompanhamento de evidências e a aprovação final ficam em
+`docs/CHECKLIST_LANCAMENTO.md`.
+
 ## Central master
 
 O usuário registrado em `platform_admins` possui uma central exclusiva em `admin.html`. Nela é possível:
@@ -65,7 +68,7 @@ Para ativar a central em um projeto Supabase, aplique as migrations e publique a
 
 ## Desenvolvimento e validação
 
-Requisitos: Node.js 20+ e Supabase CLI com Docker.
+Requisitos: Node.js 22+ e Supabase CLI 2.115.0 com Docker.
 
 ```sh
 npm run validate
@@ -73,6 +76,16 @@ supabase start
 supabase db reset
 supabase test db
 ```
+
+### Seleção do ambiente Supabase
+
+- `http://localhost:8080/` usa o Supabase local por padrão.
+- `http://localhost:8080/?env=staging` usa explicitamente o projeto staging **Edermax's Project**.
+- `?env=production` seleciona produção de forma explícita.
+- A seleção permanece somente na aba atual (`sessionStorage`). Fechar a aba remove a seleção.
+- O staging exibe o selo fixo **STAGING — DADOS DE TESTE** para evitar operações no ambiente errado.
+
+Somente chaves publicáveis (`sb_publishable_...`) ficam no navegador. O projeto staging deve manter as URLs de redirecionamento do Auth compatíveis com o endereço usado nos testes.
 
 Para promover o primeiro administrador, crie o usuário no Auth e execute uma cópia local, não versionada, de `scripts/bootstrap-platform-admin.sql` com o e-mail correto.
 

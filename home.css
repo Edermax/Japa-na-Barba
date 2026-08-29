@@ -117,3 +117,6 @@ a:hover>.action-chevron,a:hover .action-chevron{transform:translateX(3px);border
 .primary-button .action-chevron{border-color:rgba(4,16,18,.28);color:#041012}
 .footer-channel-list .action-chevron{width:20px;height:20px;color:var(--cyan-light)}
 .solutions-overview em .action-chevron{width:22px;height:22px;color:var(--cyan-light);font-size:0}
+
+/* Estado comercial das soluções */
+.overview-top .availability-badge{margin-left:auto;padding:6px 8px;border:1px solid #3a4246;border-radius:999px;color:#879095;font-size:7px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}.overview-top .availability-badge.is-available{border-color:rgba(8,185,211,.4);background:rgba(8,185,211,.1);color:var(--cyan-light)}.solutions-overview .is-coming-soon{background:linear-gradient(145deg,rgba(16,20,22,.82),rgba(8,10,11,.92));opacity:.78}.solutions-overview .is-coming-soon::before{opacity:.3}.solutions-overview .is-coming-soon:hover{border-color:#3a4448!important;background:linear-gradient(145deg,rgba(18,23,25,.94),rgba(9,11,12,.98));opacity:1}.soon-inline{padding:6px 9px;border:1px solid #3a4246;border-radius:999px;color:#929b9f;font-size:8px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}.waitlist-link{border-bottom-color:#4a5154;color:#a4adaf}
