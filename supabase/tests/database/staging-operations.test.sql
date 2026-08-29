@@ -1,7 +1,7 @@
 begin;
 set local search_path = public, extensions;
 
-select extensions.plan(16);
+select extensions.plan(17);
 
 insert into public.barbershops (id, name, segment)
 values ('30000000-0000-4000-8000-000000000003', 'STAGING Operações', 'Teste');
@@ -62,6 +62,17 @@ select extensions.is(
   (select count(*)::integer from public.business_appointments where barbershop_id = '30000000-0000-4000-8000-000000000003'),
   1,
   'somente um agendamento permanece no intervalo disputado'
+);
+select extensions.ok(
+  not exists(
+    select 1 from public.list_available_slots(
+      '30000000-0000-4000-8000-000000000003',
+      '31000000-0000-4000-8000-000000000003',
+      '32000000-0000-4000-8000-000000000003',
+      current_date + 7
+    ) where slot_time = '10:00'::time
+  ),
+  'consulta de disponibilidade remove horário já ocupado'
 );
 
 select set_config('request.jwt.claims', '{"sub":"f0000000-0000-4000-8000-000000000002","role":"authenticated","email":"operations-master@example.invalid"}', true);

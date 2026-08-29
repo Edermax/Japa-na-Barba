@@ -1,14 +1,18 @@
 begin;
 set local search_path = public, extensions;
-select extensions.plan(47);
+select extensions.plan(53);
 select extensions.has_table('public', 'barbershops', 'barbershops existe');
 select extensions.has_table('public', 'profiles', 'profiles existe');
 select extensions.has_table('public', 'business_appointments', 'agenda existe');
 select extensions.has_table('public', 'business_settings', 'configurações existem');
+select extensions.has_table('public', 'employee_services', 'vínculo entre profissional e serviço existe');
+select extensions.has_table('public', 'employee_working_hours', 'jornada individual existe');
+select extensions.has_table('public', 'employee_time_off', 'bloqueios e folgas existem');
 select extensions.has_table('public', 'platform_admin_events', 'auditoria administrativa existe');
 select extensions.has_function('public', 'create_appointment', array['uuid','uuid','uuid','date','time without time zone','text','text'], 'RPC de agenda existe');
 select extensions.has_function('public', 'is_platform_admin', array[]::text[], 'helper master existe');
 select extensions.has_function('public', 'current_profile_employee_id', array[]::text[], 'helper de vínculo do funcionário existe');
+select extensions.has_function('public', 'list_available_slots', array['uuid','uuid','uuid','date'], 'consulta de disponibilidade existe');
 select extensions.has_function('public', 'platform_archive_business', array['uuid'], 'arquivamento transacional de negócio existe');
 select extensions.has_schema('private', 'schema privado de funções privilegiadas existe');
 select extensions.ok(exists(select 1 from pg_constraint where conrelid='public.profiles'::regclass and conname='profiles_id_fkey' and contype='f'), 'perfil referencia auth.users');
@@ -16,6 +20,8 @@ select extensions.ok(exists(select 1 from pg_constraint where conrelid='public.s
 select extensions.ok(exists(select 1 from pg_constraint where conrelid='public.employees'::regclass and conname='employees_barbershop_id_fkey' and contype='f'), 'profissional referencia empresa');
 select extensions.ok(exists(select 1 from pg_constraint where conrelid='public.business_appointments'::regclass and conname='business_appointments_barbershop_fk' and contype='f'), 'agenda referencia empresa');
 select extensions.is((select relrowsecurity from pg_class where oid = 'public.business_appointments'::regclass), true, 'RLS ativa na agenda');
+select extensions.is((select relrowsecurity from pg_class where oid = 'public.employee_working_hours'::regclass), true, 'RLS ativa na jornada');
+select extensions.is((select relrowsecurity from pg_class where oid = 'public.employee_time_off'::regclass), true, 'RLS ativa nas folgas');
 select extensions.is((select relrowsecurity from pg_class where oid = 'public.platform_admin_events'::regclass), true, 'RLS ativa na auditoria master');
 select extensions.is((select relrowsecurity from pg_class where oid = 'public.business_clients'::regclass), true, 'RLS ativa em clientes');
 select extensions.is((select relrowsecurity from pg_class where oid = 'public.financial_entries'::regclass), true, 'RLS ativa no financeiro');

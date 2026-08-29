@@ -313,6 +313,11 @@ function openClientAppointmentModal() {
         clientAppointmentForm.reset();
         clientDate.min = todayISO();
 
+        if (!isDemoClient) {
+            clientTime.innerHTML = '<option value="">Selecione serviço, profissional e data</option>';
+            clientTime.disabled = true;
+        }
+
         clientAppointmentModal
             .classList.remove("hidden");
 }
@@ -337,6 +342,37 @@ clientAppointmentModal.addEventListener(
         }
     }
 );
+
+async function refreshAvailableSlots() {
+    if (isDemoClient) return;
+    const service = (window.__ogritechServices || []).find((item) => item.name === clientService.value);
+    const employee = (window.__ogritechEmployees || []).find((item) => item.name === clientProfessional.value);
+    if (!service || !employee || !clientDate.value) {
+        clientTime.innerHTML = '<option value="">Selecione serviço, profissional e data</option>';
+        clientTime.disabled = true;
+        return;
+    }
+    clientTime.disabled = true;
+    clientTime.innerHTML = '<option value="">Consultando horários...</option>';
+    const { data, error } = await supabaseClient.rpc("list_available_slots", {
+        target_barbershop_id: clientBarbershopId,
+        target_service_id: service.id,
+        target_employee_id: employee.id,
+        target_date: clientDate.value
+    });
+    if (error) {
+        console.error("Erro ao consultar disponibilidade:", error);
+        clientTime.innerHTML = '<option value="">Não foi possível consultar agora</option>';
+        return;
+    }
+    const slots = (data || []).map((item) => String(item.slot_time).slice(0, 5));
+    clientTime.innerHTML = slots.length
+        ? '<option value="">Selecione</option>' + slots.map((slot) => `<option value="${escapeHtml(slot)}">${escapeHtml(slot)}</option>`).join("")
+        : '<option value="">Nenhum horário disponível</option>';
+    clientTime.disabled = slots.length === 0;
+}
+
+[clientService, clientProfessional, clientDate].forEach((field) => field.addEventListener("change", refreshAvailableSlots));
 
 document.getElementById("openPrivacyRequest").addEventListener("click", () => {
     privacyRequestForm.reset();
@@ -574,6 +610,11 @@ function applyClientBusinessCustomization() {
     clientProfessional.innerHTML = '<option value="">Selecione</option>' + businessConfig.professionals.map((name) =>
         `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`
     ).join("");
+    if (isDemoClient) {
+        clientTime.innerHTML = '<option value="">Selecione</option>' + ["09:00", "10:00", "11:00", "13:30", "15:00", "16:30", "18:00"]
+            .map((slot) => `<option value="${slot}">${slot}</option>`).join("");
+        clientTime.disabled = false;
+    }
 }
 
 async function initializeClientPage() {

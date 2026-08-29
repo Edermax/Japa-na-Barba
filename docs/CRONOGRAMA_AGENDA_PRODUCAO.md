@@ -11,6 +11,8 @@ Início: 29/08/2026. Objetivo: colocar a Agenda Ogritech em piloto assistido com
 
 Critério de aceite: CI verde em um checkout limpo e `supabase db push --linked --dry-run` sem divergência no staging.
 
+Status em 29/08/2026: **concluída**. O CI executou validação estática e banco limpo com sucesso; 23 migrations foram aplicadas localmente; 83 testes de banco passaram; a migration pendente foi aplicada no staging e a verificação final retornou banco remoto atualizado.
+
 ## Fase B — Disponibilidade real (31/08 a 03/09)
 
 - Modelar jornada semanal, intervalos, bloqueios, folgas e fuso horário por empresa.
