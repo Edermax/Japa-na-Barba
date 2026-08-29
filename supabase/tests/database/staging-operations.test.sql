@@ -1,7 +1,9 @@
 begin;
 set local search_path = public, extensions;
 
-select extensions.plan(22);
+select extensions.plan(32);
+create temporary table public_booking_test_result(payload jsonb);
+grant select,insert on public_booking_test_result to anon;
 
 insert into public.barbershops (id, name, segment)
 values ('30000000-0000-4000-8000-000000000003', 'STAGING Operações', 'Teste');
@@ -67,6 +69,33 @@ select extensions.throws_ok(
   'jornadas sobrepostas são rejeitadas'
 );
 select extensions.lives_ok(
+  $$select public.set_public_booking_settings('30000000-0000-4000-8000-000000000003','staging-operacoes',true)$$,
+  'gestor ativa endereço da agenda pública'
+);
+
+set local role anon;
+select extensions.is((public.public_booking_page('staging-operacoes')->'business'->>'name'), 'STAGING Operações', 'visitante carrega somente o catálogo público');
+select extensions.ok(exists(select 1 from public.public_available_slots('staging-operacoes','31000000-0000-4000-8000-000000000003','32000000-0000-4000-8000-000000000003',current_date+7) where slot_time='10:00'::time), 'visitante consulta horário realmente livre');
+select extensions.throws_ok(
+  $$select public.public_create_appointment('staging-operacoes','31000000-0000-4000-8000-000000000003','32000000-0000-4000-8000-000000000003',current_date+7,'10:00','Cliente Público','publico@example.invalid','11999999999',false,'')$$,
+  '22023','É necessário aceitar o aviso de privacidade','consentimento é obrigatório'
+);
+select extensions.lives_ok(
+  $$insert into public_booking_test_result select public.public_create_appointment('staging-operacoes','31000000-0000-4000-8000-000000000003','32000000-0000-4000-8000-000000000003',current_date+7,'10:00','Cliente Público','publico@example.invalid','11999999999',true,'')$$,
+  'visitante solicita agendamento sem conta'
+);
+select extensions.is((select payload->>'status' from public_booking_test_result),'requested','solicitação pública nasce pendente');
+select extensions.is((select public.public_get_appointment(payload->>'reference',payload->>'token')->>'status' from public_booking_test_result),'requested','referência e token consultam a reserva');
+select extensions.lives_ok(
+  $$select public.public_cancel_appointment(payload->>'reference',payload->>'token') from public_booking_test_result$$,
+  'link secreto cancela a reserva'
+);
+select extensions.is((select public.public_get_appointment(payload->>'reference',payload->>'token')->>'status' from public_booking_test_result),'cancelled','consulta reflete cancelamento público');
+reset role;
+select extensions.is((select cancellation_source from public.business_appointments where public_reference=(select payload->>'reference' from public_booking_test_result)),'public_link','banco registra a origem do cancelamento');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"c0000000-0000-4000-8000-000000000001","role":"authenticated","email":"operations-owner@example.invalid"}', true);
+select extensions.lives_ok(
   $$select public.create_appointment(
     '30000000-0000-4000-8000-000000000003',
     '31000000-0000-4000-8000-000000000003',
@@ -86,7 +115,7 @@ select extensions.throws_ok(
   'agendamento sobreposto para o mesmo profissional é rejeitado'
 );
 select extensions.is(
-  (select count(*)::integer from public.business_appointments where barbershop_id = '30000000-0000-4000-8000-000000000003'),
+  (select count(*)::integer from public.business_appointments where barbershop_id = '30000000-0000-4000-8000-000000000003' and status <> 'cancelled'),
   1,
   'somente um agendamento permanece no intervalo disputado'
 );

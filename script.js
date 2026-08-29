@@ -37,6 +37,7 @@ let timeOffCache = [];
 let availabilityDraftTimeOff = [];
 let financialCache = [];
 let businessSettingsCache = {};
+let publicBookingSettingsCache = {};
 
 // =========================================================
 // 2. SESSÃO ATUAL
@@ -1454,8 +1455,46 @@ document.getElementById("financialForm").addEventListener("submit", async (event
 document.getElementById("financialTableBody").addEventListener("click", async (event) => { const button = event.target.closest("[data-delete-financial]"); if (!button || !confirm("Excluir este lançamento?")) return; const id = button.dataset.deleteFinancial; if (IS_DEMO) localStorage.setItem(FINANCIAL_STORAGE_KEY, JSON.stringify(getFinancialEntries().filter((item) => item.id !== id))); else { const { error } = await supabaseClient.from("financial_entries").delete().eq("id", id); if (error) return reportDataError("excluir o lançamento", error); financialCache = financialCache.filter((item) => item.id !== id); } renderFinancial(); });
 
 function getSettings() { if (!IS_DEMO) return businessSettingsCache; try { return JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY)) || {}; } catch { return {}; } }
-function renderSettings() { const settings = getSettings(); document.getElementById("settingsBusinessName").value = settings.name || businessConfig.name; document.getElementById("settingsSegment").value = settings.segment || businessConfig.segment; document.getElementById("settingsOpenTime").value = settings.openTime || "09:00"; document.getElementById("settingsCloseTime").value = settings.closeTime || "18:00"; document.getElementById("settingsSlotDuration").value = settings.slotDuration || "60"; }
-document.getElementById("settingsForm").addEventListener("submit", async (event) => { event.preventDefault(); const settings = { name: document.getElementById("settingsBusinessName").value.trim(), segment: document.getElementById("settingsSegment").value.trim(), openTime: document.getElementById("settingsOpenTime").value, closeTime: document.getElementById("settingsCloseTime").value, slotDuration: document.getElementById("settingsSlotDuration").value }; if (settings.closeTime <= settings.openTime) { document.getElementById("settingsMessage").textContent = "O encerramento deve ser posterior ao início."; document.getElementById("settingsMessage").className = "form-message error"; return; } if (IS_DEMO) localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings)); else { const { error } = await supabaseClient.from("business_settings").upsert({ barbershop_id: BARBERSHOP_ID, display_name: settings.name, segment: settings.segment, open_time: settings.openTime, close_time: settings.closeTime, slot_duration_minutes: Number(settings.slotDuration) }); if (error) return reportDataError("salvar as configurações", error); businessSettingsCache = settings; } businessConfig.name = settings.name; businessConfig.segment = settings.segment; applyBusinessCustomization(); document.getElementById("settingsMessage").textContent = "Configurações salvas."; document.getElementById("settingsMessage").className = "form-message success-message"; });
+function updatePublicBookingLink() {
+    const link = document.getElementById("publicBookingLink");
+    const slug = document.getElementById("settingsPublicSlug").value.trim();
+    const enabled = document.getElementById("settingsPublicBookingEnabled").checked;
+    link.classList.toggle("hidden", !slug || !enabled);
+    if (slug && enabled) link.href = window.ogritechEnvironmentUrl(`/agendar/?empresa=${encodeURIComponent(slug)}`);
+}
+function renderSettings() {
+    const settings = getSettings();
+    document.getElementById("settingsBusinessName").value = settings.name || businessConfig.name;
+    document.getElementById("settingsSegment").value = settings.segment || businessConfig.segment;
+    document.getElementById("settingsOpenTime").value = settings.openTime || "09:00";
+    document.getElementById("settingsCloseTime").value = settings.closeTime || "18:00";
+    document.getElementById("settingsSlotDuration").value = settings.slotDuration || "60";
+    document.getElementById("settingsPublicSlug").value = publicBookingSettingsCache.slug || settings.publicSlug || "";
+    document.getElementById("settingsPublicBookingEnabled").checked = Boolean(publicBookingSettingsCache.enabled ?? settings.publicBookingEnabled);
+    updatePublicBookingLink();
+}
+document.getElementById("settingsPublicSlug").addEventListener("input", (event) => { event.target.value = event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""); updatePublicBookingLink(); });
+document.getElementById("settingsPublicBookingEnabled").addEventListener("change", updatePublicBookingLink);
+document.getElementById("settingsForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const settings = { name: document.getElementById("settingsBusinessName").value.trim(), segment: document.getElementById("settingsSegment").value.trim(), openTime: document.getElementById("settingsOpenTime").value, closeTime: document.getElementById("settingsCloseTime").value, slotDuration: document.getElementById("settingsSlotDuration").value, publicSlug: document.getElementById("settingsPublicSlug").value.trim(), publicBookingEnabled: document.getElementById("settingsPublicBookingEnabled").checked };
+    const message = document.getElementById("settingsMessage");
+    if (settings.closeTime <= settings.openTime) { message.textContent = "O encerramento deve ser posterior ao início."; message.className = "form-message error"; return; }
+    if (settings.publicBookingEnabled && !/^[a-z0-9][a-z0-9-]{2,47}$/.test(settings.publicSlug)) { message.textContent = "Defina um endereço público com 3 a 48 letras, números ou hífens."; message.className = "form-message error"; return; }
+    if (IS_DEMO) localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    else {
+        const { error } = await supabaseClient.from("business_settings").upsert({ barbershop_id: BARBERSHOP_ID, display_name: settings.name, segment: settings.segment, open_time: settings.openTime, close_time: settings.closeTime, slot_duration_minutes: Number(settings.slotDuration) });
+        if (error) return reportDataError("salvar as configurações", error);
+        if (settings.publicSlug) {
+            const { data, error: publicError } = await supabaseClient.rpc("set_public_booking_settings", { target_barbershop_id:BARBERSHOP_ID, target_slug:settings.publicSlug, target_enabled:settings.publicBookingEnabled });
+            if (publicError) { message.textContent = publicError.message || "Não foi possível configurar a agenda pública."; message.className = "form-message error"; return; }
+            publicBookingSettingsCache = data || {};
+        }
+        businessSettingsCache = settings;
+    }
+    businessConfig.name = settings.name; businessConfig.segment = settings.segment; applyBusinessCustomization(); updatePublicBookingLink();
+    message.textContent = "Configurações salvas."; message.className = "form-message success-message";
+});
 
 // =========================================================
 // 12. INICIALIZAÇÃO
@@ -1531,6 +1570,8 @@ async function loadOperationalData() {
     if (settingsResult.data) { businessSettingsCache = { name: settingsResult.data.display_name, segment: settingsResult.data.segment, openTime: String(settingsResult.data.open_time).slice(0,5), closeTime: String(settingsResult.data.close_time).slice(0,5), slotDuration: String(settingsResult.data.slot_duration_minutes) }; businessConfig.name = businessSettingsCache.name; businessConfig.segment = businessSettingsCache.segment; }
     if (servicesCache.length) businessConfig.services = servicesCache.map((service) => [service.name, Number(service.price), service.description || "", Number(service.cost), service.category, service.duration_minutes]);
     if (professionalsCache.length) businessConfig.professionals = professionalsCache.map((employee) => employee.name);
+    const { data: publicBookingSettings } = await supabaseClient.rpc("get_public_booking_settings", { target_barbershop_id: BARBERSHOP_ID });
+    if (publicBookingSettings) publicBookingSettingsCache = publicBookingSettings;
     applyBusinessCustomization();
     await importLocalDataOnce();
 }

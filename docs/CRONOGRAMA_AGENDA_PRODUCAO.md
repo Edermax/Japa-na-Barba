@@ -35,6 +35,8 @@ Status em 29/08/2026: **concluída em desenvolvimento; aguardando promoção no 
 
 Critério de aceite: uma pessoa sem conta consegue agendar pelo celular e recebe uma referência segura sem acessar dados de terceiros.
 
+Status em 29/08/2026: **concluída em desenvolvimento; aguardando promoção no staging**. Foi criada a rota mobile-first `/agendar/?empresa=...`, configurável pelo gestor, com catálogo público limitado, disponibilidade real, nome, WhatsApp, e-mail, consentimento, honeypot, limite por contato, referência e token secreto para consulta/cancelamento. O token é armazenado somente como hash no banco e nenhuma tabela operacional foi liberada ao visitante. Uma reconstrução limpa aplicou 26 migrations; 118 testes de banco passaram e os advisors não encontraram alertas.
+
 ## Fase D — Operação confiável (08 a 10/09)
 
 - Substituir atualizações em lote por RPCs transacionais de confirmação, conclusão, ausência e cancelamento.

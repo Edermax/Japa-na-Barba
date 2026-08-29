@@ -121,3 +121,19 @@ test("cobranças da plataforma são isoladas e transacionais", async () => {
   assert.match(migration, /Pagamento excede o saldo da fatura/);
   assert.match(migration, /Crédito maior que o saldo disponível/);
 });
+
+test("agendamento público expõe somente RPCs limitadas e tokens protegidos", async () => {
+  const migration = await readFile(new URL("supabase/migrations/20260829100629_public_booking_flow.sql", root), "utf8");
+  for (const marker of [
+    "private.public_create_appointment",
+    "private.public_booking_attempts",
+    "accepted_privacy",
+    "public_token_hash",
+    "digest(secret_token,'sha256')",
+    "public_cancel_appointment",
+    "Muitas tentativas"
+  ]) assert.ok(migration.includes(marker), marker);
+  assert.match(migration, /revoke all on table private\.public_booking_attempts from public, anon, authenticated/i);
+  assert.match(migration, /grant execute on function public\.public_booking_page[\s\S]+to anon,authenticated/i);
+  assert.doesNotMatch(migration, /grant\s+(?:select|insert|update|delete)[\s\S]{0,100}to\s+anon/i);
+});

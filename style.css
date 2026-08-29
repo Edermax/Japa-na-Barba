@@ -434,6 +434,13 @@ h2 { font-size:18px; }
 .time-off-item strong { display:block; color:var(--white); font-size:12px; }
 .time-off-item small { display:block; margin-top:3px; color:var(--gray); }
 .time-off-empty { color:var(--gray); font-size:12px; }
+.public-booking-settings { margin:22px 0; padding:18px; border:1px solid var(--border); border-radius:10px; }
+.public-booking-settings legend { padding:0 8px; color:var(--white); font-size:14px; font-weight:700; }
+.slug-field { display:flex; align-items:stretch; margin-top:7px; }
+.slug-field span { display:flex; align-items:center; padding:0 10px; border:1px solid var(--border); border-right:0; border-radius:6px 0 0 6px; background:#0b0b0b; color:var(--gray); font-size:10px; white-space:nowrap; }
+.slug-field input { margin:0; border-radius:0 6px 6px 0; }
+.settings-toggle { display:flex; align-items:center; gap:10px; color:var(--white); }
+.settings-toggle input { width:18px; min-height:18px; margin:0; accent-color:var(--gold); }
 
 .close-button {
     position:absolute;
@@ -551,6 +558,9 @@ input:focus,select:focus { border-color:var(--gold); }
     .working-hours-row .weekday-toggle { grid-column:1/-1; }
     .time-off-editor { grid-template-columns:1fr; }
     .time-off-item { align-items:flex-start; }
+    .slug-field { display:block; }
+    .slug-field span { min-height:34px; border-right:1px solid var(--border); border-bottom:0; border-radius:6px 6px 0 0; white-space:normal; }
+    .slug-field input { border-radius:0 0 6px 6px; }
     input,select,textarea { min-height:46px; font-size:16px; }
     .pwa-install-button { right:12px; bottom:82px; }
 }

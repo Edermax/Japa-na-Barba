@@ -1,6 +1,6 @@
 begin;
 set local search_path = public, extensions;
-select extensions.plan(56);
+select extensions.plan(66);
 select extensions.has_table('public', 'barbershops', 'barbershops existe');
 select extensions.has_table('public', 'profiles', 'profiles existe');
 select extensions.has_table('public', 'business_appointments', 'agenda existe');
@@ -14,6 +14,11 @@ select extensions.has_function('public', 'is_platform_admin', array[]::text[], '
 select extensions.has_function('public', 'current_profile_employee_id', array[]::text[], 'helper de vínculo do funcionário existe');
 select extensions.has_function('public', 'list_available_slots', array['uuid','uuid','uuid','date'], 'consulta de disponibilidade existe');
 select extensions.has_function('public', 'save_staff_availability', array['uuid','uuid','uuid[]','jsonb','jsonb'], 'salvamento transacional de disponibilidade existe');
+select extensions.has_function('public', 'public_booking_page', array['text'], 'catálogo público existe');
+select extensions.has_function('public', 'public_available_slots', array['text','uuid','uuid','date'], 'horários públicos existem');
+select extensions.has_function('public', 'public_create_appointment', array['text','uuid','uuid','date','time without time zone','text','text','text','boolean','text'], 'criação pública existe');
+select extensions.has_function('public', 'public_get_appointment', array['text','text'], 'consulta pública protegida existe');
+select extensions.has_function('public', 'public_cancel_appointment', array['text','text'], 'cancelamento público protegido existe');
 select extensions.has_function('public', 'platform_archive_business', array['uuid'], 'arquivamento transacional de negócio existe');
 select extensions.has_schema('private', 'schema privado de funções privilegiadas existe');
 select extensions.ok(exists(select 1 from pg_constraint where conrelid='public.profiles'::regclass and conname='profiles_id_fkey' and contype='f'), 'perfil referencia auth.users');
@@ -40,6 +45,11 @@ select extensions.ok(has_function_privilege('authenticated', 'public.current_pro
 select extensions.ok(not has_function_privilege('anon', 'public.platform_archive_business(uuid)', 'EXECUTE'), 'anon não arquiva negócio');
 select extensions.ok(not has_function_privilege('anon', 'public.save_staff_availability(uuid,uuid,uuid[],jsonb,jsonb)', 'EXECUTE'), 'anon não altera disponibilidade');
 select extensions.ok(has_function_privilege('authenticated', 'public.save_staff_availability(uuid,uuid,uuid[],jsonb,jsonb)', 'EXECUTE'), 'gestor autenticado pode chamar configuração de disponibilidade');
+select extensions.ok(has_function_privilege('anon', 'public.public_create_appointment(text,uuid,uuid,date,time without time zone,text,text,text,boolean,text)', 'EXECUTE'), 'visitante pode solicitar agendamento pela RPC limitada');
+select extensions.ok(has_function_privilege('anon', 'private.public_create_appointment(text,uuid,uuid,date,time without time zone,text,text,text,boolean,text)', 'EXECUTE'), 'wrapper público alcança implementação no schema não exposto');
+select extensions.ok(not has_table_privilege('anon', 'private.public_booking_attempts', 'SELECT'), 'visitante não lê controle antiabuso');
+select extensions.ok(not has_function_privilege('anon', 'public.get_public_booking_settings(uuid)', 'EXECUTE'), 'visitante não lê configuração administrativa');
+select extensions.ok(has_function_privilege('authenticated', 'public.set_public_booking_settings(uuid,text,boolean)', 'EXECUTE'), 'gestor autenticado configura agenda pública');
 
 select extensions.ok(not has_function_privilege('authenticated', 'public.ogritech_set_updated_at()', 'EXECUTE'), 'cliente não executa trigger de updated_at');
 select extensions.ok(not has_function_privilege('authenticated', 'public.log_personal_data_change()', 'EXECUTE'), 'cliente não executa trigger de auditoria');
