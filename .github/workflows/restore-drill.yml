@@ -160,7 +160,10 @@ jobs:
           $$;
           SQL
 
-          supabase test db --db-url "$LOCAL_DB_URL" supabase/tests/database
+          supabase test db \
+            --workdir restore-drill \
+            --db-url "$LOCAL_DB_URL" \
+            "$GITHUB_WORKSPACE/supabase/tests/database"
 
       - name: Remove decrypted files
         if: always()
