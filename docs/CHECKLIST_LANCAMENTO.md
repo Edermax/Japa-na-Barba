@@ -42,6 +42,8 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - [x] Definir backup, retenção, RPO e RTO. Metas do piloto: RPO de 24 horas,
   RTO de 4 horas úteis e retenção-alvo de sete cópias diárias. A implantação e
   o ensaio continuam bloqueadores. Plano: `docs/PLANO_CONTINUIDADE_PILOTO.md`.
+- [x] Executar o primeiro backup lógico criptografado de produção. Evidência:
+  `docs/evidencias/backup-producao-2026-08-30.md`.
 - [ ] Restaurar um backup em projeto isolado e registrar o resultado.
 
 ## Operação, jurídico e atendimento
