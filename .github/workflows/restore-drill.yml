@@ -83,6 +83,10 @@ jobs:
           test -s restored/backup/roles.sql
           test -s restored/backup/schema.sql
           test -s restored/backup/data.sql
+          if grep -Eiq '^COPY[[:space:]]+("?auth"?|"?storage"?)\.' restored/backup/data.sql; then
+            echo "Backup contains managed auth/storage data" >&2
+            exit 1
+          fi
           rm -f restored/backup.tar.gz
 
       - name: Start disposable local Supabase database

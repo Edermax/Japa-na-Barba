@@ -46,9 +46,16 @@ jobs:
           mkdir -p backup
           supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/roles.sql --role-only
           supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
-          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql --use-copy --data-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql \
+            --use-copy --data-only \
+            -x "auth.*" \
+            -x "storage.*"
           test -s backup/schema.sql
           test -s backup/data.sql
+          if grep -Eiq '^COPY[[:space:]]+("?auth"?|"?storage"?)\.' backup/data.sql; then
+            echo "Managed auth/storage data was not excluded" >&2
+            exit 1
+          fi
 
       - name: Encrypt backup
         id: encrypt
@@ -77,4 +84,3 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
-
