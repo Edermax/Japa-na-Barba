@@ -32,11 +32,34 @@ Antes de inserir dados reais do piloto, escolher e concluir uma destas opções:
 
 1. **Preferida:** promover produção ao plano Pro e usar o backup diário gerenciado
    com retenção de sete dias.
-2. **Alternativa enxuta:** executar diariamente um dump lógico, criptografá-lo,
-   armazená-lo em destino privado externo e monitorar o sucesso da execução.
+2. **Alternativa enxuta escolhida para o período no Free:** executar diariamente
+   um dump lógico, criptografá-lo e armazená-lo como artefato privado do GitHub
+   Actions por sete dias. Implementação em
+   `.github/workflows/backup-production.yml`.
 
 PITR não é requisito do MVP. Ele somente será avaliado se o negócio exigir RPO
 menor que 24 horas.
+
+### Ativação da alternativa temporária
+
+No environment `production` do GitHub, cadastrar estes secrets:
+
+- `SUPABASE_DB_URL`: connection string do Session Pooler de produção, com senha
+  percent-encoded. Nunca usar a chave `service_role` como substituta.
+- `BACKUP_ENCRYPTION_PASSPHRASE`: frase aleatória exclusiva com pelo menos 32
+  caracteres. Guardar também uma cópia no gerenciador de senhas; sem ela, o
+  backup é irrecuperável.
+
+Depois, executar manualmente o workflow **Backup production database**. O
+agendamento subsequente ocorre diariamente às 03:20 UTC (00:20 no horário de
+Brasília enquanto UTC-3). A implantação somente será considerada concluída
+quando a execução manual produzir o artefato `.tar.gz.enc` e seu SHA-256.
+
+O dump do CLI exclui schemas gerenciados pela Supabase, incluindo `auth` e
+`storage`. A contingência temporária cobre roles customizadas, schema e dados da
+aplicação, incluindo a Agenda, mas não preserva usuários do Auth nem objetos do
+Storage. Essa limitação deve ser aceita apenas durante o piloto assistido e
+eliminada com a migração para o plano Pro.
 
 ## Procedimento de recuperação
 
@@ -54,7 +77,7 @@ menor que 24 horas.
 
 ## Critérios para liberar o piloto
 
-- [ ] Opção de backup escolhida e efetivamente configurada.
+- [ ] Workflow temporário executado com os dois secrets de produção.
 - [ ] Último backup identificado, íntegro e acessível ao responsável técnico.
 - [ ] Segredos de acesso não estão no Git nem no artefato sem criptografia.
 - [ ] Restauração concluída em projeto isolado.

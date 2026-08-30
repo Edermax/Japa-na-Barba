@@ -1,0 +1,80 @@
+name: Backup production database
+
+on:
+  schedule:
+    # 03:20 UTC = 00:20 em America/Sao_Paulo (UTC-3).
+    - cron: "20 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-production
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Dump, encrypt and retain
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.115.0
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}" || { echo "SUPABASE_DB_URL is not configured" >&2; exit 1; }
+          test -n "${BACKUP_ENCRYPTION_PASSPHRASE:-}" || { echo "BACKUP_ENCRYPTION_PASSPHRASE is not configured" >&2; exit 1; }
+          test "${#BACKUP_ENCRYPTION_PASSPHRASE}" -ge 32 || { echo "The encryption passphrase must have at least 32 characters" >&2; exit 1; }
+
+      - name: Create logical dumps
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql --use-copy --data-only
+          test -s backup/schema.sql
+          test -s backup/data.sql
+
+      - name: Encrypt backup
+        id: encrypt
+        shell: bash
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          archive="ogritech-production-${stamp}.tar.gz"
+          encrypted="${archive}.enc"
+          tar -czf "$archive" backup
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 \
+            -in "$archive" -out "$encrypted" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          sha256sum "$encrypted" > "${encrypted}.sha256"
+          rm -rf backup "$archive"
+          echo "artifact_name=ogritech-production-${stamp}" >> "$GITHUB_OUTPUT"
+          echo "encrypted_file=${encrypted}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.encrypt.outputs.artifact_name }}
+          path: |
+            ${{ steps.encrypt.outputs.encrypted_file }}
+            ${{ steps.encrypt.outputs.encrypted_file }}.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
