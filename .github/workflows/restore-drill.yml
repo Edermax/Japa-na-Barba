@@ -103,10 +103,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Hosted Supabase role dumps include managed per-role GUC defaults.
+          # The local postgres role intentionally cannot change superuser-only
+          # parameters, so omit only those settings in the disposable drill.
+          sed -E '/^ALTER ROLE .* SET /d' \
+            restored/backup/roles.sql > restored/backup/roles.restore.sql
           psql \
             --single-transaction \
             --variable ON_ERROR_STOP=1 \
-            --file restored/backup/roles.sql \
+            --file restored/backup/roles.restore.sql \
             --file restored/backup/schema.sql \
             --command 'SET session_replication_role = replica' \
             --file restored/backup/data.sql \
