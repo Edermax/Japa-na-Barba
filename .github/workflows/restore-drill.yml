@@ -1,0 +1,165 @@
+name: Restore production backup drill
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: GitHub Actions run ID that produced the backup
+        required: true
+        default: "33334370195"
+        type: string
+      artifact_name:
+        description: Exact encrypted backup artifact name
+        required: true
+        default: ogritech-production-20260830T204344Z
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: restore-production-backup-drill
+  cancel-in-progress: false
+
+jobs:
+  restore-drill:
+    name: Restore and verify in ephemeral Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    env:
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+      LOCAL_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.115.0
+
+      - name: Download encrypted backup
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: restore-artifact
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Validate, decrypt and unpack
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${BACKUP_ENCRYPTION_PASSPHRASE:-}" || {
+            echo "BACKUP_ENCRYPTION_PASSPHRASE is not configured" >&2
+            exit 1
+          }
+          test "${#BACKUP_ENCRYPTION_PASSPHRASE}" -ge 32 || {
+            echo "The encryption passphrase must have at least 32 characters" >&2
+            exit 1
+          }
+
+          mapfile -t encrypted_files < <(find restore-artifact -type f -name '*.tar.gz.enc')
+          test "${#encrypted_files[@]}" -eq 1 || {
+            echo "Expected exactly one encrypted archive" >&2
+            exit 1
+          }
+
+          encrypted="${encrypted_files[0]}"
+          checksum="${encrypted}.sha256"
+          test -s "$checksum"
+          (
+            cd "$(dirname "$encrypted")"
+            sha256sum --check "$(basename "$checksum")"
+          )
+
+          mkdir -p restored
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+            -in "$encrypted" -out restored/backup.tar.gz \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          tar -xzf restored/backup.tar.gz -C restored
+          test -s restored/backup/roles.sql
+          test -s restored/backup/schema.sql
+          test -s restored/backup/data.sql
+          rm -f restored/backup.tar.gz
+
+      - name: Start disposable local Supabase database
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p restore-drill
+          (
+            cd restore-drill
+            supabase init --yes
+            supabase start --yes \
+              --exclude gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+          )
+          psql "$LOCAL_DB_URL" --variable ON_ERROR_STOP=1 \
+            --command 'select current_database(), current_setting('"'"'server_version'"'"');'
+
+      - name: Restore backup in one transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql \
+            --single-transaction \
+            --variable ON_ERROR_STOP=1 \
+            --file restored/backup/roles.sql \
+            --file restored/backup/schema.sql \
+            --command 'SET session_replication_role = replica' \
+            --file restored/backup/data.sql \
+            --dbname "$LOCAL_DB_URL"
+
+      - name: Verify restored schema, RLS and database tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$LOCAL_DB_URL" --variable ON_ERROR_STOP=1 <<'SQL'
+          do $$
+          declare
+            public_tables integer;
+            tables_without_rls integer;
+          begin
+            select count(*) into public_tables
+            from pg_class c
+            join pg_namespace n on n.oid = c.relnamespace
+            where n.nspname = 'public' and c.relkind in ('r', 'p');
+
+            if public_tables = 0 then
+              raise exception 'Restore produced no public tables';
+            end if;
+
+            select count(*) into tables_without_rls
+            from pg_class c
+            join pg_namespace n on n.oid = c.relnamespace
+            where n.nspname = 'public'
+              and c.relkind in ('r', 'p')
+              and not c.relrowsecurity;
+
+            if tables_without_rls > 0 then
+              raise exception '% public tables have RLS disabled', tables_without_rls;
+            end if;
+
+            if to_regprocedure('public.public_create_appointment(text,uuid,uuid,date,time without time zone,text,text,text,boolean,text)') is null then
+              raise exception 'Critical public_create_appointment RPC is missing';
+            end if;
+          end
+          $$;
+          SQL
+
+          supabase test db --db-url "$LOCAL_DB_URL" supabase/tests/database
+
+      - name: Remove decrypted files
+        if: always()
+        shell: bash
+        run: rm -rf restored restore-artifact
+
+      - name: Stop and delete disposable database
+        if: always()
+        shell: bash
+        run: |
+          if [ -d restore-drill/supabase ]; then
+            supabase stop --workdir restore-drill --no-backup || true
+          fi
