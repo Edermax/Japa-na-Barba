@@ -11,8 +11,8 @@ select extensions.is((select relrowsecurity from pg_class where oid='public.appo
 select extensions.ok(not has_function_privilege('anon','public.transition_appointment_status(uuid,text,timestamp with time zone,text)','EXECUTE'),'anon nao altera status');
 select extensions.ok(has_function_privilege('authenticated','public.transition_appointment_status(uuid,text,timestamp with time zone,text)','EXECUTE'),'equipe autenticada usa a RPC');
 
-insert into public.barbershops(id,name,segment)
-values('41000000-0000-4000-8000-000000000001','Operacoes Atomicas','Teste');
+insert into public.barbershops(id,name,slug,segment)
+values('41000000-0000-4000-8000-000000000001','Operacoes Atomicas','operacoes-atomicas','Teste');
 insert into auth.users(id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,raw_app_meta_data,raw_user_meta_data,created_at,updated_at)
 values('42000000-0000-4000-8000-000000000001','00000000-0000-0000-0000-000000000000','authenticated','authenticated','atomic-owner@example.invalid','',now(),'{"provider":"email","providers":["email"]}','{}',now(),now());
 insert into public.profiles(id,barbershop_id,full_name,role)

@@ -3,9 +3,9 @@ set local search_path = public, extensions;
 
 select extensions.plan(20);
 
-insert into public.barbershops (id, name, segment) values
-  ('10000000-0000-4000-8000-000000000001', 'STAGING RLS Empresa A', 'Teste'),
-  ('20000000-0000-4000-8000-000000000002', 'STAGING RLS Empresa B', 'Teste');
+insert into public.barbershops (id, name, slug, segment) values
+  ('10000000-0000-4000-8000-000000000001', 'STAGING RLS Empresa A', 'staging-rls-empresa-a', 'Teste'),
+  ('20000000-0000-4000-8000-000000000002', 'STAGING RLS Empresa B', 'staging-rls-empresa-b', 'Teste');
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password,

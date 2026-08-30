@@ -5,8 +5,8 @@ select extensions.plan(32);
 create temporary table public_booking_test_result(payload jsonb);
 grant select,insert on public_booking_test_result to anon;
 
-insert into public.barbershops (id, name, segment)
-values ('30000000-0000-4000-8000-000000000003', 'STAGING Operações', 'Teste');
+insert into public.barbershops (id, name, slug, segment)
+values ('30000000-0000-4000-8000-000000000003', 'STAGING Operações', 'staging-operacoes', 'Teste');
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password,
