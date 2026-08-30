@@ -33,9 +33,9 @@ insert into public.profiles (id, barbershop_id, full_name, role, employee_id) va
 insert into public.platform_admins (user_id) values
   ('f0000000-0000-4000-8000-000000000001');
 
-insert into public.services (barbershop_id, name, price) values
-  ('10000000-0000-4000-8000-000000000001', 'Serviço A', 10),
-  ('20000000-0000-4000-8000-000000000002', 'Serviço B', 20);
+insert into public.services (barbershop_id, name, price, duration_minutes) values
+  ('10000000-0000-4000-8000-000000000001', 'Serviço A', 10, 30),
+  ('20000000-0000-4000-8000-000000000002', 'Serviço B', 20, 30);
 
 create function pg_temp.attempt_cross_business_update()
 returns integer
