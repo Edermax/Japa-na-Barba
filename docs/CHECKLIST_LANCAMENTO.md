@@ -62,6 +62,6 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - Data e hora:
 - Responsável técnico:
 - Responsável de negócio:
-- Backup/restauração testados em:
-- Resultado do smoke test:
+- Backup/restauração testados em: 2026-08-30, execução `33339937024`.
+- Resultado do smoke test: aprovado, 72 testes operacionais.
 - Decisão: `APROVADO` / `REPROVADO`

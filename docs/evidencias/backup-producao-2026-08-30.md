@@ -28,3 +28,9 @@ secrets do environment `production` e não foram registrados nesta evidência.
 - O piloto somente atende ao gate de recuperação depois que este backup for
   descriptografado e restaurado em projeto isolado, com smoke test aprovado.
 
+## Complemento
+
+O artefato inicial revelou metadados incompatíveis do schema gerenciado
+`storage`. O workflow foi corrigido para permitir somente dados de `public` e
+`private`, e um novo artefato foi restaurado com sucesso. Evidência conclusiva:
+`docs/evidencias/restauracao-backup-producao-2026-08-30.md`.

@@ -77,14 +77,16 @@ eliminada com a migração para o plano Pro.
 
 ## Critérios para liberar o piloto
 
-- [ ] Workflow temporário executado com os dois secrets de produção.
-- [ ] Último backup identificado, íntegro e acessível ao responsável técnico.
-- [ ] Segredos de acesso não estão no Git nem no artefato sem criptografia.
-- [ ] Restauração concluída em projeto isolado.
-- [ ] RPO observado menor ou igual a 24 horas.
-- [ ] RTO observado menor ou igual a 4 horas úteis.
-- [ ] Smoke test e isolamento entre empresas aprovados após a restauração.
-- [ ] Evidência datada anexada em `docs/evidencias/`.
+- [x] Workflow temporário executado com os dois secrets de produção.
+- [x] Último backup identificado, íntegro e acessível ao responsável técnico.
+- [x] Segredos de acesso não estão no Git nem no artefato sem criptografia.
+- [x] Restauração concluída em projeto isolado.
+- [x] RPO observado menor ou igual a 24 horas.
+- [x] RTO observado menor ou igual a 4 horas úteis.
+- [x] Smoke test e isolamento entre empresas aprovados após a restauração.
+- [x] Evidência datada anexada em `docs/evidencias/`.
+
+Evidência: `docs/evidencias/restauracao-backup-producao-2026-08-30.md`.
 
 ## Referências oficiais
 
