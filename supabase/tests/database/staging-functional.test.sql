@@ -60,8 +60,8 @@ select extensions.ok(not public.is_business_manager('20000000-0000-4000-8000-000
 select extensions.is((select count(*)::integer from public.barbershops), 1, 'owner enxerga somente a própria empresa');
 select extensions.is((select count(*)::integer from public.services), 1, 'owner enxerga somente serviços da própria empresa');
 select extensions.is((select count(*)::integer from public.profiles), 4, 'owner enxerga somente perfis da própria empresa');
-select extensions.lives_ok($$insert into public.services (barbershop_id, name, price) values ('10000000-0000-4000-8000-000000000001', 'Criado pelo owner', 30)$$, 'owner cria serviço na própria empresa');
-select extensions.throws_ok($$insert into public.services (barbershop_id, name, price) values ('20000000-0000-4000-8000-000000000002', 'Ataque cruzado owner', 30)$$, '42501', null, 'owner não cria serviço em outra empresa');
+select extensions.lives_ok($$insert into public.services (barbershop_id, name, price, duration_minutes) values ('10000000-0000-4000-8000-000000000001', 'Criado pelo owner', 30, 30)$$, 'owner cria serviço na própria empresa');
+select extensions.throws_ok($$insert into public.services (barbershop_id, name, price, duration_minutes) values ('20000000-0000-4000-8000-000000000002', 'Ataque cruzado owner', 30, 30)$$, '42501', null, 'owner não cria serviço em outra empresa');
 
 select set_config('request.jwt.claims', '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated","email":"admin-a@example.invalid"}', true);
 select extensions.ok(public.is_business_manager('10000000-0000-4000-8000-000000000001'), 'admin gerencia a própria empresa');
@@ -72,7 +72,7 @@ select set_config('request.jwt.claims', '{"sub":"a0000000-0000-4000-8000-0000000
 select extensions.ok(public.is_business_team('10000000-0000-4000-8000-000000000001'), 'employee integra a equipe da própria empresa');
 select extensions.ok(not public.is_business_manager('10000000-0000-4000-8000-000000000001'), 'employee não possui poder de gestor');
 select extensions.is((select count(*)::integer from public.services), 2, 'employee vê somente serviços da própria empresa');
-select extensions.throws_ok($$insert into public.services (barbershop_id, name, price) values ('10000000-0000-4000-8000-000000000001', 'Ataque employee', 30)$$, '42501', null, 'employee não cria serviços');
+select extensions.throws_ok($$insert into public.services (barbershop_id, name, price, duration_minutes) values ('10000000-0000-4000-8000-000000000001', 'Ataque employee', 30, 30)$$, '42501', null, 'employee não cria serviços');
 
 select set_config('request.jwt.claims', '{"sub":"a0000000-0000-4000-8000-000000000004","role":"authenticated","email":"client-a@example.invalid"}', true);
 select extensions.ok(public.belongs_to_barbershop('10000000-0000-4000-8000-000000000001'), 'client pertence à própria empresa');
@@ -84,7 +84,13 @@ select extensions.is((select count(*)::integer from public.services), 1, 'segund
 
 select set_config('request.jwt.claims', '{"sub":"f0000000-0000-4000-8000-000000000001","role":"authenticated","email":"platform-admin@example.invalid"}', true);
 select extensions.ok(public.is_platform_admin(), 'platform admin é reconhecido');
-select extensions.is((select count(*)::integer from public.barbershops), 2, 'platform admin possui visão global das empresas');
+select extensions.is((
+  select count(*)::integer from public.barbershops
+  where id in (
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000002'
+  )
+), 2, 'platform admin possui visão global das empresas do ensaio');
 
 select * from extensions.finish();
 rollback;
