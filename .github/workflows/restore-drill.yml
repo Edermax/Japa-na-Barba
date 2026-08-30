@@ -106,8 +106,12 @@ jobs:
           # Hosted Supabase role dumps include managed per-role GUC defaults.
           # The local postgres role intentionally cannot change superuser-only
           # parameters, so omit only those settings in the disposable drill.
-          sed -E '/^ALTER ROLE .* SET /d' \
+          sed -E '/^[[:space:]]*ALTER (ROLE|USER).* (SET|RESET) /Id' \
             restored/backup/roles.sql > restored/backup/roles.restore.sql
+          if grep -Eiq 'log_min_messages' restored/backup/roles.restore.sql; then
+            echo "Managed role settings were not removed" >&2
+            exit 1
+          fi
           psql \
             --single-transaction \
             --variable ON_ERROR_STOP=1 \
