@@ -39,7 +39,9 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - [x] Publicar a Edge Function usando segredos do ambiente Supabase. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [ ] Confirmar CSP, HSTS e demais cabeçalhos no host/CDN real.
 - [ ] Configurar alertas para 5xx, 429, falhas de Auth e latência p95.
-- [ ] Definir backup, retenção, RPO e RTO.
+- [x] Definir backup, retenção, RPO e RTO. Metas do piloto: RPO de 24 horas,
+  RTO de 4 horas úteis e retenção-alvo de sete cópias diárias. A implantação e
+  o ensaio continuam bloqueadores. Plano: `docs/PLANO_CONTINUIDADE_PILOTO.md`.
 - [ ] Restaurar um backup em projeto isolado e registrar o resultado.
 
 ## Operação, jurídico e atendimento
