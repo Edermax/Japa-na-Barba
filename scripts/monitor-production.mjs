@@ -34,6 +34,8 @@ export function normalizeResult(payload) {
   if (!row) throw new Error("Supabase Logs API não retornou métricas");
   const metrics = {};
   for (const key of [
+    "edge_log_count",
+    "auth_log_count",
     "server_errors",
     "rate_limited",
     "auth_failures",
@@ -49,6 +51,8 @@ export function normalizeResult(payload) {
 
 function buildQuery() {
   return `select
+    countIf(source in ('edge_logs', 'function_edge_logs')) as edge_log_count,
+    countIf(source = 'auth_logs') as auth_log_count,
     countIf(source in ('edge_logs', 'function_edge_logs') and toInt32OrZero(log_attributes['response.status_code']) between 500 and 599) as server_errors,
     countIf(source in ('edge_logs', 'function_edge_logs') and toInt32OrZero(log_attributes['response.status_code']) = 429) as rate_limited,
     countIf(source = 'auth_logs' and (toInt32OrZero(log_attributes['response.status_code']) >= 400 or match(lower(event_message), 'invalid|failed|error|unauthorized'))) as auth_failures,

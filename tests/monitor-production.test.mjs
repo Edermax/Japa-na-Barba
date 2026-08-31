@@ -31,12 +31,16 @@ test("p95 não alerta quando a amostra é insuficiente", () => {
 
 test("normaliza números retornados como texto pela API", () => {
   assert.deepEqual(normalizeResult({ result: [{
+    edge_log_count: "42",
+    auth_log_count: "3",
     server_errors: "0",
     rate_limited: "1",
     auth_failures: "2",
     latency_p95_ms: "321.5",
     latency_samples: "40"
   }] }), {
+    edge_log_count: 42,
+    auth_log_count: 3,
     server_errors: 0,
     rate_limited: 1,
     auth_failures: 2,
