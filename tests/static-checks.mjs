@@ -30,9 +30,13 @@ if (manifest.display !== "standalone" || !manifest.start_url || !manifest.icons?
 }
 for (const page of ["index.html", "cliente.html", "login.html"]) {
   const html = await readFile(new URL(`../${page}`, import.meta.url), "utf8");
-  if (!html.includes('rel="manifest"') || !html.includes('src="pwa.js"')) {
+  if (!html.includes('rel="manifest"') || !/src="pwa\.js(?:\?[^\"]*)?"/.test(html)) {
     throw new Error(`${page}: integração PWA ausente`);
   }
+}
+const pwaScript = await readFile(new URL("../pwa.js", import.meta.url), "utf8");
+if (!pwaScript.includes('document.body.classList.contains("login-page")')) {
+  throw new Error("O botão de instalação deve ficar restrito à página de login");
 }
 const serviceWorker = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 if (!serviceWorker.includes('addEventListener("fetch"') || !serviceWorker.includes('addEventListener("install"')) {

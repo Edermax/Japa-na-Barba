@@ -1,12 +1,15 @@
 (() => {
-  const installStyles = document.createElement("link");
-  installStyles.rel = "stylesheet";
-  installStyles.href = new URL("pwa.css?v=20260831.1", document.baseURI).href;
-  document.head.appendChild(installStyles);
-
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch((error) => console.warn("PWA indisponível:", error)));
   }
+
+  // O convite de instalação pertence somente à tela de login.
+  if (!document.body.classList.contains("login-page")) return;
+
+  const installStyles = document.createElement("link");
+  installStyles.rel = "stylesheet";
+  installStyles.href = new URL("pwa.css?v=20260831.3", document.baseURI).href;
+  document.head.appendChild(installStyles);
 
   let installPrompt;
   const installButton = document.createElement("button");
