@@ -1,0 +1,39 @@
+/* Títulos com contorno: ritmo vertical consistente e seguro no celular. */
+h1 em,
+h2 em {
+  display: inline-block;
+  max-width: 100%;
+  font-style: normal;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-wrap: balance;
+  -webkit-text-stroke-width: 0.8px;
+}
+
+@media (max-width: 600px) {
+  h1,
+  .cta h2,
+  .final-cta h2 {
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: clamp(44px, 14vw, 64px);
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 14vw, 66px);
+  }
+
+  .cta h2,
+  .final-cta h2 {
+    font-size: clamp(38px, 11.5vw, 54px);
+  }
+
+  h1 em,
+  h2 em {
+    -webkit-text-stroke-width: 0.7px;
+  }
+}

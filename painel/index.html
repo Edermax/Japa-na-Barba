@@ -21,6 +21,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <!-- IMPORTANTE: este é o arquivo CSS separado -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="action-arrows.css">
 </head>
 <body>
     <!-- Aplicação principal -->
@@ -82,7 +83,7 @@
                 </div>
                 <!-- Abre o modal de agendamento -->
                 <div class="topbar-actions">
-                    <a class="text-button hidden" id="backToShowcase" href="demonstracoes.html">← Voltar às demonstrações</a>
+                    <a class="text-button hidden" id="backToShowcase" href="demonstracoes.html"><span class="action-arrow action-arrow--back" aria-hidden="true"></span> Voltar às demonstrações</a>
                     <div class="notification-center">
                         <button class="notification-button" id="notificationButton" type="button" aria-label="Abrir notificações" aria-expanded="false">
                             <span aria-hidden="true">◉</span><span class="notification-badge hidden" id="notificationBadge">0</span>
@@ -557,6 +558,6 @@
     <!-- JavaScript principal do dashboard -->
     <script src="script.js"></script>
     <script src="commercial-admin.js"></script>
-    <script src="pwa.js"></script>
+    <script src="pwa.js?v=20260831.2"></script>
 </body>
 </html>
