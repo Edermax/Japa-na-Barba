@@ -36,7 +36,7 @@ function renderDemo(key, updateUrl = true) {
     $("chart").innerHTML = chartValues.map((value,index) => `<div><span style="height:${value}%"></span><small>${["SEG","TER","QUA","QUI","SEX","SÁB","DOM"][index]}</small></div>`).join("");
     $("businessInsight").textContent = demo.insight;
     $("todayLabel").textContent = new Intl.DateTimeFormat("pt-BR", {day:"2-digit",month:"short"}).format(new Date());
-    renderNavigation(); document.title = `${demo.name} | Demonstração Ogritech`;
+    renderNavigation();
     if (updateUrl) history.replaceState(null, "", `?segmento=${key}`);
 }
 
