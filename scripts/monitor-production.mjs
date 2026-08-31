@@ -56,8 +56,8 @@ function buildQuery() {
     countIf(source in ('edge_logs', 'function_edge_logs') and toInt32OrZero(log_attributes['response.status_code']) between 500 and 599) as server_errors,
     countIf(source in ('edge_logs', 'function_edge_logs') and toInt32OrZero(log_attributes['response.status_code']) = 429) as rate_limited,
     countIf(source = 'auth_logs' and (toInt32OrZero(log_attributes['response.status_code']) >= 400 or match(lower(event_message), 'invalid|failed|error|unauthorized'))) as auth_failures,
-    quantileIf(0.95)(toFloat64OrZero(log_attributes['execution_time_ms']), source in ('edge_logs', 'function_edge_logs') and toFloat64OrZero(log_attributes['execution_time_ms']) > 0) as latency_p95_ms,
-    countIf(source in ('edge_logs', 'function_edge_logs') and toFloat64OrZero(log_attributes['execution_time_ms']) > 0) as latency_samples
+    quantileIf(0.95)(if(source = 'edge_logs', toFloat64OrZero(log_attributes['response.origin_time']), toFloat64OrZero(log_attributes['execution_time_ms'])), (source = 'edge_logs' and toFloat64OrZero(log_attributes['response.origin_time']) > 0) or (source = 'function_edge_logs' and toFloat64OrZero(log_attributes['execution_time_ms']) > 0)) as latency_p95_ms,
+    countIf((source = 'edge_logs' and toFloat64OrZero(log_attributes['response.origin_time']) > 0) or (source = 'function_edge_logs' and toFloat64OrZero(log_attributes['execution_time_ms']) > 0)) as latency_samples
   from logs
   where timestamp >= now() - interval 20 minute`;
 }
