@@ -33,6 +33,14 @@
 - Alertar para erros 5xx/429 da Edge Function, falhas de convite e conflitos anormais de agenda.
 - Acompanhar latência p95 da API, erros de autenticação e volume de eventos administrativos.
 - Manter logs sem conteúdo de observações, tokens, senhas ou dados pessoais desnecessários.
+- O workflow `Monitor production` consulta a API unificada de logs a cada 15
+  minutos usando um token restrito a `analytics_logs_read`. Limites iniciais:
+  qualquer 5xx, cinco respostas 429, cinco falhas de Auth ou p95 acima de 1,5 s
+  com pelo menos 20 amostras na janela de 20 minutos.
+- Um único issue com a label `production-monitor` permanece aberto enquanto o
+  incidente estiver ativo e é encerrado automaticamente após normalização.
+- Secrets obrigatórios no ambiente `production`: `SUPABASE_ACCESS_TOKEN`;
+  variável obrigatória: `SUPABASE_PROJECT_REF`.
 
 ## LGPD e retenção
 
