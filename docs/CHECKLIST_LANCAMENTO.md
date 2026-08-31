@@ -40,7 +40,8 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - [x] Confirmar HTTPS obrigatório, HSTS, `nosniff`, TLS 1.2 mínimo e TLS 1.3
   no CDN real. A CSP permanece definida pela aplicação. Evidência:
   `docs/evidencias/cloudflare-dns-2026-08-31.md`.
-- [ ] Configurar alertas para 5xx, 429, falhas de Auth e latência p95.
+- [x] Configurar alertas para 5xx, 429, falhas de Auth e latência p95.
+  Evidência: `docs/evidencias/monitoramento-producao-2026-08-31.md`.
 - [x] Definir backup, retenção, RPO e RTO. Metas do piloto: RPO de 24 horas,
   RTO de 4 horas úteis e retenção-alvo de sete cópias diárias. A implantação e
   o ensaio continuam bloqueadores. Plano: `docs/PLANO_CONTINUIDADE_PILOTO.md`.
