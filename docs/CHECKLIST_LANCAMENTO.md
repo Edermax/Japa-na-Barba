@@ -16,6 +16,9 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 
 ## Staging — bloqueia produção
 
+- [x] Executar homologação interna integral com duas empresas e dados sintéticos,
+  incluindo limpeza comprovada. Evidência:
+  `docs/evidencias/homologacao-interna-staging-2026-08-31.md`.
 - [x] Criar projeto Supabase de staging sem dados reais. Evidência: `docs/evidencias/staging-2026-08-26.md`.
 - [x] Configurar Site URL e redirects de staging. Evidência: `docs/evidencias/staging-2026-08-26.md`, complemento de 2026-08-27.
 - [x] Aplicar todas as migrations em banco vazio. Evidência: `docs/evidencias/staging-2026-08-26.md`.
