@@ -37,14 +37,17 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - [x] Exigir MFA para administradores da organização e da plataforma. Conta proprietária protegida com dois fatores TOTP independentes; enforcement organizacional indisponível no plano Free. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Habilitar SSL Enforcement e revisar Network Restrictions. SSL habilitado; restrição de rede mantida aberta para o piloto por ausência de IP administrativo fixo. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Publicar a Edge Function usando segredos do ambiente Supabase. Evidência: `docs/evidencias/producao-2026-08-29.md`.
-- [ ] Confirmar CSP, HSTS e demais cabeçalhos no host/CDN real.
+- [x] Confirmar HTTPS obrigatório, HSTS, `nosniff`, TLS 1.2 mínimo e TLS 1.3
+  no CDN real. A CSP permanece definida pela aplicação. Evidência:
+  `docs/evidencias/cloudflare-dns-2026-08-31.md`.
 - [ ] Configurar alertas para 5xx, 429, falhas de Auth e latência p95.
 - [x] Definir backup, retenção, RPO e RTO. Metas do piloto: RPO de 24 horas,
   RTO de 4 horas úteis e retenção-alvo de sete cópias diárias. A implantação e
   o ensaio continuam bloqueadores. Plano: `docs/PLANO_CONTINUIDADE_PILOTO.md`.
 - [x] Executar o primeiro backup lógico criptografado de produção. Evidência:
   `docs/evidencias/backup-producao-2026-08-30.md`.
-- [ ] Restaurar um backup em projeto isolado e registrar o resultado.
+- [x] Restaurar um backup em projeto isolado e registrar o resultado. Evidência:
+  `docs/evidencias/restauracao-backup-producao-2026-08-30.md`.
 
 ## Operação, jurídico e atendimento
 
