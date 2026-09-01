@@ -2,7 +2,8 @@
 
 Data: 01/09/2026  
 Alvo: `https://ogritech.com.br`  
-Resultado: **NÃO APROVADO PARA GO-LIVE**
+Resultado inicial: **NÃO APROVADO PARA GO-LIVE**  
+Resultado após correção: **APROVADO NA AUDITORIA PÚBLICA**
 
 ## Aprovado
 
@@ -26,4 +27,15 @@ Resultado: **NÃO APROVADO PARA GO-LIVE**
 
 ## Decisão
 
-Manter produção comercial bloqueada. Corrigir as regras de resposta no Cloudflare ou migrar a entrega para um host que processe `_headers`. Depois, repetir `npm run audit:public` e anexar nova evidência. Não considerar a presença das diretivas no arquivo local `_headers` como prova de entrega pelo domínio.
+O bloqueio técnico foi mantido até a correção. Não considerar a presença das diretivas no arquivo local `_headers` como prova de entrega pelo domínio.
+
+## Correção e nova verificação
+
+Em 01/09/2026 foi criada no Cloudflare a regra ativa **Ogritech security response headers**, aplicável às respostas públicas da zona. Ela define estaticamente:
+
+- `Content-Security-Policy`, incluindo `frame-ancestors 'none'`;
+- `X-Frame-Options: DENY`;
+- `Referrer-Policy: strict-origin-when-cross-origin`;
+- `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`.
+
+O comando `npm run audit:public` foi repetido contra o tráfego real. Os quatro cabeçalhos foram recebidos por HTTP, HSTS e `nosniff` permaneceram presentes, as nove rotas foram aprovadas e o resultado foi `APROVADO`, sem falhas ou ressalvas. A produção comercial continua dependendo dos demais gates de operação; esta aprovação resolve somente o bloqueio de cabeçalhos.
