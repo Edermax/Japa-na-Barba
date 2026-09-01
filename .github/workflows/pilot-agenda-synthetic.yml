@@ -29,6 +29,7 @@ jobs:
         shell: bash
         run: |
           today="$(TZ=America/Sao_Paulo date +%F)"
+          echo "today=$today" >> "$GITHUB_OUTPUT"
           if [[ "${{ github.event_name }}" == "workflow_dispatch" || ( "$today" < "${PILOT_END}" || "$today" == "${PILOT_END}" ) && ( "$today" > "${PILOT_START}" || "$today" == "${PILOT_START}" ) ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
@@ -57,6 +58,66 @@ jobs:
           name: agenda-pilot-day-${{ github.run_number }}
           path: evidence/*.json
           retention-days: 30
+
+      - name: Update the 14-day pilot diary
+        if: steps.window.outputs.should_run == 'true' && steps.pilot.outcome == 'success'
+        uses: actions/github-script@v8
+        env:
+          REPORT_PATH: evidence/pilot-day-${{ github.run_number }}.json
+          PILOT_DATE: ${{ steps.window.outputs.today }}
+          PILOT_END_DATE: ${{ env.PILOT_END }}
+        with:
+          script: |
+            const fs = require("fs");
+            const report = JSON.parse(fs.readFileSync(process.env.REPORT_PATH, "utf8"));
+            const title = "[Piloto sintético] Diário operacional da agenda — 14 dias";
+            const label = "synthetic-agenda-pilot-log";
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                ...context.repo,
+                name: label,
+                color: "23735b",
+                description: "Diário e evidências do piloto sintético da agenda"
+              });
+            }
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "all", labels: label, per_page: 20
+            });
+            let diary = issues.find((issue) => issue.title === title);
+            if (!diary) {
+              const created = await github.rest.issues.create({
+                ...context.repo,
+                title,
+                labels: [label],
+                body: "Registro automático do ciclo de 01 a 14/09/2026. Cada comentário corresponde a um dia executado no staging; este diário não autoriza produção."
+              });
+              diary = created.data;
+            } else if (diary.state === "closed") {
+              await github.rest.issues.update({ ...context.repo, issue_number: diary.number, state: "open" });
+            }
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              `### ${process.env.PILOT_DATE} — aprovado`,
+              `- Clientes simulados: ${report.clientsSimulated}`,
+              `- Reservas criadas/canceladas: ${report.bookingsCreated}/${report.bookingsCancelled}`,
+              `- Isolamento entre clientes: ${report.crossClientIsolation}`,
+              `- Limpeza: ${report.cleanup}`,
+              `- Requisições medidas: ${report.requestsMeasured}`,
+              `- p95: ${report.p95Ms} ms`,
+              `- [Execução e artefato](${runUrl})`
+            ].join("\n");
+            await github.rest.issues.createComment({ ...context.repo, issue_number: diary.number, body });
+            if (process.env.PILOT_DATE === process.env.PILOT_END_DATE) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: diary.number,
+                body: "Ciclo de 14 dias encerrado. O diário está pronto para avaliação técnica e decisão sobre o beta fechado."
+              });
+              await github.rest.issues.update({ ...context.repo, issue_number: diary.number, state: "closed" });
+            }
 
       - name: Publish or resolve pilot incident
         if: steps.window.outputs.should_run == 'true'

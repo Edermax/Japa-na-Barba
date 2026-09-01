@@ -106,5 +106,8 @@ test("simulação assistida representa vários clientes e sempre limpa as reserv
   assert.match(workflow, /retention-days: 30/);
   assert.match(workflow, /actions\/upload-artifact@v6/);
   assert.match(workflow, /synthetic-agenda-pilot/);
+  assert.match(workflow, /synthetic-agenda-pilot-log/);
+  assert.match(workflow, /Diário operacional da agenda — 14 dias/);
+  assert.match(workflow, /Ciclo de 14 dias encerrado/);
   assert.doesNotMatch(workflow, /production/i);
 });

@@ -20,6 +20,8 @@ O primeiro dia operacional sintético foi aprovado no staging: seis clientes ind
 
 Enquanto não existir uma empresa-piloto real, o workflow `pilot-agenda-synthetic.yml` executa diariamente, de 01 a 14/09/2026, o ensaio com seis clientes no staging. Cada dia gera um relatório JSON arquivado por 30 dias. Uma falha abre ou atualiza um único issue com a label `synthetic-agenda-pilot`; a primeira execução saudável posterior registra a recuperação e encerra o incidente. Fora da janela, a execução agendada permanece inerte; execuções manuais continuam disponíveis para diagnóstico.
 
+Cada execução saudável também atualiza o issue único `Diário operacional da agenda — 14 dias`, com a label `synthetic-agenda-pilot-log`. O diário registra reservas criadas e canceladas, isolamento, limpeza, quantidade de requisições, p95 e link para a evidência. No último dia da janela ele registra o encerramento do ciclo e fecha o diário para a avaliação técnica.
+
 Este ciclo comprova estabilidade técnica repetida, mas não libera produção nem substitui validação humana. A decisão final continua bloqueada até existir beta fechado com pessoas reais, mesmo que sejam apenas o responsável pela Ogritech e dois ou três convidados.
 
 ### Gate único e monitoramento funcional
