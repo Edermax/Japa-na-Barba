@@ -51,6 +51,10 @@ Esses controles apoiam a adequação, mas não substituem revisão jurídica, co
 O acompanhamento de evidências e a aprovação final ficam em
 `docs/CHECKLIST_LANCAMENTO.md`.
 
+O estado consolidado da entrada em operação, incluindo itens concluídos,
+acompanhamento automático e dependências humanas, fica em
+`docs/PLANO_ENTRADA_OPERACAO_STATUS.md`.
+
 ## Central master
 
 O usuário registrado em `platform_admins` possui uma central exclusiva em `admin.html`. Nela é possível:

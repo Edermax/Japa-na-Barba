@@ -59,7 +59,9 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - [ ] Obter revisão jurídica dos Termos, Privacidade e acordo operador-controlador.
 - [ ] Provisionar e testar `contato@`, `suporte@`, `financeiro@` e `privacidade@ogritech.com.br`.
 - [ ] Definir responsável e escala para incidentes e pedidos LGPD.
-- [ ] Definir SLA de suporte e procedimento de escalonamento.
+- [x] Definir SLA interno de suporte e procedimento de escalonamento para o
+  piloto. A ativação depende de responsáveis e canais testados; não constitui
+  garantia comercial. Documento: `docs/SLA_SUPORTE_ESCALONAMENTO.md`.
 - [ ] Escolher emissão fiscal e, se necessário, gateway de pagamentos.
 
 ## Aprovação do go-live
