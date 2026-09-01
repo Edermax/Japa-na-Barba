@@ -6,6 +6,7 @@
     "check": "node tests/static-checks.mjs",
     "check:agenda": "node --test tests/agenda-readiness.test.mjs",
     "test:agenda-bot": "node scripts/agenda-bot.mjs",
+    "test:agenda-pilot-day": "node scripts/agenda-pilot-day-bot.mjs",
     "test:auth-bot": "node scripts/auth-login-bot.mjs",
     "test": "node --test tests/*.test.mjs",
     "validate": "npm run check && npm test",

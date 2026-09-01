@@ -10,6 +10,12 @@ Enquanto não houver uma empresa real, execute `npm run test:agenda-bot`. O bot 
 
 O bot valida o funcionamento técnico, mas não substitui a validação humana de usabilidade, comunicação com clientes, rotina da equipe e aderência às regras de um negócio real.
 
+Para simular uma jornada operacional com vários clientes, execute `npm run test:agenda-pilot-day`. O cenário cria seis reservas em horários diferentes, consulta cada uma com seu token, comprova que o token de um cliente não acessa a reserva de outro, mede a latência das chamadas e cancela todas as reservas em uma etapa de limpeza obrigatória. Essa execução representa um ensaio assistido, não uma aprovação para produção.
+
+### Evidência do ensaio assistido — 01/09/2026
+
+O primeiro dia operacional sintético foi aprovado no staging: seis clientes independentes geraram seis reservas em horários distintos; todas foram consultadas com seus próprios tokens; o cruzamento entre token e referência de clientes diferentes não retornou dados; e as seis reservas foram canceladas pela limpeza automática. Foram medidas 21 chamadas, com p95 de 1.122 ms. Nenhuma reserva ativa foi intencionalmente mantida pelo ensaio.
+
 ### Gate único e monitoramento funcional
 
 Execute `npm run validate:agenda-pilot` para rodar as verificações estáticas, testes automatizados e a jornada pública real no staging. O comando falha se qualquer contrato local quebrar ou se a agenda não conseguir criar, proteger, consultar, cancelar e limpar suas reservas sintéticas.

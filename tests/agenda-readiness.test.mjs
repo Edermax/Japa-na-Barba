@@ -88,3 +88,12 @@ test("gate e monitor sintético permanecem restritos ao staging", async () => {
   assert.match(bot, /concurrentDoubleBookingProtection/);
   assert.match(bot, /concurrencyCleanup/);
 });
+
+test("simulação assistida representa vários clientes e sempre limpa as reservas", async () => {
+  const pilotDay = await load("scripts/agenda-pilot-day-bot.mjs");
+  assert.match(pilotDay, /targetBookings = 6/);
+  assert.match(pilotDay, /crossClientIsolation/);
+  assert.match(pilotDay, /finally\s*\{/);
+  assert.match(pilotDay, /public_cancel_appointment/);
+  assert.match(pilotDay, /A simulação só pode executar no staging conhecido/);
+});
