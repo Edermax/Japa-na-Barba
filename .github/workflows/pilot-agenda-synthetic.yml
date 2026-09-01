@@ -111,12 +111,34 @@ jobs:
             ].join("\n");
             await github.rest.issues.createComment({ ...context.repo, issue_number: diary.number, body });
             if (process.env.PILOT_DATE === process.env.PILOT_END_DATE) {
+              const { data: comments } = await github.rest.issues.listComments({
+                ...context.repo, issue_number: diary.number, per_page: 100
+              });
+              const { parseDiaryComment, summarizePilotEntries } = require("./scripts/pilot-diary-summary.cjs");
+              const entries = comments.map((comment) => parseDiaryComment(comment.body));
+              const { data: incidents } = await github.rest.issues.listForRepo({
+                ...context.repo, state: "open", labels: "synthetic-agenda-pilot", per_page: 20
+              });
+              const summary = summarizePilotEntries(entries, { openIncidents: incidents.length });
+              const verdict = summary.approved ? "APROVADO TECNICAMENTE" : "NÃO APROVADO";
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: diary.number,
-                body: "Ciclo de 14 dias encerrado. O diário está pronto para avaliação técnica e decisão sobre o beta fechado."
+                body: [
+                  `## Encerramento — ${verdict}`,
+                  `- Dias únicos aprovados: ${summary.uniqueDays}/${summary.expectedDays}`,
+                  `- Reservas criadas/canceladas: ${summary.totalCreated}/${summary.totalCancelled}`,
+                  `- Maior p95 diário: ${summary.maxP95Ms} ms`,
+                  `- Dias com falha de isolamento ou limpeza: ${summary.unsafeDays.length ? summary.unsafeDays.join(", ") : "0"}`,
+                  `- Incidentes abertos: ${summary.openIncidents}`,
+                  summary.approved
+                    ? "Pronto para avaliação do beta fechado; produção continua dependendo de autorização explícita."
+                    : "O diário permanecerá aberto até que as pendências sejam tratadas e um novo ciclo seja aprovado."
+                ].join("\n")
               });
-              await github.rest.issues.update({ ...context.repo, issue_number: diary.number, state: "closed" });
+              if (summary.approved) {
+                await github.rest.issues.update({ ...context.repo, issue_number: diary.number, state: "closed" });
+              }
             }
 
       - name: Publish or resolve pilot incident

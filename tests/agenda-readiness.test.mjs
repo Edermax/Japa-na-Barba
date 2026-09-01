@@ -108,6 +108,9 @@ test("simulação assistida representa vários clientes e sempre limpa as reserv
   assert.match(workflow, /synthetic-agenda-pilot/);
   assert.match(workflow, /synthetic-agenda-pilot-log/);
   assert.match(workflow, /Diário operacional da agenda — 14 dias/);
-  assert.match(workflow, /Ciclo de 14 dias encerrado/);
+  assert.match(workflow, /Encerramento —/);
+  assert.match(workflow, /pilot-diary-summary\.cjs/);
+  assert.match(workflow, /APROVADO TECNICAMENTE/);
+  assert.match(workflow, /summary\.approved/);
   assert.doesNotMatch(workflow, /production/i);
 });

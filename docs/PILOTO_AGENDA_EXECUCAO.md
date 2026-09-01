@@ -22,6 +22,8 @@ Enquanto não existir uma empresa-piloto real, o workflow `pilot-agenda-syntheti
 
 Cada execução saudável também atualiza o issue único `Diário operacional da agenda — 14 dias`, com a label `synthetic-agenda-pilot-log`. O diário registra reservas criadas e canceladas, isolamento, limpeza, quantidade de requisições, p95 e link para a evidência. No último dia da janela ele registra o encerramento do ciclo e fecha o diário para a avaliação técnica.
 
+O encerramento é calculado automaticamente pelo módulo `pilot-diary-summary.cjs`. A aprovação exige 14 datas únicas, igualdade entre reservas criadas e canceladas em todos os dias, isolamento e limpeza aprovados e nenhum incidente sintético aberto. O resumo informa totais, maior p95 diário e pendências. Se qualquer critério falhar, o diário permanece aberto e a produção continua bloqueada.
+
 Este ciclo comprova estabilidade técnica repetida, mas não libera produção nem substitui validação humana. A decisão final continua bloqueada até existir beta fechado com pessoas reais, mesmo que sejam apenas o responsável pela Ogritech e dois ou três convidados.
 
 ### Gate único e monitoramento funcional
