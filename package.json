@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "check": "node tests/static-checks.mjs",
+    "check:agenda": "node --test tests/agenda-readiness.test.mjs",
+    "test:agenda-bot": "node scripts/agenda-bot.mjs",
+    "test:auth-bot": "node scripts/auth-login-bot.mjs",
     "test": "node --test tests/*.test.mjs",
-    "validate": "npm run check && npm test"
+    "validate": "npm run check && npm test",
+    "validate:agenda-pilot": "npm run validate && npm run test:agenda-bot"
   },
   "engines": {
     "node": ">=22"

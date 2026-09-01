@@ -1,0 +1,73 @@
+name: Monitor staging agenda
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: monitor-agenda-staging
+  cancel-in-progress: true
+
+jobs:
+  synthetic-journey:
+    name: Run synthetic booking journey
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - name: Validate repository and staging booking journey
+        id: gate
+        continue-on-error: true
+        run: npm run validate:agenda-pilot
+
+      - name: Publish or resolve staging agenda incident
+        uses: actions/github-script@v8
+        env:
+          GATE_OUTCOME: ${{ steps.gate.outcome }}
+        with:
+          script: |
+            const title = "[Monitor] Falha na agenda sintética de staging";
+            const label = "staging-agenda-monitor";
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                ...context.repo,
+                name: label,
+                color: "d97706",
+                description: "Falha na jornada sintética da agenda em staging"
+              });
+            }
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: "open",
+              labels: label,
+              per_page: 10
+            });
+            const incident = issues.find((issue) => issue.title === title);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (process.env.GATE_OUTCOME !== "success") {
+              const body = `A validação local ou a jornada sintética da agenda falhou.\n\nExecução: ${runUrl}`;
+              if (incident) {
+                await github.rest.issues.createComment({ ...context.repo, issue_number: incident.number, body });
+              } else {
+                await github.rest.issues.create({ ...context.repo, title, body, labels: [label] });
+              }
+              core.setFailed("A jornada sintética da agenda falhou.");
+            } else if (incident) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: incident.number,
+                body: `A jornada voltou ao normal. Execução: ${runUrl}`
+              });
+              await github.rest.issues.update({ ...context.repo, issue_number: incident.number, state: "closed" });
+            }
