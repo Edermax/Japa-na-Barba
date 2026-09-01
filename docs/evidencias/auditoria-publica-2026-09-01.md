@@ -2,7 +2,8 @@
 
 Data: 01/09/2026  
 Alvo: `https://ogritech.com.br`  
-Resultado inicial: **NÃO APROVADO PARA GO-LIVE**  
+Resultado inicial: **NÃO APROVADO PARA GO-LIVE**
+
 Resultado após correção: **APROVADO NA AUDITORIA PÚBLICA**
 
 ## Aprovado
