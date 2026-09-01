@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 
 const root = new URL("../", import.meta.url);
 const config = await readFile(new URL("supabase-config.js", root), "utf8");
@@ -122,7 +123,8 @@ assert.equal(cleanupErrors, 0, "A limpeza deixou reservas sintéticas ativas");
 
 const sortedTimings = timings.toSorted((a, b) => a - b);
 const percentileIndex = Math.max(0, Math.ceil(sortedTimings.length * 0.95) - 1);
-console.log(JSON.stringify({
+const report = {
+  executedAt: new Date().toISOString(),
   environment: "staging",
   simulation: "assisted-pilot-day",
   clientsSimulated: reservations.length,
@@ -132,4 +134,11 @@ console.log(JSON.stringify({
   cleanup: "passed",
   requestsMeasured: timings.length,
   p95Ms: Math.round(sortedTimings[percentileIndex])
-}, null, 2));
+};
+
+if (process.env.AGENDA_PILOT_REPORT) {
+  await mkdir(dirname(process.env.AGENDA_PILOT_REPORT), { recursive: true });
+  await writeFile(process.env.AGENDA_PILOT_REPORT, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+}
+
+console.log(JSON.stringify(report, null, 2));

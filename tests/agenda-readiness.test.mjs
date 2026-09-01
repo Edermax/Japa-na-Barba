@@ -90,10 +90,20 @@ test("gate e monitor sintético permanecem restritos ao staging", async () => {
 });
 
 test("simulação assistida representa vários clientes e sempre limpa as reservas", async () => {
-  const pilotDay = await load("scripts/agenda-pilot-day-bot.mjs");
+  const [pilotDay, workflow] = await Promise.all([
+    load("scripts/agenda-pilot-day-bot.mjs"),
+    load(".github/workflows/pilot-agenda-synthetic.yml")
+  ]);
   assert.match(pilotDay, /targetBookings = 6/);
   assert.match(pilotDay, /crossClientIsolation/);
   assert.match(pilotDay, /finally\s*\{/);
   assert.match(pilotDay, /public_cancel_appointment/);
   assert.match(pilotDay, /A simulação só pode executar no staging conhecido/);
+  assert.match(pilotDay, /AGENDA_PILOT_REPORT/);
+  assert.match(workflow, /PILOT_START: "2026-09-01"/);
+  assert.match(workflow, /PILOT_END: "2026-09-14"/);
+  assert.match(workflow, /npm run test:agenda-pilot-day/);
+  assert.match(workflow, /retention-days: 30/);
+  assert.match(workflow, /synthetic-agenda-pilot/);
+  assert.doesNotMatch(workflow, /production/i);
 });

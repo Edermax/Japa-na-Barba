@@ -16,6 +16,12 @@ Para simular uma jornada operacional com vários clientes, execute `npm run test
 
 O primeiro dia operacional sintético foi aprovado no staging: seis clientes independentes geraram seis reservas em horários distintos; todas foram consultadas com seus próprios tokens; o cruzamento entre token e referência de clientes diferentes não retornou dados; e as seis reservas foram canceladas pela limpeza automática. Foram medidas 21 chamadas, com p95 de 1.122 ms. Nenhuma reserva ativa foi intencionalmente mantida pelo ensaio.
 
+### Ciclo sintético de 14 dias
+
+Enquanto não existir uma empresa-piloto real, o workflow `pilot-agenda-synthetic.yml` executa diariamente, de 01 a 14/09/2026, o ensaio com seis clientes no staging. Cada dia gera um relatório JSON arquivado por 30 dias. Uma falha abre ou atualiza um único issue com a label `synthetic-agenda-pilot`; a primeira execução saudável posterior registra a recuperação e encerra o incidente. Fora da janela, a execução agendada permanece inerte; execuções manuais continuam disponíveis para diagnóstico.
+
+Este ciclo comprova estabilidade técnica repetida, mas não libera produção nem substitui validação humana. A decisão final continua bloqueada até existir beta fechado com pessoas reais, mesmo que sejam apenas o responsável pela Ogritech e dois ou três convidados.
+
 ### Gate único e monitoramento funcional
 
 Execute `npm run validate:agenda-pilot` para rodar as verificações estáticas, testes automatizados e a jornada pública real no staging. O comando falha se qualquer contrato local quebrar ou se a agenda não conseguir criar, proteger, consultar, cancelar e limpar suas reservas sintéticas.

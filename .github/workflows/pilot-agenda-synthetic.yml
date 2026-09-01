@@ -1,0 +1,97 @@
+name: Piloto sintético da agenda — 14 dias
+
+on:
+  schedule:
+    - cron: "37 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: pilot-agenda-synthetic
+  cancel-in-progress: false
+
+env:
+  PILOT_START: "2026-09-01"
+  PILOT_END: "2026-09-14"
+
+jobs:
+  simulated-day:
+    name: Simular dia de operação no staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - name: Check the 14-day window
+        id: window
+        shell: bash
+        run: |
+          today="$(TZ=America/Sao_Paulo date +%F)"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || ( "$today" < "${PILOT_END}" || "$today" == "${PILOT_END}" ) && ( "$today" > "${PILOT_START}" || "$today" == "${PILOT_START}" ) ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Fora da janela do piloto: $today"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.window.outputs.should_run == 'true'
+      - uses: actions/setup-node@v5
+        if: steps.window.outputs.should_run == 'true'
+        with: { node-version: 22 }
+
+      - name: Run assisted synthetic day
+        id: pilot
+        if: steps.window.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          AGENDA_PILOT_REPORT: evidence/pilot-day-${{ github.run_number }}.json
+        run: npm run test:agenda-pilot-day
+
+      - name: Archive daily evidence
+        if: steps.window.outputs.should_run == 'true' && steps.pilot.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: agenda-pilot-day-${{ github.run_number }}
+          path: evidence/*.json
+          retention-days: 30
+
+      - name: Publish or resolve pilot incident
+        if: steps.window.outputs.should_run == 'true'
+        uses: actions/github-script@v8
+        env:
+          PILOT_OUTCOME: ${{ steps.pilot.outcome }}
+        with:
+          script: |
+            const title = "[Piloto sintético] Falha na simulação diária da agenda";
+            const label = "synthetic-agenda-pilot";
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                ...context.repo,
+                name: label,
+                color: "b42318",
+                description: "Falha no ciclo sintético diário da agenda"
+              });
+            }
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: label, per_page: 10
+            });
+            const incident = issues.find((issue) => issue.title === title);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (process.env.PILOT_OUTCOME !== "success") {
+              const body = `A simulação diária da agenda no staging falhou.\n\nExecução: ${runUrl}`;
+              if (incident) await github.rest.issues.createComment({ ...context.repo, issue_number: incident.number, body });
+              else await github.rest.issues.create({ ...context.repo, title, body, labels: [label] });
+              core.setFailed("A simulação diária da agenda falhou.");
+            } else if (incident) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: incident.number,
+                body: `A simulação diária voltou ao normal. Execução: ${runUrl}`
+              });
+              await github.rest.issues.update({ ...context.repo, issue_number: incident.number, state: "closed" });
+            }
