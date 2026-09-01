@@ -34,7 +34,9 @@ async function main() {
     "docs/evidencias/backup-producao-2026-08-30.md",
     "docs/evidencias/restauracao-backup-producao-2026-08-30.md",
     "docs/evidencias/monitoramento-producao-2026-08-31.md",
-    "docs/evidencias/cloudflare-dns-2026-08-31.md"
+    "docs/evidencias/cloudflare-dns-2026-08-31.md",
+    "docs/evidencias/captacao-contato-staging-2026-09-01.md",
+    "docs/evidencias/jornadas-comerciais-staging-2026-09-01.md"
   ];
   const missingEvidence = [];
   for (const path of evidencePaths) {

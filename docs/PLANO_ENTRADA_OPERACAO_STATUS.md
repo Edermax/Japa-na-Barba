@@ -20,6 +20,8 @@ A base técnica, o staging, a infraestrutura de produção, backup, restauraçã
 | Backup e restauração | `PLANO_CONTINUIDADE_PILOTO.md` e evidências datadas | CONCLUÍDO PARA O PILOTO |
 | Monitoramento técnico | monitor de produção e monitores sintéticos de staging | CONCLUÍDO |
 | SLA interno e escalonamento | `SLA_SUPORTE_ESCALONAMENTO.md` | DEFINIDO PARA O PILOTO |
+| Captação corporativa | `evidencias/captacao-contato-staging-2026-09-01.md` | CONCLUÍDO EM STAGING |
+| Página, proposta, cardápio e pedido | `evidencias/jornadas-comerciais-staging-2026-09-01.md` | CONCLUÍDO EM STAGING |
 
 ## Em acompanhamento automático
 

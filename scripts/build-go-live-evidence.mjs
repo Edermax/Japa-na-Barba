@@ -19,6 +19,8 @@ const evidenceFiles = [
   "docs/evidencias/monitoramento-producao-2026-08-31.md",
   "docs/evidencias/cloudflare-dns-2026-08-31.md",
   "docs/evidencias/auditoria-publica-2026-09-01.md",
+  "docs/evidencias/captacao-contato-staging-2026-09-01.md",
+  "docs/evidencias/jornadas-comerciais-staging-2026-09-01.md",
   "docs/PLANO_ENTRADA_OPERACAO_STATUS.md",
   "docs/SLA_SUPORTE_ESCALONAMENTO.md"
 ];
