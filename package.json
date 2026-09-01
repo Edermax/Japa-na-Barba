@@ -9,6 +9,7 @@
     "test:agenda-pilot-day": "node scripts/agenda-pilot-day-bot.mjs",
     "test:agenda-ui-smoke": "node scripts/agenda-public-ui-smoke.mjs",
     "audit:public": "node scripts/audit-public-operations.mjs",
+    "audit:integrity": "node scripts/audit-site-integrity.mjs",
     "gate:go-live": "node scripts/go-live-gate.mjs",
     "evidence:go-live": "node scripts/build-go-live-evidence.mjs",
     "test:auth-bot": "node scripts/auth-login-bot.mjs",

@@ -11,6 +11,7 @@ async function json(name) {
 
 const gate = await json("gate.json");
 const audit = await json("public-audit.json");
+const integrity = await json("integrity-audit.json");
 const evidenceFiles = [
   "docs/evidencias/homologacao-interna-staging-2026-08-31.md",
   "docs/evidencias/backup-producao-2026-08-30.md",
@@ -27,7 +28,7 @@ for (const path of evidenceFiles) {
   manifest.push({ path, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.length });
 }
 
-const overall = !gate || !audit ? "INCOMPLETO" : audit.verdict === "NAO_APROVADO" ? "NAO_APROVADO" : gate.verdict;
+const overall = !gate || !audit || !integrity ? "INCOMPLETO" : [audit.verdict, integrity.verdict].includes("NAO_APROVADO") ? "NAO_APROVADO" : gate.verdict;
 const summary = [
   "# Pacote automático de evidências de go-live",
   "",
@@ -36,11 +37,13 @@ const summary = [
   "",
   `- Gate operacional: ${gate?.verdict || "ausente"}`,
   `- Auditoria pública: ${audit?.verdict || "ausente"}`,
+  `- Integridade, links e semântica: ${integrity?.verdict || "ausente"}`,
   `- Incidentes abertos: ${gate?.openIncidents ?? "desconhecido"}`,
   `- Evidências ausentes: ${gate?.missingEvidence?.length ?? "desconhecido"}`,
   "",
   "## Falhas técnicas públicas",
   ...(audit?.failures?.length ? audit.failures.map((item) => `- ${item}`) : ["- Nenhuma detectada."]),
+  ...(integrity?.failures?.length ? integrity.failures.map((item) => `- ${item}`) : []),
   "",
   "## Bloqueios de operação",
   ...(gate?.humanBlockers?.length ? gate.humanBlockers.map((item) => `- ${item}`) : ["- Nenhum detectado."]),

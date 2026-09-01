@@ -36,6 +36,10 @@ jobs:
         id: public_audit
         continue-on-error: true
         run: npm run audit:public
+      - name: Audit links and accessible HTML contracts
+        id: integrity_audit
+        continue-on-error: true
+        run: npm run audit:integrity
       - name: Validate staging concurrency and isolation
         id: resilience
         continue-on-error: true
@@ -51,5 +55,5 @@ jobs:
           path: outputs/go-live/
           retention-days: 30
       - name: Enforce technical readiness
-        if: steps.public_audit.outcome != 'success' || steps.resilience.outcome != 'success'
+        if: steps.public_audit.outcome != 'success' || steps.integrity_audit.outcome != 'success' || steps.resilience.outcome != 'success'
         run: exit 1
