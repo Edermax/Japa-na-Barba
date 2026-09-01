@@ -66,11 +66,19 @@ test("arquivo de publicação declara os cabeçalhos mínimos", async () => {
 });
 
 test("runbook impede ativação sem piloto real e homologação", async () => {
-  const runbook = await load("docs/PILOTO_AGENDA_EXECUCAO.md");
+  const [runbook, closedBeta] = await Promise.all([
+    load("docs/PILOTO_AGENDA_EXECUCAO.md"),
+    load("docs/BETA_FECHADO_AGENDA.md")
+  ]);
   assert.match(runbook, /Japa na Barba.*demonstrativa/i);
   assert.match(runbook, /seis jornadas aprovadas/i);
   assert.match(runbook, /Rollback:/i);
   assert.match(runbook, /Empresa piloto real \| PENDENTE/);
+  assert.match(closedBeta, /bloqueado até a aprovação técnica/i);
+  assert.match(closedBeta, /BETA-01, BETA-02 ou BETA-03/);
+  assert.match(closedBeta, /desativar o agendamento público/i);
+  assert.match(closedBeta, /três de três convidados/i);
+  assert.match(closedBeta, /não autoriza lançamento automático/i);
 });
 
 test("gate e monitor sintético permanecem restritos ao staging", async () => {

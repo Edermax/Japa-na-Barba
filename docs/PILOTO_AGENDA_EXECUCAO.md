@@ -26,6 +26,8 @@ O encerramento é calculado automaticamente pelo módulo `pilot-diary-summary.cj
 
 Este ciclo comprova estabilidade técnica repetida, mas não libera produção nem substitui validação humana. A decisão final continua bloqueada até existir beta fechado com pessoas reais, mesmo que sejam apenas o responsável pela Ogritech e dois ou três convidados.
 
+O roteiro completo dessa próxima fase está em `docs/BETA_FECHADO_AGENDA.md`. Ele permite validar a experiência humana sem depender de uma empresa parceira e mantém o lançamento comercial separado da homologação.
+
 ### Gate único e monitoramento funcional
 
 Execute `npm run validate:agenda-pilot` para rodar as verificações estáticas, testes automatizados e a jornada pública real no staging. O comando falha se qualquer contrato local quebrar ou se a agenda não conseguir criar, proteger, consultar, cancelar e limpar suas reservas sintéticas.
