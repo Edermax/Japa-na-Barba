@@ -1,0 +1,55 @@
+name: Go-live readiness evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/go-live-gate.mjs"
+      - "scripts/audit-public-operations.mjs"
+      - "scripts/build-go-live-evidence.mjs"
+      - "tests/**"
+      - "docs/**"
+      - ".github/workflows/go-live-readiness.yml"
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - run: npm ci
+      - name: Validate repository
+        run: npm run validate
+      - name: Evaluate go-live gate
+        env:
+          VALIDATION_STATUS: passed
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run gate:go-live
+      - name: Audit public DNS, pages and security
+        id: public_audit
+        continue-on-error: true
+        run: npm run audit:public
+      - name: Validate staging concurrency and isolation
+        id: resilience
+        continue-on-error: true
+        run: npm run test:agenda-bot
+      - name: Build evidence package
+        if: always()
+        run: npm run evidence:go-live
+      - name: Upload evidence package
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: go-live-readiness-${{ github.run_number }}
+          path: outputs/go-live/
+          retention-days: 30
+      - name: Enforce technical readiness
+        if: steps.public_audit.outcome != 'success' || steps.resilience.outcome != 'success'
+        run: exit 1

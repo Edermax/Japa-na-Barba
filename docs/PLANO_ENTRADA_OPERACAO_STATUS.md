@@ -16,7 +16,7 @@ A base técnica, o staging, a infraestrutura de produção, backup, restauraçã
 | Agendamento público seguro | `/agendar/?empresa=...`, RPCs públicas e testes | CONCLUÍDO EM STAGING |
 | Operação transacional e auditável | máquina de estados, eventos e fila de notificações | CONCLUÍDO EM STAGING |
 | Homologação interna com dados sintéticos | `evidencias/homologacao-interna-staging-2026-08-31.md` | CONCLUÍDO |
-| Infraestrutura de produção | `CHECKLIST_LANCAMENTO.md` | CONCLUÍDO |
+| Infraestrutura de produção | HTTPS, DNS, Auth, SMTP e Edge Function preparados; cabeçalhos públicos reabertos pela auditoria de 01/09 | PARCIAL — CORREÇÃO DE CDN PENDENTE |
 | Backup e restauração | `PLANO_CONTINUIDADE_PILOTO.md` e evidências datadas | CONCLUÍDO PARA O PILOTO |
 | Monitoramento técnico | monitor de produção e monitores sintéticos de staging | CONCLUÍDO |
 | SLA interno e escalonamento | `SLA_SUPORTE_ESCALONAMENTO.md` | DEFINIDO PARA O PILOTO |
@@ -38,6 +38,7 @@ Essas rotinas devem continuar em paralelo. Não é necessário interromper as ou
 | P0 | Nomear dono do piloto, operador principal, suporte e substituto | Nomes e disponibilidade reais |
 | P0 | Definir três participantes do beta fechado | Apelidos/iniciais e autorização privada para contato |
 | P0 | Provisionar e testar `contato@`, `suporte@`, `financeiro@` e `privacidade@ogritech.com.br` | Acesso administrativo ao provedor de e-mail |
+| P0 | Restabelecer cabeçalhos de segurança no domínio público | Acesso administrativo ao Cloudflare/host |
 | P0 | Preencher dados societários nos contratos | Razão social, CNPJ, endereço e representantes |
 | P0 | Revisar Termos, Privacidade e acordo controlador-operador | Profissional jurídico responsável |
 | P1 | Definir responsável por incidentes e pedidos LGPD | Nomeação e escala de cobertura |

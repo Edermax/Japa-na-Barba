@@ -40,9 +40,11 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 - [x] Exigir MFA para administradores da organização e da plataforma. Conta proprietária protegida com dois fatores TOTP independentes; enforcement organizacional indisponível no plano Free. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Habilitar SSL Enforcement e revisar Network Restrictions. SSL habilitado; restrição de rede mantida aberta para o piloto por ausência de IP administrativo fixo. Evidência: `docs/evidencias/producao-2026-08-29.md`.
 - [x] Publicar a Edge Function usando segredos do ambiente Supabase. Evidência: `docs/evidencias/producao-2026-08-29.md`.
-- [x] Confirmar HTTPS obrigatório, HSTS, `nosniff`, TLS 1.2 mínimo e TLS 1.3
-  no CDN real. A CSP permanece definida pela aplicação. Evidência:
-  `docs/evidencias/cloudflare-dns-2026-08-31.md`.
+- [ ] Restabelecer e confirmar no domínio público CSP por cabeçalho,
+  `X-Frame-Options` ou `frame-ancestors`, `Referrer-Policy` e
+  `Permissions-Policy`. A auditoria de 01/09/2026 confirmou HSTS e `nosniff`,
+  mas detectou regressão nos demais cabeçalhos. Evidência:
+  `docs/evidencias/auditoria-publica-2026-09-01.md`.
 - [x] Configurar alertas para 5xx, 429, falhas de Auth e latência p95.
   Evidência: `docs/evidencias/monitoramento-producao-2026-08-31.md`.
 - [x] Definir backup, retenção, RPO e RTO. Metas do piloto: RPO de 24 horas,
