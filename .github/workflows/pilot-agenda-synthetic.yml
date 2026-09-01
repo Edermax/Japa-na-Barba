@@ -43,9 +43,17 @@ jobs:
         if: steps.window.outputs.should_run == 'true'
         with: { node-version: 22 }
 
+      - name: Verify the published booking interface
+        id: ui
+        if: steps.window.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          AGENDA_UI_REPORT: evidence/public-ui-${{ github.run_number }}.json
+        run: npm run test:agenda-ui-smoke
+
       - name: Run assisted synthetic day
         id: pilot
-        if: steps.window.outputs.should_run == 'true'
+        if: steps.window.outputs.should_run == 'true' && steps.ui.outcome == 'success'
         continue-on-error: true
         env:
           AGENDA_PILOT_REPORT: evidence/pilot-day-${{ github.run_number }}.json
@@ -146,6 +154,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           PILOT_OUTCOME: ${{ steps.pilot.outcome }}
+          UI_OUTCOME: ${{ steps.ui.outcome }}
         with:
           script: |
             const title = "[Piloto sintético] Falha na simulação diária da agenda";
@@ -166,8 +175,8 @@ jobs:
             });
             const incident = issues.find((issue) => issue.title === title);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            if (process.env.PILOT_OUTCOME !== "success") {
-              const body = `A simulação diária da agenda no staging falhou.\n\nExecução: ${runUrl}`;
+            if (process.env.PILOT_OUTCOME !== "success" || process.env.UI_OUTCOME !== "success") {
+              const body = `A verificação da interface publicada ou a simulação diária da agenda no staging falhou.\n\nInterface: ${process.env.UI_OUTCOME}\nSimulação: ${process.env.PILOT_OUTCOME}\n\nExecução: ${runUrl}`;
               if (incident) await github.rest.issues.createComment({ ...context.repo, issue_number: incident.number, body });
               else await github.rest.issues.create({ ...context.repo, title, body, labels: [label] });
               core.setFailed("A simulação diária da agenda falhou.");

@@ -98,8 +98,10 @@ test("gate e monitor sintético permanecem restritos ao staging", async () => {
 });
 
 test("simulação assistida representa vários clientes e sempre limpa as reservas", async () => {
-  const [pilotDay, workflow] = await Promise.all([
+  const [pilotDay, uiSmoke, packageJson, workflow] = await Promise.all([
     load("scripts/agenda-pilot-day-bot.mjs"),
+    load("scripts/agenda-public-ui-smoke.mjs"),
+    load("package.json"),
     load(".github/workflows/pilot-agenda-synthetic.yml")
   ]);
   assert.match(pilotDay, /targetBookings = 6/);
@@ -108,9 +110,17 @@ test("simulação assistida representa vários clientes e sempre limpa as reserv
   assert.match(pilotDay, /public_cancel_appointment/);
   assert.match(pilotDay, /A simulação só pode executar no staging conhecido/);
   assert.match(pilotDay, /AGENDA_PILOT_REPORT/);
+  assert.match(packageJson, /"test:agenda-ui-smoke": "node scripts\/agenda-public-ui-smoke\.mjs"/);
+  assert.ok(uiSmoke.includes("https://ogritech.com.br/agendar/"));
+  assert.match(uiSmoke, /bookingFormContract/);
+  assert.match(uiSmoke, /privacyConsentContract/);
+  assert.match(uiSmoke, /stagingSelectionContract/);
+  assert.match(uiSmoke, /REQUESTED_OGRITECH_ENV/);
   assert.match(workflow, /PILOT_START: "2026-09-01"/);
   assert.match(workflow, /PILOT_END: "2026-09-14"/);
   assert.match(workflow, /npm run test:agenda-pilot-day/);
+  assert.match(workflow, /npm run test:agenda-ui-smoke/);
+  assert.match(workflow, /steps\.ui\.outcome == 'success'/);
   assert.match(workflow, /retention-days: 30/);
   assert.match(workflow, /actions\/upload-artifact@v6/);
   assert.match(workflow, /synthetic-agenda-pilot/);
