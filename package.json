@@ -24,6 +24,6 @@
   },
   "packageManager": "npm@11.16.0",
   "devDependencies": {
-    "supabase": "2.115.0"
+    "supabase": "^2.116.0"
   }
 }

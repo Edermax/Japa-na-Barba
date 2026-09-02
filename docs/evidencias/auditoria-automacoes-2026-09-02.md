@@ -23,6 +23,8 @@
   os releases oficiais consultados em 02/09/2026.
 - `supabase/setup-cli` foi atualizado para v3 após o ensaio apontar a dependência
   depreciada do runtime Node 20 na versão v1.
+- A CLI instalada pelo npm e pelos workflows foi alinhada na versão estável
+  `2.116.0`; a auditoria npm permaneceu com zero vulnerabilidades.
 - Todos os workflows passaram a usar `checkout` e `setup-node` v5.
 
 ## Verificação

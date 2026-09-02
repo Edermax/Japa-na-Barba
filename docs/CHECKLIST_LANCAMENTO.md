@@ -7,7 +7,7 @@ ter executado o comando: registre o projeto, a data, o responsável e o resultad
 
 - [x] Testes estáticos e de segurança executáveis com `npm run validate`.
 - [x] CI executa validação JavaScript e banco limpo.
-- [x] Supabase CLI fixado em `2.115.0` no CI.
+- [x] Supabase CLI fixado em `2.116.0` no CI.
 - [x] Node.js mínimo atualizado para 22.
 - [x] Migração de reparo geral para negócios sem unidade operacional.
 - [x] `EXECUTE` implícito removido das funções privilegiadas.

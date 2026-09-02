@@ -30,7 +30,7 @@ jobs:
       - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@v3
         with:
-          version: 2.115.0
+          version: 2.116.0
 
       - name: Validate required secrets
         shell: bash
