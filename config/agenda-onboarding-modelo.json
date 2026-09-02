@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "environment": "staging",
+  "synthetic": true,
+  "company": {
+    "name": "Ogritech Agenda Modelo",
+    "slug": "ogritech-agenda-modelo",
+    "timezone": "America/Sao_Paulo",
+    "publicBookingEnabled": false,
+    "operatorEmail": "agenda.modelo@example.invalid"
+  },
+  "rules": {
+    "minimumAdvanceMinutes": 120,
+    "maximumAdvanceDays": 30,
+    "cancellationAdvanceMinutes": 120,
+    "slotIntervalMinutes": 30
+  },
+  "services": [
+    { "code": "SERV-01", "name": "Serviço demonstrativo 30 min", "durationMinutes": 30, "priceCents": 5000, "active": true },
+    { "code": "SERV-02", "name": "Serviço demonstrativo 60 min", "durationMinutes": 60, "priceCents": 9000, "active": true }
+  ],
+  "professionals": [
+    { "code": "PROF-01", "name": "Profissional Modelo A", "serviceCodes": ["SERV-01", "SERV-02"], "active": true },
+    { "code": "PROF-02", "name": "Profissional Modelo B", "serviceCodes": ["SERV-01"], "active": true }
+  ],
+  "weeklySchedule": [
+    { "professionalCode": "PROF-01", "weekday": 2, "start": "09:00", "end": "12:00" },
+    { "professionalCode": "PROF-01", "weekday": 2, "start": "13:00", "end": "18:00" },
+    { "professionalCode": "PROF-01", "weekday": 3, "start": "09:00", "end": "12:00" },
+    { "professionalCode": "PROF-01", "weekday": 3, "start": "13:00", "end": "18:00" },
+    { "professionalCode": "PROF-02", "weekday": 4, "start": "09:00", "end": "12:00" },
+    { "professionalCode": "PROF-02", "weekday": 4, "start": "13:00", "end": "18:00" }
+  ]
+}

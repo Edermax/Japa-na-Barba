@@ -1,0 +1,24 @@
+name: Validate agenda onboarding model
+
+on:
+  push:
+    paths:
+      - "config/agenda-onboarding-modelo.json"
+      - "scripts/validate-agenda-onboarding.mjs"
+      - "tests/agenda-onboarding.test.mjs"
+      - ".github/workflows/validate-agenda-onboarding.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - run: node scripts/validate-agenda-onboarding.mjs
+      - run: node --test tests/agenda-onboarding.test.mjs
