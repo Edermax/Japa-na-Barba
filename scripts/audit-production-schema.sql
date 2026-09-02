@@ -46,10 +46,3 @@ begin
     end if;
 end
 $audit$;
-
-select json_build_object(
-    'status', 'passed',
-    'migration_count', 36,
-    'baseline', 'move_profile_rls_helpers_private',
-    'known_overlapping_policy_groups', 11
-) as production_schema_audit;
