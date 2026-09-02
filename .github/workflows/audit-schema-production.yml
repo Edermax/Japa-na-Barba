@@ -1,0 +1,69 @@
+name: Audit production schema drift
+
+on:
+  schedule:
+    - cron: "5 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: audit-schema-production
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Verify production schema invariants
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.116.0
+      - name: Validate database credential
+        shell: bash
+        run: test -n "${SUPABASE_DB_URL:-}" || { echo "SUPABASE_DB_URL is not configured" >&2; exit 1; }
+      - name: Audit migration baseline and RLS invariants
+        id: schema_audit
+        continue-on-error: true
+        run: supabase db query --db-url "$SUPABASE_DB_URL" --file scripts/audit-production-schema.sql
+      - name: Publish or resolve schema drift incident
+        uses: actions/github-script@v8
+        env:
+          AUDIT_OUTCOME: ${{ steps.schema_audit.outcome }}
+        with:
+          script: |
+            const title = "[Schema] Drift inesperado no banco de produção";
+            const label = "production-schema-drift";
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                ...context.repo, name: label, color: "b60205",
+                description: "Schema real divergiu dos invariantes auditados de produção"
+              });
+            }
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: label, per_page: 10
+            });
+            const incident = issues.find((issue) => issue.title === title);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (process.env.AUDIT_OUTCOME !== "success") {
+              const body = `A baseline de migrations ou um invariante RLS divergiu do estado aprovado.\n\nExecução: ${runUrl}`;
+              if (incident) await github.rest.issues.createComment({ ...context.repo, issue_number: incident.number, body });
+              else await github.rest.issues.create({ ...context.repo, title, body, labels: [label] });
+              core.setFailed("A auditoria detectou drift de schema em produção.");
+            } else if (incident) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: incident.number,
+                body: `Os invariantes de schema voltaram ao estado aprovado. Execução: ${runUrl}`
+              });
+              await github.rest.issues.update({ ...context.repo, issue_number: incident.number, state: "closed" });
+            }

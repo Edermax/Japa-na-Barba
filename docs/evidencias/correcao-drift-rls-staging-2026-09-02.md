@@ -31,3 +31,14 @@ A migration foi:
 ## Próxima decisão de promoção
 
 Quando o lote de produção for autorizado, `remove_legacy_rls_policies` deve ser promovida junto das demais migrations retidas. Depois da promoção, os advisors de produção e os testes de isolamento devem ser executados novamente antes de liberar tráfego comercial.
+
+## Monitoramento do drift
+
+O workflow `Audit production schema drift` executa diariamente, sem escrita no banco, e abre o incidente `production-schema-drift` se algum destes invariantes mudar:
+
+- quantidade e baseline das migrations aplicadas;
+- existência de tabela pública sem RLS;
+- quantidade nativa dos grupos de políticas permissivas sobrepostas (11 enquanto o drift conhecido estiver retido; o advisor expande esses grupos em 17 avisos por operação);
+- função `SECURITY DEFINER` pública executável por `anon` ou `authenticated`.
+
+O incidente também bloqueia o gate de go-live. A auditoria permanece separada do backup para que uma divergência nunca impeça a geração da cópia diária.

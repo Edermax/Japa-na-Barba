@@ -36,8 +36,24 @@ test("gate executa em todo push e considera todos os incidentes operacionais", a
   ]);
   assert.match(workflow, /push:\s*\n\s*branches: \[main\]/);
   assert.doesNotMatch(workflow, /\n\s+paths:/);
-  for (const label of ["synthetic-agenda-pilot", "staging-agenda-monitor", "production-monitor", "production-backup"]) {
+  for (const label of ["synthetic-agenda-pilot", "staging-agenda-monitor", "production-monitor", "production-backup", "production-schema-drift"]) {
     assert.match(gate, new RegExp(`labels=${label}`));
   }
   assert.match(gate, /auditoria-automacoes-2026-09-02\.md/);
+});
+
+test("auditoria diária detecta drift real de schema sem bloquear o backup", async () => {
+  const [workflow, sql, backup] = await Promise.all([
+    load(".github/workflows/audit-schema-production.yml"),
+    load("scripts/audit-production-schema.sql"),
+    load(".github/workflows/backup-production.yml")
+  ]);
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /environment: production/);
+  assert.match(workflow, /supabase db query --db-url/);
+  assert.match(workflow, /production-schema-drift/);
+  assert.match(sql, /supabase_migrations\.schema_migrations/);
+  assert.match(sql, /not c\.relrowsecurity/);
+  assert.match(sql, /has_function_privilege\('anon'/);
+  assert.doesNotMatch(backup, /audit-production-schema\.sql/);
 });
