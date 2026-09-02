@@ -35,7 +35,7 @@
 
 ## Verificação
 
-- Testes locais: 32/32 aprovados.
+- Testes locais: 33/33 aprovados.
 - Há testes de contrato específicos para alerta/resolução do backup e para
   impedir regressão às gerações antigas das Actions de artefato.
 - O backup `ogritech-production-20260902T080147Z`, da execução `33606336713`,
@@ -44,8 +44,10 @@
 - A execução manual `33615418378` aprovou a cadeia atualizada completa: CLI
   `2.116.0` via `setup-cli@v3`, dumps, criptografia, checksum, upload v7 e passo
   de publicação/resolução de incidente.
-- O segundo dia do piloto permanece a cargo do agendamento diário; não foi
-  disparado manualmente para evitar comentário duplicado na mesma data.
+- Após tornar o diário idempotente, o segundo dia não precisou aguardar o cron:
+  a execução `33616264662` foi
+  antecipada com segurança e registrou 6/6 reservas criadas/canceladas,
+  isolamento e limpeza aprovados e p95 de 235 ms. O ciclo está em 2/14 dias.
 
 ## Decisão
 
