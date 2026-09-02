@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 export const STRONG_PASSWORD_CHARACTERS =
-  "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};'\\:\"|<>?,./`~";
+  "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};'\\\\:\"|<>?,./`~";
 
 export function assessAuthConfig(environment, config) {
   const minimumLength = Number(config.password_min_length ?? 0);
