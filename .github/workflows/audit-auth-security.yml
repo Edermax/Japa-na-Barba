@@ -1,0 +1,72 @@
+name: Audit Supabase Auth security
+
+on:
+  schedule:
+    - cron: "25 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: audit-auth-security
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      AUTH_CONFIG_REPORT: auth-security-report.json
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - name: Audit redacted Auth settings
+        id: auth_audit
+        continue-on-error: true
+        run: node scripts/audit-auth-config.mjs
+      - name: Archive redacted report
+        if: always() && hashFiles('auth-security-report.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: auth-security-${{ github.run_number }}
+          path: auth-security-report.json
+          retention-days: 30
+      - name: Publish or resolve Auth security incident
+        uses: actions/github-script@v8
+        env:
+          AUDIT_OUTCOME: ${{ steps.auth_audit.outcome }}
+        with:
+          script: |
+            const title = "[Auth] Configuração de senha abaixo do mínimo operacional";
+            const label = "auth-security-monitor";
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                ...context.repo, name: label, color: "b60205",
+                description: "Regressão ou configuração insuficiente no Supabase Auth"
+              });
+            }
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: label, per_page: 10
+            });
+            const incident = issues.find((issue) => issue.title === title);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (process.env.AUDIT_OUTCOME !== "success") {
+              const body = `A auditoria Auth falhou ou encontrou senha mínima inferior a 8 caracteres. Nenhum segredo foi incluído no relatório.\n\nExecução: ${runUrl}`;
+              if (incident) await github.rest.issues.createComment({ ...context.repo, issue_number: incident.number, body });
+              else await github.rest.issues.create({ ...context.repo, title, body, labels: [label] });
+              core.setFailed("Configuração Auth exige correção.");
+            } else if (incident) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: incident.number,
+                body: `A configuração Auth voltou ao mínimo aprovado. Execução: ${runUrl}`
+              });
+              await github.rest.issues.update({ ...context.repo, issue_number: incident.number, state: "closed" });
+            }

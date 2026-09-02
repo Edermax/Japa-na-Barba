@@ -26,6 +26,7 @@ A base técnica, o staging, a infraestrutura de produção, backup, restauraçã
 | Paridade e política de promoção de migrations | `evidencias/paridade-migrations-2026-09-02.md` | CONCLUÍDO; 4 RETIDAS EM PRODUÇÃO |
 | Correção do drift legado de políticas RLS | `evidencias/correcao-drift-rls-staging-2026-09-02.md` | VALIDADO EM STAGING; RETIDO EM PRODUÇÃO |
 | Auditoria recorrente de drift do schema | workflow `Audit production schema drift` | AUTOMATIZADO DIARIAMENTE |
+| Auditoria recorrente da segurança Auth | workflow `Audit Supabase Auth security` | AUTOMATIZADO; HIBP DEPENDE DO PLANO PRO |
 
 ## Em acompanhamento automático
 

@@ -46,14 +46,15 @@ async function main() {
 
   const checklist = await read("docs/CHECKLIST_LANCAMENTO.md");
   const openChecklistItems = [...checklist.matchAll(/^- \[ \] (.+)$/gm)].map((match) => match[1].trim());
-  const [diary, beta, pilotIncidents, stagingIncidents, productionIncidents, backupIncidents, schemaIncidents] = await Promise.all([
+  const [diary, beta, pilotIncidents, stagingIncidents, productionIncidents, backupIncidents, schemaIncidents, authIncidents] = await Promise.all([
     githubJson("/issues/7"),
     githubJson("/issues/8"),
     githubJson("/issues?state=open&labels=synthetic-agenda-pilot&per_page=100"),
     githubJson("/issues?state=open&labels=staging-agenda-monitor&per_page=100"),
     githubJson("/issues?state=open&labels=production-monitor&per_page=100"),
     githubJson("/issues?state=open&labels=production-backup&per_page=100"),
-    githubJson("/issues?state=open&labels=production-schema-drift&per_page=100")
+    githubJson("/issues?state=open&labels=production-schema-drift&per_page=100"),
+    githubJson("/issues?state=open&labels=auth-security-monitor&per_page=100")
   ]);
   const diaryComments = await githubJson("/issues/7/comments?per_page=100");
   const syntheticPilotApproved = diary.state === "closed" && diaryComments.some((item) => item.body?.includes("APROVADO TECNICAMENTE"));
@@ -63,7 +64,7 @@ async function main() {
     commit: process.env.GITHUB_SHA || "local",
     validationPassed: process.env.VALIDATION_STATUS === "passed",
     missingEvidence,
-    openIncidents: pilotIncidents.length + stagingIncidents.length + productionIncidents.length + backupIncidents.length + schemaIncidents.length,
+    openIncidents: pilotIncidents.length + stagingIncidents.length + productionIncidents.length + backupIncidents.length + schemaIncidents.length + authIncidents.length,
     syntheticPilotApproved,
     closedBetaApproved,
     openChecklistItems
