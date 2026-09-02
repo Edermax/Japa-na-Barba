@@ -10,13 +10,14 @@
     "test:agenda-ui-smoke": "node scripts/agenda-public-ui-smoke.mjs",
     "audit:public": "node scripts/audit-public-operations.mjs",
     "audit:integrity": "node scripts/audit-site-integrity.mjs",
+    "audit:migrations": "node scripts/check-migration-release-policy.mjs",
     "gate:go-live": "node scripts/go-live-gate.mjs",
     "evidence:go-live": "node scripts/build-go-live-evidence.mjs",
     "test:auth-bot": "node scripts/auth-login-bot.mjs",
     "test:contact-bot": "node scripts/contact-lead-bot.mjs",
     "test:commercial-bot": "node scripts/commercial-journeys-bot.mjs",
     "test": "node --test tests/*.test.mjs",
-    "validate": "npm run check && npm test",
+    "validate": "npm run check && npm run audit:migrations && npm test",
     "validate:agenda-pilot": "npm run validate && npm run test:agenda-bot"
   },
   "engines": {
