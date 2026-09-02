@@ -26,6 +26,19 @@ async function run() {
     ["staging", "fuesdztsvrkkgnbqhcxi"],
     ["production", "mvzcoaiiwytycdqcvydf"]
   ];
+  if (process.env.REMEDIATE_STAGING_PASSWORD_MIN_LENGTH === "true") {
+    const [, stagingRef] = targets[0];
+    const response = await fetch(`https://api.supabase.com/v1/projects/${stagingRef}/config/auth`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ password_min_length: 8 })
+    });
+    if (!response.ok) throw new Error(`staging: correção retornou HTTP ${response.status}`);
+    console.log("staging: password_min_length atualizado para 8; produção não foi alterada");
+  }
   const results = [];
   for (const [environment, projectRef] of targets) {
     const response = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/config/auth`, {

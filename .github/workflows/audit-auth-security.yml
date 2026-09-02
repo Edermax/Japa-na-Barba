@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "25 4 * * *"
   workflow_dispatch:
+    inputs:
+      remediate_staging:
+        description: "Elevar somente o mínimo de senha do staging para 8"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -21,6 +27,7 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       AUTH_CONFIG_REPORT: auth-security-report.json
+      REMEDIATE_STAGING_PASSWORD_MIN_LENGTH: ${{ inputs.remediate_staging || 'false' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
