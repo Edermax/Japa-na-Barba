@@ -130,5 +130,7 @@ test("simulação assistida representa vários clientes e sempre limpa as reserv
   assert.match(workflow, /pilot-diary-summary\.cjs/);
   assert.match(workflow, /APROVADO TECNICAMENTE/);
   assert.match(workflow, /summary\.approved/);
+  assert.match(workflow, /existingDaily/);
+  assert.match(workflow, /comentário duplicado suprimido/);
   assert.doesNotMatch(workflow, /production/i);
 });

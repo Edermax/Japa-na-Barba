@@ -30,6 +30,8 @@
   pudesse deixar mudanças de aplicação ou banco sem novo pacote de evidências.
 - Incidentes abertos de piloto, staging, monitor de produção e backup agora são
   somados pelo gate e impedem aprovação operacional.
+- O diário do piloto tornou-se idempotente por data: reexecuções continuam
+  exercitando a jornada, mas não criam comentários diários duplicados.
 
 ## Verificação
 

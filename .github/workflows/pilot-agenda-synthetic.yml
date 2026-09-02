@@ -106,9 +106,14 @@ jobs:
             } else if (diary.state === "closed") {
               await github.rest.issues.update({ ...context.repo, issue_number: diary.number, state: "open" });
             }
+            const { data: dailyComments } = await github.rest.issues.listComments({
+              ...context.repo, issue_number: diary.number, per_page: 100
+            });
+            const dailyHeading = `### ${process.env.PILOT_DATE} — aprovado`;
+            const existingDaily = dailyComments.some((comment) => comment.body?.includes(dailyHeading));
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const body = [
-              `### ${process.env.PILOT_DATE} — aprovado`,
+              dailyHeading,
               `- Clientes simulados: ${report.clientsSimulated}`,
               `- Reservas criadas/canceladas: ${report.bookingsCreated}/${report.bookingsCancelled}`,
               `- Isolamento entre clientes: ${report.crossClientIsolation}`,
@@ -117,7 +122,11 @@ jobs:
               `- p95: ${report.p95Ms} ms`,
               `- [Execução e artefato](${runUrl})`
             ].join("\n");
-            await github.rest.issues.createComment({ ...context.repo, issue_number: diary.number, body });
+            if (existingDaily) {
+              core.notice(`O diário já contém uma execução aprovada para ${process.env.PILOT_DATE}; comentário duplicado suprimido.`);
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: diary.number, body });
+            }
             if (process.env.PILOT_DATE === process.env.PILOT_END_DATE) {
               const { data: comments } = await github.rest.issues.listComments({
                 ...context.repo, issue_number: diary.number, per_page: 100
