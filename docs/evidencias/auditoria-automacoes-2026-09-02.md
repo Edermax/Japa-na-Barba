@@ -35,6 +35,9 @@
 - O backup `ogritech-production-20260902T080147Z`, da execução `33606336713`,
   foi restaurado e validado integralmente em banco efêmero pela execução
   `33614660543`; arquivos descriptografados e banco descartável foram removidos.
+- A execução manual `33615418378` aprovou a cadeia atualizada completa: CLI
+  `2.116.0` via `setup-cli@v3`, dumps, criptografia, checksum, upload v7 e passo
+  de publicação/resolução de incidente.
 - O segundo dia do piloto permanece a cargo do agendamento diário; não foi
   disparado manualmente para evitar comentário duplicado na mesma data.
 
