@@ -41,7 +41,7 @@ jobs:
           version: 2.115.0
 
       - name: Download encrypted backup
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.artifact_name }}
           path: restore-artifact

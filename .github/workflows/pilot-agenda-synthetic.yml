@@ -61,7 +61,7 @@ jobs:
 
       - name: Archive daily evidence
         if: steps.window.outputs.should_run == 'true' && steps.pilot.outcome == 'success'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: agenda-pilot-day-${{ github.run_number }}
           path: evidence/*.json

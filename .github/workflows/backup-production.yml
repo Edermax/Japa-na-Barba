@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: backup-production
@@ -74,7 +75,7 @@ jobs:
           echo "encrypted_file=${encrypted}" >> "$GITHUB_OUTPUT"
 
       - name: Upload encrypted backup
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.encrypt.outputs.artifact_name }}
           path: |
@@ -83,3 +84,40 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+      - name: Publish or resolve backup incident
+        if: always()
+        uses: actions/github-script@v8
+        env:
+          BACKUP_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const title = "[Backup] Falha no backup diário de produção";
+            const label = "production-backup";
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                ...context.repo,
+                name: label,
+                color: "b60205",
+                description: "Falha na geração ou retenção do backup criptografado"
+              });
+            }
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: label, per_page: 10
+            });
+            const incident = issues.find((issue) => issue.title === title);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (process.env.BACKUP_STATUS !== "success") {
+              const body = `O backup diário criptografado não foi concluído.\n\nExecução: ${runUrl}`;
+              if (incident) await github.rest.issues.createComment({ ...context.repo, issue_number: incident.number, body });
+              else await github.rest.issues.create({ ...context.repo, title, body, labels: [label] });
+            } else if (incident) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: incident.number,
+                body: `O backup voltou a concluir normalmente. Execução: ${runUrl}`
+              });
+              await github.rest.issues.update({ ...context.repo, issue_number: incident.number, state: "closed" });
+            }

@@ -49,7 +49,7 @@ jobs:
         run: npm run evidence:go-live
       - name: Upload evidence package
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: go-live-readiness-${{ github.run_number }}
           path: outputs/go-live/

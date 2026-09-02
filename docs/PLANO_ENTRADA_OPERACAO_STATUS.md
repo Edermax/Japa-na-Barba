@@ -1,6 +1,6 @@
 # Plano de entrada em operação — estado consolidado
 
-Atualizado em: 01/09/2026  
+Atualizado em: 02/09/2026
 Escopo: entrada controlada da Agenda Ogritech, sem liberar automaticamente os demais produtos.
 
 ## Leitura executiva
@@ -22,6 +22,7 @@ A base técnica, o staging, a infraestrutura de produção, backup, restauraçã
 | SLA interno e escalonamento | `SLA_SUPORTE_ESCALONAMENTO.md` | DEFINIDO PARA O PILOTO |
 | Captação corporativa | `evidencias/captacao-contato-staging-2026-09-01.md` | CONCLUÍDO EM STAGING |
 | Página, proposta, cardápio e pedido | `evidencias/jornadas-comerciais-staging-2026-09-01.md` | CONCLUÍDO EM STAGING |
+| Automações e alerta do backup | `evidencias/auditoria-automacoes-2026-09-02.md` | CONCLUÍDO |
 
 ## Em acompanhamento automático
 
