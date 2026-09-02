@@ -41,12 +41,14 @@
       "move_profile_rls_helpers_private",
       "platform_contact_leads",
       "deny_platform_contact_attempt_reads",
-      "index_remaining_foreign_keys"
+      "index_remaining_foreign_keys",
+      "remove_legacy_rls_policies"
     ],
     "remoteVersionAliases": {
       "platform_contact_leads": "20260901214935",
       "deny_platform_contact_attempt_reads": "20260901215227",
-      "index_remaining_foreign_keys": "20260901220744"
+      "index_remaining_foreign_keys": "20260901220744",
+      "remove_legacy_rls_policies": "20260902103025"
     }
   },
   "production": {
@@ -64,6 +66,10 @@
       {
         "name": "index_remaining_foreign_keys",
         "reason": "Será promovida no mesmo lote validado para evitar divergência de pacote."
+      },
+      {
+        "name": "remove_legacy_rls_policies",
+        "reason": "Correção do drift legado será promovida somente após validação no staging e autorização do lote de produção."
       }
     ]
   }

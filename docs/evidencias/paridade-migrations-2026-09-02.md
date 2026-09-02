@@ -2,9 +2,9 @@
 
 ## Resultado
 
-- Repositório: 39 migrations versionadas.
-- Staging (`fuesdztsvrkkgnbqhcxi`): 39 migrations lógicas, na mesma ordem e com os mesmos nomes.
-- Produção (`mvzcoaiiwytycdqcvydf`): 36 migrations aplicadas; as três seguintes permanecem conscientemente retidas.
+- Repositório: 40 migrations versionadas.
+- Staging (`fuesdztsvrkkgnbqhcxi`): 40 migrations lógicas, na mesma ordem e com os mesmos nomes.
+- Produção (`mvzcoaiiwytycdqcvydf`): 36 migrations aplicadas; as quatro seguintes permanecem conscientemente retidas.
 - Nenhuma alteração foi aplicada em produção nesta auditoria.
 
 ## Exceção de versão no staging
@@ -26,6 +26,7 @@ Por isso, a paridade lógica é aferida por nome e ordem. Alterar apenas a tabel
 | `platform_contact_leads` | A captação comercial continua desativada até a decisão de negócio e o go-live. |
 | `deny_platform_contact_attempt_reads` | Endurecimento inseparável da entrega comercial ainda não promovida. |
 | `index_remaining_foreign_keys` | Promoção conjunta com o lote validado, evitando fragmentação da entrega. |
+| `remove_legacy_rls_policies` | Correção do drift legado validada em staging, ainda sem promoção para produção. |
 
 ## Proteção adicionada
 

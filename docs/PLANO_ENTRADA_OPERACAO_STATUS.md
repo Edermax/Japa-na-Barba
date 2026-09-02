@@ -23,7 +23,8 @@ A base técnica, o staging, a infraestrutura de produção, backup, restauraçã
 | Captação corporativa | `evidencias/captacao-contato-staging-2026-09-01.md` | CONCLUÍDO EM STAGING |
 | Página, proposta, cardápio e pedido | `evidencias/jornadas-comerciais-staging-2026-09-01.md` | CONCLUÍDO EM STAGING |
 | Automações e alerta do backup | `evidencias/auditoria-automacoes-2026-09-02.md` | CONCLUÍDO |
-| Paridade e política de promoção de migrations | `evidencias/paridade-migrations-2026-09-02.md` | CONCLUÍDO; 3 RETIDAS EM PRODUÇÃO |
+| Paridade e política de promoção de migrations | `evidencias/paridade-migrations-2026-09-02.md` | CONCLUÍDO; 4 RETIDAS EM PRODUÇÃO |
+| Correção do drift legado de políticas RLS | `evidencias/correcao-drift-rls-staging-2026-09-02.md` | VALIDADO EM STAGING; RETIDO EM PRODUÇÃO |
 
 ## Em acompanhamento automático
 
