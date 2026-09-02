@@ -28,6 +28,7 @@ A base técnica, o staging, a infraestrutura de produção, backup, restauraçã
 | Auditoria recorrente de drift do schema | workflow `Audit production schema drift` | AUTOMATIZADO DIARIAMENTE |
 | Auditoria recorrente da segurança Auth | workflow `Audit Supabase Auth security`; mínimo de 8 e quatro classes de caracteres, promovidos após teste no staging | AUTOMATIZADO; HIBP DEPENDE DO PLANO PRO |
 | Modelo replicável da primeira agenda | JSON validado, planilha operacional e workflow `Validate agenda onboarding model` | CONCLUÍDO PARA SIMULAÇÃO |
+| Preparação operacional do go-live | Matriz de papéis, canais, handoff jurídico, cenários de preço e gate formal | ESTRUTURA CONCLUÍDA; NOMES E APROVAÇÕES PENDENTES |
 
 ## Em acompanhamento automático
 

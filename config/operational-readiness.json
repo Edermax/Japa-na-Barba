@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "roles": [
+    { "id": "pilot_owner", "label": "Dono do piloto", "owner": "", "backup": "", "coverage": "Dias úteis, 09:00–18:00 BRT" },
+    { "id": "agenda_operator", "label": "Operador principal", "owner": "", "backup": "", "coverage": "Dias úteis, 09:00–18:00 BRT" },
+    { "id": "technical_support", "label": "Suporte técnico", "owner": "", "backup": "", "coverage": "S1: acionamento imediato" },
+    { "id": "privacy_owner", "label": "Privacidade/LGPD", "owner": "", "backup": "", "coverage": "Dias úteis, 09:00–18:00 BRT" },
+    { "id": "finance_owner", "label": "Financeiro", "owner": "", "backup": "", "coverage": "Dias úteis, 09:00–18:00 BRT" }
+  ],
+  "channels": [
+    { "address": "contato@ogritech.com.br", "purpose": "Captação e atendimento comercial", "status": "PENDING", "forwardTo": "" },
+    { "address": "suporte@ogritech.com.br", "purpose": "Suporte operacional e incidentes", "status": "PENDING", "forwardTo": "" },
+    { "address": "financeiro@ogritech.com.br", "purpose": "Cobrança e documentos fiscais", "status": "PENDING", "forwardTo": "" },
+    { "address": "privacidade@ogritech.com.br", "purpose": "Direitos dos titulares e LGPD", "status": "PENDING", "forwardTo": "" }
+  ],
+  "legal": {
+    "corporateDataCompleted": false,
+    "termsReviewed": false,
+    "privacyReviewed": false,
+    "controllerProcessorAgreementReviewed": false,
+    "reviewer": "",
+    "reviewDate": ""
+  },
+  "commercial": {
+    "pricingScenariosPrepared": true,
+    "selectedScenario": "",
+    "billingMethod": "",
+    "fiscalIssuanceDefined": false,
+    "pilotPolicyApproved": false
+  },
+  "authorization": {
+    "technicalApproved": false,
+    "operationalApproved": false,
+    "legalApproved": false,
+    "commercialApproved": false,
+    "customerConfigurationApproved": false,
+    "publishApproved": false,
+    "approvedByTechnical": "",
+    "approvedByBusiness": "",
+    "approvedAt": ""
+  },
+  "deferredUntilLast": ["supabase_leaked_password_protection"]
+}

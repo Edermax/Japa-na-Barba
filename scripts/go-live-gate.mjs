@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { validateOperationalReadiness } from "./validate-operational-readiness.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
@@ -15,6 +16,7 @@ export function evaluateGate(input) {
   if (!input.syntheticPilotApproved) humanBlockers.push("Ciclo sintético de 14 dias ainda não aprovado");
   if (!input.closedBetaApproved) humanBlockers.push("Beta fechado ainda não aprovado");
   for (const item of input.openChecklistItems) humanBlockers.push(item);
+  for (const item of input.operationalBlockers ?? []) humanBlockers.push(item);
   const verdict = technicalFailures.length ? "NAO_APROVADO" : humanBlockers.length ? "BLOQUEADO" : "APROVADO";
   return { verdict, technicalFailures, humanBlockers };
 }
@@ -46,6 +48,7 @@ async function main() {
 
   const checklist = await read("docs/CHECKLIST_LANCAMENTO.md");
   const openChecklistItems = [...checklist.matchAll(/^- \[ \] (.+)$/gm)].map((match) => match[1].trim());
+  const operationalReadiness = validateOperationalReadiness(JSON.parse(await read("config/operational-readiness.json")));
   const [diary, beta, pilotIncidents, stagingIncidents, productionIncidents, backupIncidents, schemaIncidents, authIncidents] = await Promise.all([
     githubJson("/issues/7"),
     githubJson("/issues/8"),
@@ -67,7 +70,8 @@ async function main() {
     openIncidents: pilotIncidents.length + stagingIncidents.length + productionIncidents.length + backupIncidents.length + schemaIncidents.length + authIncidents.length,
     syntheticPilotApproved,
     closedBetaApproved,
-    openChecklistItems
+    openChecklistItems,
+    operationalBlockers: operationalReadiness.blockers
   };
   const result = { ...input, ...evaluateGate(input) };
   const markdown = [
