@@ -23,6 +23,8 @@ test("workflows usam gerações atuais das Actions de artefato", async () => {
   ];
   const workflows = (await Promise.all(paths.map(load))).join("\n");
   assert.doesNotMatch(workflows, /actions\/(?:upload|download)-artifact@v[1-6]\b/);
+  assert.doesNotMatch(workflows, /supabase\/setup-cli@v[12]\b/);
   assert.match(workflows, /actions\/upload-artifact@v7/);
   assert.match(workflows, /actions\/download-artifact@v8/);
+  assert.match(workflows, /supabase\/setup-cli@v3/);
 });

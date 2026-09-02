@@ -21,6 +21,8 @@
   fecha o incidente, evitando duplicidade.
 - `upload-artifact` foi atualizado para v7 e `download-artifact` para v8, conforme
   os releases oficiais consultados em 02/09/2026.
+- `supabase/setup-cli` foi atualizado para v3 após o ensaio apontar a dependência
+  depreciada do runtime Node 20 na versão v1.
 - Todos os workflows passaram a usar `checkout` e `setup-node` v5.
 
 ## Verificação
@@ -28,6 +30,9 @@
 - Testes locais: 32/32 aprovados.
 - Há testes de contrato específicos para alerta/resolução do backup e para
   impedir regressão às gerações antigas das Actions de artefato.
+- O backup `ogritech-production-20260902T080147Z`, da execução `33606336713`,
+  foi restaurado e validado integralmente em banco efêmero pela execução
+  `33614660543`; arquivos descriptografados e banco descartável foram removidos.
 - O segundo dia do piloto permanece a cargo do agendamento diário; não foi
   disparado manualmente para evitar comentário duplicado na mesma data.
 
