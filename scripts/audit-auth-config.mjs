@@ -1,11 +1,17 @@
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
+export const STRONG_PASSWORD_CHARACTERS =
+  "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};'\\:\"|<>?,./`~";
+
 export function assessAuthConfig(environment, config) {
   const minimumLength = Number(config.password_min_length ?? 0);
   const requiredCharacters = String(config.password_required_characters ?? "");
   const findings = [];
   if (minimumLength < 8) findings.push(`password_min_length=${minimumLength}; mínimo recomendado=8`);
+  if (requiredCharacters !== STRONG_PASSWORD_CHARACTERS) {
+    findings.push("password_required_characters não exige minúsculas, maiúsculas, números e símbolos");
+  }
   return {
     environment,
     passwordMinLength: minimumLength,
@@ -26,31 +32,19 @@ async function run() {
     ["staging", "fuesdztsvrkkgnbqhcxi"],
     ["production", "mvzcoaiiwytycdqcvydf"]
   ];
-  if (process.env.REMEDIATE_STAGING_PASSWORD_MIN_LENGTH === "true") {
-    const [, stagingRef] = targets[0];
-    const response = await fetch(`https://api.supabase.com/v1/projects/${stagingRef}/config/auth`, {
+  for (const [environment, projectRef] of targets) {
+    const harden = process.env[`HARDEN_${environment.toUpperCase()}_PASSWORD_POLICY`] === "true";
+    if (!harden) continue;
+    const response = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/config/auth`, {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ password_min_length: 8 })
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        password_min_length: 8,
+        password_required_characters: STRONG_PASSWORD_CHARACTERS
+      })
     });
-    if (!response.ok) throw new Error(`staging: correção retornou HTTP ${response.status}`);
-    console.log("staging: password_min_length atualizado para 8; produção não foi alterada");
-  }
-  if (process.env.REMEDIATE_PRODUCTION_PASSWORD_MIN_LENGTH === "true") {
-    const [, productionRef] = targets[1];
-    const response = await fetch(`https://api.supabase.com/v1/projects/${productionRef}/config/auth`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ password_min_length: 8 })
-    });
-    if (!response.ok) throw new Error(`production: correção retornou HTTP ${response.status}`);
-    console.log("production: password_min_length atualizado para 8");
+    if (!response.ok) throw new Error(`${environment}: correção retornou HTTP ${response.status}`);
+    console.log(`${environment}: política forte de senha aplicada`);
   }
   const results = [];
   for (const [environment, projectRef] of targets) {

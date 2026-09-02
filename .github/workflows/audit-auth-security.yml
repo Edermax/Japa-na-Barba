@@ -5,13 +5,13 @@ on:
     - cron: "25 4 * * *"
   workflow_dispatch:
     inputs:
-      remediate_staging:
-        description: "Elevar somente o mínimo de senha do staging para 8"
+      harden_staging:
+        description: "Aplicar política forte de senha somente no staging"
         required: false
         default: false
         type: boolean
-      remediate_production:
-        description: "Elevar somente o mínimo de senha da produção para 8"
+      harden_production:
+        description: "Aplicar política forte de senha somente na produção"
         required: false
         default: false
         type: boolean
@@ -32,8 +32,8 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       AUTH_CONFIG_REPORT: auth-security-report.json
-      REMEDIATE_STAGING_PASSWORD_MIN_LENGTH: ${{ inputs.remediate_staging || 'false' }}
-      REMEDIATE_PRODUCTION_PASSWORD_MIN_LENGTH: ${{ inputs.remediate_production || 'false' }}
+      HARDEN_STAGING_PASSWORD_POLICY: ${{ inputs.harden_staging || 'false' }}
+      HARDEN_PRODUCTION_PASSWORD_POLICY: ${{ inputs.harden_production || 'false' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

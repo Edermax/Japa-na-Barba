@@ -51,11 +51,11 @@ test("auditoria Auth arquiva somente campos redigidos e alerta regressões", asy
   assert.match(workflow, /AUTH_CONFIG_REPORT/);
   assert.match(script, /password_min_length/);
   assert.match(script, /password_hibp_enabled/);
-  assert.match(workflow, /remediate_staging/);
-  assert.match(workflow, /REMEDIATE_STAGING_PASSWORD_MIN_LENGTH/);
-  assert.match(workflow, /REMEDIATE_PRODUCTION_PASSWORD_MIN_LENGTH/);
+  assert.match(workflow, /harden_staging/);
+  assert.match(workflow, /HARDEN_STAGING_PASSWORD_POLICY/);
+  assert.match(workflow, /HARDEN_PRODUCTION_PASSWORD_POLICY/);
   assert.match(script, /password_min_length: 8/);
-  assert.match(script, /produção não foi alterada/);
+  assert.match(script, /STRONG_PASSWORD_CHARACTERS/);
   assert.doesNotMatch(script, /smtp_pass/);
 });
 
