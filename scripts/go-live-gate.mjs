@@ -36,7 +36,8 @@ async function main() {
     "docs/evidencias/monitoramento-producao-2026-08-31.md",
     "docs/evidencias/cloudflare-dns-2026-08-31.md",
     "docs/evidencias/captacao-contato-staging-2026-09-01.md",
-    "docs/evidencias/jornadas-comerciais-staging-2026-09-01.md"
+    "docs/evidencias/jornadas-comerciais-staging-2026-09-01.md",
+    "docs/evidencias/auditoria-automacoes-2026-09-02.md"
   ];
   const missingEvidence = [];
   for (const path of evidencePaths) {
@@ -45,11 +46,13 @@ async function main() {
 
   const checklist = await read("docs/CHECKLIST_LANCAMENTO.md");
   const openChecklistItems = [...checklist.matchAll(/^- \[ \] (.+)$/gm)].map((match) => match[1].trim());
-  const [diary, beta, incidentsA, incidentsB] = await Promise.all([
+  const [diary, beta, pilotIncidents, stagingIncidents, productionIncidents, backupIncidents] = await Promise.all([
     githubJson("/issues/7"),
     githubJson("/issues/8"),
     githubJson("/issues?state=open&labels=synthetic-agenda-pilot&per_page=100"),
-    githubJson("/issues?state=open&labels=staging-agenda-monitor&per_page=100")
+    githubJson("/issues?state=open&labels=staging-agenda-monitor&per_page=100"),
+    githubJson("/issues?state=open&labels=production-monitor&per_page=100"),
+    githubJson("/issues?state=open&labels=production-backup&per_page=100")
   ]);
   const diaryComments = await githubJson("/issues/7/comments?per_page=100");
   const syntheticPilotApproved = diary.state === "closed" && diaryComments.some((item) => item.body?.includes("APROVADO TECNICAMENTE"));
@@ -59,7 +62,7 @@ async function main() {
     commit: process.env.GITHUB_SHA || "local",
     validationPassed: process.env.VALIDATION_STATUS === "passed",
     missingEvidence,
-    openIncidents: incidentsA.length + incidentsB.length,
+    openIncidents: pilotIncidents.length + stagingIncidents.length + productionIncidents.length + backupIncidents.length,
     syntheticPilotApproved,
     closedBetaApproved,
     openChecklistItems

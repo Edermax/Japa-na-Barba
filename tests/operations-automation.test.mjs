@@ -28,3 +28,16 @@ test("workflows usam gerações atuais das Actions de artefato", async () => {
   assert.match(workflows, /actions\/download-artifact@v8/);
   assert.match(workflows, /supabase\/setup-cli@v3/);
 });
+
+test("gate executa em todo push e considera todos os incidentes operacionais", async () => {
+  const [workflow, gate] = await Promise.all([
+    load(".github/workflows/go-live-readiness.yml"),
+    load("scripts/go-live-gate.mjs")
+  ]);
+  assert.match(workflow, /push:\s*\n\s*branches: \[main\]/);
+  assert.doesNotMatch(workflow, /\n\s+paths:/);
+  for (const label of ["synthetic-agenda-pilot", "staging-agenda-monitor", "production-monitor", "production-backup"]) {
+    assert.match(gate, new RegExp(`labels=${label}`));
+  }
+  assert.match(gate, /auditoria-automacoes-2026-09-02\.md/);
+});

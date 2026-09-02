@@ -26,6 +26,10 @@
 - A CLI instalada pelo npm e pelos workflows foi alinhada na versão estável
   `2.116.0`; a auditoria npm permaneceu com zero vulnerabilidades.
 - Todos os workflows passaram a usar `checkout` e `setup-node` v5.
+- O gate passou a executar em todo push da branch principal, sem filtro que
+  pudesse deixar mudanças de aplicação ou banco sem novo pacote de evidências.
+- Incidentes abertos de piloto, staging, monitor de produção e backup agora são
+  somados pelo gate e impedem aprovação operacional.
 
 ## Verificação
 

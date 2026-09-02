@@ -4,13 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - "scripts/go-live-gate.mjs"
-      - "scripts/audit-public-operations.mjs"
-      - "scripts/build-go-live-evidence.mjs"
-      - "tests/**"
-      - "docs/**"
-      - ".github/workflows/go-live-readiness.yml"
 
 permissions:
   contents: read
