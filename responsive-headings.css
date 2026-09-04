@@ -3,7 +3,7 @@ h1 em,
 h2 em {
   display: inline-block;
   max-width: 100%;
-  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   font-weight: 700;
   font-style: normal;
   line-height: 1;
@@ -36,7 +36,13 @@ h2 em {
 
   h1 em,
   h2 em {
+    line-height: 1.12;
     letter-spacing: -0.015em;
     -webkit-text-stroke-width: 0.7px;
+  }
+
+  .hero h1 em {
+    display: block;
+    margin-top: 0.12em;
   }
 }
